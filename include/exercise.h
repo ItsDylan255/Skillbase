@@ -9,7 +9,9 @@ struct Exercise
     int hobbyId = 0;
     QString name;
     QString description;
-    QString category;
+    int categoryId = 0;
+    double value = 0.0;
+    QString unit;
     QString goal;
     bool archived = false;
 };

@@ -36,16 +36,35 @@ bool Database::createTables()
         return false;
     }
 
+    // Categories belong to a specific hobby, so they are created before
+    // exercises because exercises reference this table.
+    if (!query.exec(
+            "CREATE TABLE IF NOT EXISTS categories ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hobby_id INTEGER NOT NULL,"
+            "name TEXT NOT NULL,"
+            "UNIQUE (hobby_id, name),"
+            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
+            ")"
+            )) {
+        qDebug() << "Fehler beim Erstellen der categories-Tabelle:"
+                 << query.lastError().text();
+        return false;
+    }
+
     if (!query.exec(
             "CREATE TABLE IF NOT EXISTS exercises ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "hobby_id INTEGER NOT NULL,"
             "name TEXT NOT NULL,"
             "description TEXT,"
-            "category TEXT,"
+            "category_id INTEGER,"
+            "value REAL,"
+            "unit TEXT,"
             "goal TEXT,"
             "archived INTEGER NOT NULL DEFAULT 0,"
-            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
+            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE,"
+            "FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL"
             ")"
             )) {
         qDebug() << "Fehler beim Erstellen der exercises-Tabelle:"
@@ -125,6 +144,19 @@ bool Database::createTables()
             ")"
             )) {
         qDebug() << "Fehler beim Erstellen der goals-Tabelle:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    if (!query.exec(
+            "CREATE TABLE IF NOT EXISTS hobby_notes ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hobby_id INTEGER NOT NULL UNIQUE,"
+            "content TEXT,"
+            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
+            ")"
+            )) {
+        qDebug() << "Fehler beim Erstellen der hobby_notes-Tabelle:"
                  << query.lastError().text();
         return false;
     }

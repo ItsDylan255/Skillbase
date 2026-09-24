@@ -19,10 +19,12 @@ public:
     ~MainWindow() override;
 
 private:
+    void loadExerciseCards();
+    void editExercise(int exerciseId);
+
     Ui::MainWindow *ui;
     QString currentHobby;
-    int currentHobbyId;
-
+    int currentHobbyId = 0;
 
 };
 #endif // MAINWINDOW_H

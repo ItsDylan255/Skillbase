@@ -24,6 +24,7 @@ qt_add_executable(Skillbase
     src/mainwindow.cpp
     include/mainwindow.h
     resources/mainwindow.ui
+    resources/exercise_dialog.ui
     include/database.h
     src/database.cpp
     include/hobby.h
@@ -61,6 +62,18 @@ qt_add_executable(Skillbase
     include/goalrepository.h
     src/goalrepository.cpp
     resources/resources.qrc
+    include/hobbynoterepository.h
+    src/hobbynoterepository.cpp
+    include/hobbynoterepository.h
+    src/hobbynoterepository.cpp
+    include/category.h
+    include/categoryrepository.h
+    src/categoryrepository.cpp
+    include/category.h
+    include/categoryrepository.h
+    src/categoryrepository.cpp
+
+
 )
 
 target_include_directories(Skillbase PRIVATE include)

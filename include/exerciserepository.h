@@ -12,7 +12,9 @@ public:
         int hobbyId,
         const QString &name,
         const QString &description,
-        const QString &category,
+        int categoryId,
+        double value,
+        const QString &unit,
         const QString &goal,
         int &id
         );
@@ -21,6 +23,16 @@ public:
     static QList<Exercise> getForHobby(int hobbyId, bool includeArchived = false);
 
     static bool setArchived(int exerciseId, bool archived);
+    static bool update(
+        int exerciseId,
+        const QString &name,
+        const QString &description,
+        int categoryId,
+        double value,
+        const QString &unit,
+        const QString &goal
+        );
+    static bool getById(int exerciseId, Exercise &exercise);
 };
 
 #endif

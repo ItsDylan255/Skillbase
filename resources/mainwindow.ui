@@ -179,7 +179,7 @@ QToolButton:checked {
                </layout>
               </widget>
              </item>
-             <item row="2" column="0">
+             <item row="2" column="0" colspan="2">
               <widget class="QGroupBox" name="recentActivityCard">
                <property name="title">
                 <string>Letzte Aktivität</string>
@@ -187,22 +187,6 @@ QToolButton:checked {
                <layout class="QVBoxLayout" name="recentActivityCardLayout">
                 <item>
                  <widget class="QListWidget" name="recentActivityList"/>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QGroupBox" name="notesCard">
-               <property name="title">
-                <string>Notizen</string>
-               </property>
-               <layout class="QVBoxLayout" name="notesCardLayout">
-                <item>
-                 <widget class="QPlainTextEdit" name="notesTextEdit">
-                  <property name="placeholderText">
-                   <string>Persönliche Notizen...</string>
-                  </property>
-                 </widget>
                 </item>
                </layout>
               </widget>
@@ -343,7 +327,7 @@ QToolButton:checked {
            <item>
             <widget class="QStackedWidget" name="hobbyPageStack">
              <property name="currentIndex">
-              <number>0</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="dashboardHobbyPage">
               <layout class="QGridLayout" name="dashboardHobbyPageLayout">
@@ -404,7 +388,7 @@ QToolButton:checked {
                  </layout>
                 </widget>
                </item>
-               <item row="2" column="0" colspan="2">
+               <item row="2" column="0">
                 <widget class="QGroupBox" name="hobbyRecentActivityCard">
                  <property name="title">
                   <string>Letzte Aktivität</string>
@@ -416,40 +400,395 @@ QToolButton:checked {
                  </layout>
                 </widget>
                </item>
+               <item row="2" column="1">
+                <widget class="QGroupBox" name="hobbyNotesCard">
+                 <property name="title">
+                  <string>Notizen</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="hobbyNotesCardLayout">
+                  <item>
+                   <widget class="QPlainTextEdit" name="hobbyNotesTextEdit">
+                    <property name="placeholderText">
+                     <string>Notizen zu diesem Hobby...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
               </layout>
              </widget>
              <widget class="QWidget" name="roadmapPage">
               <layout class="QVBoxLayout" name="roadmapPageLayout">
+               <property name="spacing">
+                <number>10</number>
+               </property>
+               <property name="leftMargin">
+                <number>12</number>
+               </property>
+               <property name="topMargin">
+                <number>12</number>
+               </property>
+               <property name="rightMargin">
+                <number>12</number>
+               </property>
+               <property name="bottomMargin">
+                <number>12</number>
+               </property>
+               <!-- Header: Titel + Button -->
                <item>
-                <widget class="QLabel" name="roadmapHintLabel">
-                 <property name="text">
-                  <string>Geplante Entwicklungsschritte für dieses Hobby.</string>
-                 </property>
-                </widget>
+                <layout class="QHBoxLayout" name="roadmapHeaderLayout">
+                 <item>
+                  <widget class="QLabel" name="roadmapHeaderLabel">
+                   <property name="text">
+                    <string>Roadmap</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="roadmapHeaderSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="addRoadmapGoalButton">
+                   <property name="text">
+                    <string>+ Neues Ziel</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
+               <!-- View-Toggle: Tree | Diagram -->
                <item>
-                <widget class="QListWidget" name="roadmapList"/>
+                <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
+                 <item>
+                  <widget class="QToolButton" name="roadmapTreeViewButton">
+                   <property name="text">
+                    <string>Tree</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="roadmapDiagramViewButton">
+                   <property name="text">
+                    <string>Diagram</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="roadmapViewToggleSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
+               <!-- Splitter: linke Ansicht | rechtes Info-Panel -->
                <item>
-                <widget class="QPushButton" name="addRoadmapStepButton">
-                 <property name="text">
-                  <string>+ Schritt hinzufügen</string>
+                <widget class="QSplitter" name="roadmapSplitter">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
                  </property>
+                 <property name="childrenCollapsible">
+                  <bool>false</bool>
+                 </property>
+                 <!-- Linke Seite: Tree / Diagram (umschaltbar) -->
+                 <widget class="QStackedWidget" name="roadmapViewStack">
+                  <property name="currentIndex">
+                   <number>0</number>
+                  </property>
+                  <!-- Tree View -->
+                  <widget class="QWidget" name="roadmapTreePage">
+                   <layout class="QVBoxLayout" name="roadmapTreePageLayout">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QTreeWidget" name="roadmapTreeWidget">
+                      <property name="contextMenuPolicy">
+                       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+                      </property>
+                      <property name="headerHidden">
+                       <bool>true</bool>
+                      </property>
+                      <column>
+                       <property name="text">
+                        <string>Ziel</string>
+                       </property>
+                      </column>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                  <!-- Diagram View (Custom Widget Placeholder) -->
+                  <widget class="QWidget" name="roadmapDiagramPage">
+                   <layout class="QVBoxLayout" name="roadmapDiagramPageLayout">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QWidget" name="roadmapDiagramWidget" native="true">
+                      <property name="toolTip">
+                       <string>Hierarchie-Diagramm – wird per C++ gezeichnet</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </widget>
+                 <!-- Rechte Seite: Info-Panel (per C++ ein-/ausblenden) -->
+                 <widget class="QWidget" name="roadmapInfoPanel" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>200</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>260</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <layout class="QVBoxLayout" name="roadmapInfoLayout">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoTitle">
+                     <property name="text">
+                      <string>Informationen</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QFrame" name="roadmapInfoSeparator">
+                     <property name="frameShape">
+                      <enum>QFrame::Shape::HLine</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <!-- Name -->
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoNameLabel">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <!-- Status -->
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoStatusHeader">
+                     <property name="text">
+                      <string>Status</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoStatusLabel">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <!-- Beschreibung -->
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoDescriptionHeader">
+                     <property name="text">
+                      <string>Beschreibung</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoDescriptionLabel">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignTop|Qt::AlignmentFlag::AlignLeft</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <!-- Übergeordnetes Ziel -->
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoParentHeader">
+                     <property name="text">
+                      <string>Übergeordnetes Ziel</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="roadmapInfoParentLabel">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="roadmapInfoSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
                 </widget>
                </item>
               </layout>
              </widget>
              <widget class="QWidget" name="timelinePage">
               <layout class="QVBoxLayout" name="timelinePageLayout">
+               <property name="spacing">
+                <number>10</number>
+               </property>
+               <property name="leftMargin">
+                <number>12</number>
+               </property>
+               <property name="topMargin">
+                <number>12</number>
+               </property>
+               <property name="rightMargin">
+                <number>12</number>
+               </property>
+               <property name="bottomMargin">
+                <number>12</number>
+               </property>
+               <!-- Header: Titel + Button -->
                <item>
-                <widget class="QLabel" name="timelineHintLabel">
-                 <property name="text">
-                  <string>Wichtige Ereignisse in der Entwicklung dieses Hobbys.</string>
+                <layout class="QHBoxLayout" name="timelineHeaderLayout">
+                 <item>
+                  <widget class="QLabel" name="timelineHeaderLabel">
+                   <property name="text">
+                    <string>Timeline</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="timelineHeaderSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="addTimelinePhaseButton">
+                   <property name="text">
+                    <string>+ Phase hinzufügen</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <!-- Horizontaler Timeline-Balken (Custom Widget) -->
+               <item>
+                <widget class="QWidget" name="timelineBarWidget" native="true">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>Geplante Lernphasen – Breite entspricht der zeitlichen Dauer</string>
                  </property>
                 </widget>
                </item>
+               <!-- Scroll Area für Phasen-Cards -->
                <item>
-                <widget class="QListWidget" name="timelineList"/>
+                <widget class="QScrollArea" name="timelinePhaseScrollArea">
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::NoFrame</enum>
+                 </property>
+                 <widget class="QWidget" name="timelinePhasesWidget">
+                  <layout class="QVBoxLayout" name="timelinePhasesLayout">
+                   <property name="spacing">
+                    <number>10</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="timelineEmptyLabel">
+                     <property name="text">
+                      <string>Noch keine Lernphasen geplant.</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="timelinePhasesSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -469,14 +808,99 @@ QToolButton:checked {
              </widget>
              <widget class="QWidget" name="exercisesPage">
               <layout class="QVBoxLayout" name="exercisesPageLayout">
+               <property name="spacing">
+                <number>10</number>
+               </property>
+               <property name="leftMargin">
+                <number>12</number>
+               </property>
+               <property name="topMargin">
+                <number>12</number>
+               </property>
+               <property name="rightMargin">
+                <number>12</number>
+               </property>
+               <property name="bottomMargin">
+                <number>12</number>
+               </property>
+               <!-- Header: Titel + Button -->
                <item>
-                <widget class="QListWidget" name="exerciseList"/>
+                <layout class="QHBoxLayout" name="exercisesHeaderLayout">
+                 <item>
+                  <widget class="QLabel" name="exercisesHeaderLabel">
+                   <property name="text">
+                    <string>Übungen</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="exercisesHeaderSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="addExerciseButton">
+                   <property name="text">
+                    <string>+ Übung</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
+               <!-- Filterleiste: Suche + Kategorie -->
                <item>
-                <widget class="QPushButton" name="addExerciseButton">
-                 <property name="text">
-                  <string>+ Übung hinzufügen</string>
+                <layout class="QHBoxLayout" name="exercisesFilterLayout">
+                 <item>
+                  <widget class="QLineEdit" name="exerciseSearchLineEdit">
+                   <property name="placeholderText">
+                    <string>🔍 Übungen suchen...</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="exerciseCategoryComboBox">
+                   <item>
+                    <property name="text">
+                     <string>Alle Kategorien</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <!-- Scroll Area für Übungs-Cards -->
+               <item>
+                <widget class="QScrollArea" name="exerciseScrollArea">
+                 <property name="widgetResizable">
+                  <bool>true</bool>
                  </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::NoFrame</enum>
+                 </property>
+                 <widget class="QWidget" name="exerciseCardsWidget">
+                  <layout class="QGridLayout" name="exerciseCardsLayout">
+                   <property name="horizontalSpacing">
+                    <number>10</number>
+                   </property>
+                   <property name="verticalSpacing">
+                    <number>10</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                  </layout>
+                 </widget>
                 </widget>
                </item>
               </layout>
@@ -541,6 +965,12 @@ QToolButton:checked {
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
              </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
             </spacer>
            </item>
           </layout>
@@ -558,6 +988,12 @@ QToolButton:checked {
             <spacer name="statisticsPageSpacer">
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
              </property>
             </spacer>
            </item>
