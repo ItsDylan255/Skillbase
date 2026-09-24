@@ -112,7 +112,3 @@ Skillbase is under active development. For current progress, planned features, a
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-## About this project
-
-Skillbase is both a personal tool and a software engineering portfolio project. It's meant to demonstrate the full development process — from requirements analysis and data modeling through software architecture, implementation, testing, and release — with a focus on C++, object-oriented software design, Qt, SQL/SQLite, CMake, and Git.
