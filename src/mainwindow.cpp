@@ -131,6 +131,8 @@ MainWindow::MainWindow(QWidget *parent)
                     currentHobbyId,
                     exerciseName,
                     "",
+                    "",
+                    "",
                     exerciseId
                     )) {
 

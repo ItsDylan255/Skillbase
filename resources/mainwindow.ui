@@ -121,11 +121,93 @@ QToolButton:checked {
             </widget>
            </item>
            <item>
-            <spacer name="dashboardPageSpacer">
-             <property name="orientation">
-              <enum>Qt::Orientation::Vertical</enum>
-             </property>
-            </spacer>
+            <layout class="QGridLayout" name="dashboardCardsLayout">
+             <item row="0" column="0">
+              <widget class="QGroupBox" name="todayCard">
+               <property name="title">
+                <string>Heute</string>
+               </property>
+               <layout class="QVBoxLayout" name="todayCardLayout">
+                <item>
+                 <widget class="QLabel" name="todayLabel">
+                  <property name="text">
+                   <string>Keine Aufgaben für heute.</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QGroupBox" name="goalsCard">
+               <property name="title">
+                <string>Ziele</string>
+               </property>
+               <layout class="QVBoxLayout" name="goalsCardLayout">
+                <item>
+                 <widget class="QLabel" name="goalsSummaryLabel">
+                  <property name="text">
+                   <string>Keine aktiven Ziele.</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QGroupBox" name="progressCard">
+               <property name="title">
+                <string>Fortschritt</string>
+               </property>
+               <layout class="QVBoxLayout" name="progressCardLayout">
+                <item>
+                 <widget class="QLabel" name="progressSummaryLabel">
+                  <property name="text">
+                   <string>Noch keine Fortschrittsdaten vorhanden.</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QGroupBox" name="recentActivityCard">
+               <property name="title">
+                <string>Letzte Aktivität</string>
+               </property>
+               <layout class="QVBoxLayout" name="recentActivityCardLayout">
+                <item>
+                 <widget class="QListWidget" name="recentActivityList"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QGroupBox" name="notesCard">
+               <property name="title">
+                <string>Notizen</string>
+               </property>
+               <layout class="QVBoxLayout" name="notesCardLayout">
+                <item>
+                 <widget class="QPlainTextEdit" name="notesTextEdit">
+                  <property name="placeholderText">
+                   <string>Persönliche Notizen...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -263,10 +345,128 @@ QToolButton:checked {
              <property name="currentIndex">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="dashboardHobbyPage"/>
-             <widget class="QWidget" name="roadmapPage"/>
-             <widget class="QWidget" name="timelinePage"/>
-             <widget class="QWidget" name="routinesPage"/>
+             <widget class="QWidget" name="dashboardHobbyPage">
+              <layout class="QGridLayout" name="dashboardHobbyPageLayout">
+               <item row="0" column="0">
+                <widget class="QGroupBox" name="hobbyTodayCard">
+                 <property name="title">
+                  <string>Heute</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="hobbyTodayCardLayout">
+                  <item>
+                   <widget class="QLabel" name="hobbyTodayLabel">
+                    <property name="text">
+                     <string>Keine Aktivitäten für heute.</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QGroupBox" name="hobbyGoalsCard">
+                 <property name="title">
+                  <string>Ziele</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="hobbyGoalsCardLayout">
+                  <item>
+                   <widget class="QLabel" name="hobbyGoalsSummaryLabel">
+                    <property name="text">
+                     <string>Keine aktiven Ziele.</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
+                <widget class="QGroupBox" name="hobbyProgressCard">
+                 <property name="title">
+                  <string>Fortschritt</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="hobbyProgressCardLayout">
+                  <item>
+                   <widget class="QLabel" name="hobbyProgressSummaryLabel">
+                    <property name="text">
+                     <string>Noch keine Fortschrittsdaten vorhanden.</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="2" column="0" colspan="2">
+                <widget class="QGroupBox" name="hobbyRecentActivityCard">
+                 <property name="title">
+                  <string>Letzte Aktivität</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="hobbyRecentActivityCardLayout">
+                  <item>
+                   <widget class="QListWidget" name="hobbyRecentActivityList"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="roadmapPage">
+              <layout class="QVBoxLayout" name="roadmapPageLayout">
+               <item>
+                <widget class="QLabel" name="roadmapHintLabel">
+                 <property name="text">
+                  <string>Geplante Entwicklungsschritte für dieses Hobby.</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="roadmapList"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="addRoadmapStepButton">
+                 <property name="text">
+                  <string>+ Schritt hinzufügen</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="timelinePage">
+              <layout class="QVBoxLayout" name="timelinePageLayout">
+               <item>
+                <widget class="QLabel" name="timelineHintLabel">
+                 <property name="text">
+                  <string>Wichtige Ereignisse in der Entwicklung dieses Hobbys.</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="timelineList"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="routinesPage">
+              <layout class="QVBoxLayout" name="routinesPageLayout">
+               <item>
+                <widget class="QListWidget" name="routineList"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="addRoutineButton">
+                 <property name="text">
+                  <string>+ Routine hinzufügen</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
              <widget class="QWidget" name="exercisesPage">
               <layout class="QVBoxLayout" name="exercisesPageLayout">
                <item>
@@ -281,9 +481,48 @@ QToolButton:checked {
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="historyPage"/>
-             <widget class="QWidget" name="progressPage"/>
-             <widget class="QWidget" name="goalsPage"/>
+             <widget class="QWidget" name="historyPage">
+              <layout class="QVBoxLayout" name="historyPageLayout">
+               <item>
+                <widget class="QLabel" name="historyHintLabel">
+                 <property name="text">
+                  <string>Einträge entstehen automatisch beim Ausführen von Übungen und Routinen.</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="historyList"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="progressPage">
+              <layout class="QVBoxLayout" name="progressPageLayout">
+               <item>
+                <widget class="QLabel" name="progressPlaceholderLabel">
+                 <property name="text">
+                  <string>Fortschrittsdiagramm folgt, sobald Übungs-Logs vorhanden sind.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="goalsPage">
+              <layout class="QVBoxLayout" name="goalsPageLayout">
+               <item>
+                <widget class="QListWidget" name="goalList"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="addGoalButton">
+                 <property name="text">
+                  <string>+ Ziel hinzufügen</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>

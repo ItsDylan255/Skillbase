@@ -8,8 +8,19 @@
 class ExerciseRepository
 {
 public:
-    static bool add(int hobbyId, const QString &name, const QString &description, int &id);
-    static QList<Exercise> getForHobby(int hobbyId);
+    static bool add(
+        int hobbyId,
+        const QString &name,
+        const QString &description,
+        const QString &category,
+        const QString &goal,
+        int &id
+        );
+
+    // includeArchived = false (default) returns only active exercises.
+    static QList<Exercise> getForHobby(int hobbyId, bool includeArchived = false);
+
+    static bool setArchived(int exerciseId, bool archived);
 };
 
 #endif

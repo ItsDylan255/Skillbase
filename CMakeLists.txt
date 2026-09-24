@@ -27,6 +27,34 @@ qt_add_executable(Skillbase
     src/hobbyrepository.cpp
     include/exerciserepository.h
     src/exerciserepository.cpp
+    include/hobbyrepository.h
+    src/hobbyrepository.cpp
+    include/exerciserepository.h
+    src/exerciserepository.cpp
+    include/routine.h
+    include/routinestep.h
+    include/routinelog.h
+    include/routinerepository.h
+    src/routinerepository.cpp
+    include/exerciselog.h
+    include/exerciselogrepository.h
+    src/exerciselogrepository.cpp
+    include/goal.h
+    include/goalrepository.h
+    src/goalrepository.cpp
+    include/routine.h
+    include/routine.h
+    include/routine.h
+    include/routinestep.h
+    include/routinelog.h
+    include/routinerepository.h
+    src/routinerepository.cpp
+    include/exerciselog.h
+    include/exerciselogrepository.h
+    src/exerciselogrepository.cpp
+    include/goal.h
+    include/goalrepository.h
+    src/goalrepository.cpp
 )
 
 target_include_directories(Skillbase PRIVATE include)
