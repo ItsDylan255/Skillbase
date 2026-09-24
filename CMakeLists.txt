@@ -13,8 +13,13 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
 
 qt_standard_project_setup()
 
+if(WIN32)
+    set(APP_ICON_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/skillbase_icon.rc")
+endif()
+
 qt_add_executable(Skillbase
     WIN32 MACOSX_BUNDLE
+    ${APP_ICON_RESOURCE}
     src/main.cpp
     src/mainwindow.cpp
     include/mainwindow.h
@@ -55,6 +60,7 @@ qt_add_executable(Skillbase
     include/goal.h
     include/goalrepository.h
     src/goalrepository.cpp
+    resources/resources.qrc
 )
 
 target_include_directories(Skillbase PRIVATE include)

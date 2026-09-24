@@ -35,11 +35,13 @@ Thumbs.db
 /.qmake.cache
 /.qmake.stash
 **/.qmlls.ini
+*.db
 
 # qtcreator generated files
 *.pro.user*
 *.qbs.user*
 CMakeLists.txt.user*
+.qtcreator/
 
 # xemacs temporary files
 *.flc

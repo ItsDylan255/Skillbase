@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/skillbase_black.svg</file>
+        <file>icons/skillbase_white.svg</file>
+        <file>audio/timer_complete.mp3</file>
+    </qresource>
+</RCC>

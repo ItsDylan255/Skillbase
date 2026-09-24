@@ -109,7 +109,7 @@ QToolButton:checked {
        <item>
         <widget class="QStackedWidget" name="pageStack">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="dashboardPage">
           <layout class="QVBoxLayout" name="dashboardPageLayout">
