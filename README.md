@@ -19,15 +19,14 @@ Skillbase runs entirely locally, with no required cloud services, subscriptions,
 
 | Area | Description |
 |---|---|
-| **Hobbies** | Any number of hobbies, each individually configurable with name and color |
-| **Exercises** | Create, edit, run, and archive exercises; numeric values are tracked over time |
-| **Routines** | Combine multiple exercises into a sequential training session |
-| **Timer** | Manually controlled timer for exercises and routines with an audio signal on completion |
-| **Goals** | Concrete goals with a deadline, progress, and status, linkable to exercises |
-| **Progress** | Hobby-specific metrics (e.g. BPM, repetitions, learning level) tracked and visualized over time |
-| **History** | Chronological record of past activity |
-| **Roadmap** | Planned development path for a hobby |
-| **Timeline** | Key events in a hobby's development over time |
+| **Hobbies** | Create and manage any number of hobbies, each with its own name, color, and learning data |
+| **Goals** | Collect individual goals for a hobby that can later be manually added to its Roadmap |
+| **Roadmap** | Build a hierarchical learning plan for each hobby with multiple goals and arbitrarily nested sub-goals |
+| **Timeline** | Plan learning phases for a hobby using start and end dates; phases are automatically ordered by date and cannot overlap |
+| **Exercises** | Create, edit, run, and archive reusable exercises belonging to a hobby |
+| **Routines** | Create timed training sessions from existing exercises, with a custom order and duration for each exercise |
+| **Timer** | Run timed exercises and routines with an audio signal when a timer finishes |
+| **Statistics** | Visualize progress and activity data collected from completed exercises and routines over time |
 
 ## Architecture
 
