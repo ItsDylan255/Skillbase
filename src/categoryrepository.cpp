@@ -60,3 +60,44 @@ QList<Category> CategoryRepository::getForHobby(int hobbyId)
     return categories;
 }
 
+bool CategoryRepository::rename(int categoryId, const QString &name)
+{
+    QSqlQuery query;
+
+    query.prepare(
+        "UPDATE categories "
+        "SET name = :name "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":name", name);
+    query.bindValue(":id", categoryId);
+
+    if (!query.exec()) {
+        qDebug() << "Fehler beim Aktualisieren der Kategorie:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool CategoryRepository::remove(int categoryId)
+{
+    QSqlQuery query;
+
+    query.prepare(
+        "DELETE FROM categories "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":id", categoryId);
+
+    if (!query.exec()) {
+        qDebug() << "Fehler beim Löschen der Kategorie:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}

@@ -849,7 +849,7 @@ QToolButton:checked {
                  </item>
                 </layout>
                </item>
-               <!-- Filterleiste: Suche + Kategorie -->
+               <!-- Filterleiste: Suche + Kategorie + Verwaltung -->
                <item>
                 <layout class="QHBoxLayout" name="exercisesFilterLayout">
                  <item>
@@ -866,6 +866,13 @@ QToolButton:checked {
                      <string>Alle Kategorien</string>
                     </property>
                    </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="manageCategoriesButton">
+                   <property name="text">
+                    <string>Kategorien verwalten</string>
+                   </property>
                   </widget>
                  </item>
                 </layout>

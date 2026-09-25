@@ -25,6 +25,7 @@ qt_add_executable(Skillbase
     include/mainwindow.h
     resources/mainwindow.ui
     resources/exercise_dialog.ui
+    resources/category_management_dialog.ui
     include/database.h
     src/database.cpp
     include/hobby.h
@@ -72,6 +73,7 @@ qt_add_executable(Skillbase
     include/category.h
     include/categoryrepository.h
     src/categoryrepository.cpp
+    resources/category_management_dialog.ui
 
 
 )

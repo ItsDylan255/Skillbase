@@ -14,6 +14,9 @@ public:
 
     // Returns only the categories belonging to the selected hobby.
     static QList<Category> getForHobby(int hobbyId);
+
+    static bool rename(int categoryId, const QString &name);
+    static bool remove(int categoryId);
 };
 
 #endif
