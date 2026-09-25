@@ -15,6 +15,8 @@ public:
     // Convenience for progress tracking: the most recent log for an
     // exercise, used to pre-fill the value field the next time it's run.
     static bool getLatestForExercise(int exerciseId, ExerciseLog &out);
+
+
 };
 
 #endif

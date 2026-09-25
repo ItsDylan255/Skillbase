@@ -13,27 +13,23 @@
   <property name="windowTitle">
    <string>Skillbase</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QToolButton {
-    border: none;
-    background: transparent;
-    padding: 8px 14px;
-    color: #888888;
-    font-size: 14px;
-    border-bottom: 2px solid transparent;
-}
-
-QToolButton:hover {
-    color: white;
-}
-
-QToolButton:checked {
-    color: white;
-    border-bottom: 2px solid #ff6f61;
-}</string>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QWidget" name="sidebar" native="true">
       <property name="minimumSize">
@@ -49,6 +45,21 @@ QToolButton:checked {
        </size>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>16</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>16</number>
+       </property>
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -106,6 +117,21 @@ QToolButton:checked {
        </sizepolicy>
       </property>
       <layout class="QVBoxLayout" name="contentLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QStackedWidget" name="pageStack">
          <property name="currentIndex">
@@ -113,6 +139,21 @@ QToolButton:checked {
          </property>
          <widget class="QWidget" name="dashboardPage">
           <layout class="QVBoxLayout" name="dashboardPageLayout">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>24</number>
+           </property>
+           <property name="topMargin">
+            <number>24</number>
+           </property>
+           <property name="rightMargin">
+            <number>24</number>
+           </property>
+           <property name="bottomMargin">
+            <number>24</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
@@ -122,6 +163,12 @@ QToolButton:checked {
            </item>
            <item>
             <layout class="QGridLayout" name="dashboardCardsLayout">
+             <property name="horizontalSpacing">
+              <number>16</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>16</number>
+             </property>
              <item row="0" column="0">
               <widget class="QGroupBox" name="todayCard">
                <property name="title">
@@ -203,6 +250,21 @@ QToolButton:checked {
            </sizepolicy>
           </property>
           <layout class="QVBoxLayout" name="hobbyPageLayout">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>24</number>
+           </property>
+           <property name="topMargin">
+            <number>24</number>
+           </property>
+           <property name="rightMargin">
+            <number>24</number>
+           </property>
+           <property name="bottomMargin">
+            <number>24</number>
+           </property>
            <item>
             <widget class="QLabel" name="hobbyLabel">
              <property name="text">
@@ -421,7 +483,7 @@ QToolButton:checked {
              <widget class="QWidget" name="roadmapPage">
               <layout class="QVBoxLayout" name="roadmapPageLayout">
                <property name="spacing">
-                <number>10</number>
+                <number>12</number>
                </property>
                <property name="leftMargin">
                 <number>12</number>
@@ -683,7 +745,7 @@ QToolButton:checked {
              <widget class="QWidget" name="timelinePage">
               <layout class="QVBoxLayout" name="timelinePageLayout">
                <property name="spacing">
-                <number>10</number>
+                <number>12</number>
                </property>
                <property name="leftMargin">
                 <number>12</number>
@@ -755,7 +817,7 @@ QToolButton:checked {
                  <widget class="QWidget" name="timelinePhasesWidget">
                   <layout class="QVBoxLayout" name="timelinePhasesLayout">
                    <property name="spacing">
-                    <number>10</number>
+                    <number>12</number>
                    </property>
                    <property name="leftMargin">
                     <number>0</number>
@@ -809,7 +871,7 @@ QToolButton:checked {
              <widget class="QWidget" name="exercisesPage">
               <layout class="QVBoxLayout" name="exercisesPageLayout">
                <property name="spacing">
-                <number>10</number>
+                <number>12</number>
                </property>
                <property name="leftMargin">
                 <number>12</number>
@@ -889,10 +951,10 @@ QToolButton:checked {
                  <widget class="QWidget" name="exerciseCardsWidget">
                   <layout class="QGridLayout" name="exerciseCardsLayout">
                    <property name="horizontalSpacing">
-                    <number>10</number>
+                    <number>12</number>
                    </property>
                    <property name="verticalSpacing">
-                    <number>10</number>
+                    <number>12</number>
                    </property>
                    <property name="leftMargin">
                     <number>0</number>
@@ -960,6 +1022,21 @@ QToolButton:checked {
          </widget>
          <widget class="QWidget" name="settingsPage">
           <layout class="QVBoxLayout" name="settingsPageLayout">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>24</number>
+           </property>
+           <property name="topMargin">
+            <number>24</number>
+           </property>
+           <property name="rightMargin">
+            <number>24</number>
+           </property>
+           <property name="bottomMargin">
+            <number>24</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_5">
              <property name="text">
@@ -984,6 +1061,21 @@ QToolButton:checked {
          </widget>
          <widget class="QWidget" name="statisticsPage">
           <layout class="QVBoxLayout" name="statisticsPageLayout">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>24</number>
+           </property>
+           <property name="topMargin">
+            <number>24</number>
+           </property>
+           <property name="rightMargin">
+            <number>24</number>
+           </property>
+           <property name="bottomMargin">
+            <number>24</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_6">
              <property name="text">

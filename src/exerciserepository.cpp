@@ -200,5 +200,25 @@ bool ExerciseRepository::update(
     }
 
     return true;
-}
 
+
+}
+bool ExerciseRepository::remove(int exerciseId)
+{
+    QSqlQuery query;
+
+    query.prepare(
+        "DELETE FROM exercises "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":id", exerciseId);
+
+    if (!query.exec()) {
+        qDebug() << "Übung konnte nicht gelöscht werden:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}

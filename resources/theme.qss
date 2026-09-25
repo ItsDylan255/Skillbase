@@ -1,0 +1,477 @@
+/* ============================================================
+   Skillbase – Linear-inspired dark theme
+   Anwenden via QApplication::setStyleSheet(...) in main.cpp,
+   damit auch Dialoge ohne eigenes Root-Stylesheet
+   (z.B. exercise_execution_dialog) automatisch gestylt sind.
+   ============================================================
+   Farbpalette
+   --bg            #121214   Haupt-Hintergrund
+   --bg-sidebar    #0e0e10   Sidebar-Hintergrund (dunkler)
+   --surface       #19191c   Cards / Inputs / erhöhte Flächen
+   --surface-hover #212124   Hover-Fläche
+   --border        #29292d   Standard-Border
+   --border-light  #333338   Etwas hellere Border (Hover/Focus-Trenner)
+   --text-primary  #eaeaec   Haupttext
+   --text-secondary#9a9aa0   Sekundärtext
+   --text-muted    #6d6d73   Metadaten / Platzhalter
+   --accent        #ff6f61   Skillbase-Orange
+   --accent-hover  #ff8677
+   --accent-pressed#e85c4e
+   --danger        #e5484d   Destruktive Aktionen (nur Text)
+   ============================================================ */
+
+/* ---------- Basis ---------- */
+QMainWindow, QDialog, QWidget {
+    background-color: #121214;
+    color: #eaeaec;
+    font-family: "Inter", "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+
+QWidget:disabled {
+    color: #55555a;
+}
+
+QToolTip {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* ---------- Sidebar ---------- */
+#sidebar {
+    background-color: #0e0e10;
+}
+
+QFrame#line {
+    background-color: #29292d;
+    max-width: 1px;
+    min-width: 1px;
+    border: none;
+}
+
+QLabel#label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eaeaec;
+    padding: 8px 4px 16px 4px;
+}
+
+QLabel#label_3 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d6d73;
+    padding: 12px 4px 4px 4px;
+}
+
+#sidebar QPushButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #9a9aa0;
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+#sidebar QPushButton:hover {
+    background-color: #212124;
+    color: #eaeaec;
+}
+
+#sidebar QPushButton:pressed {
+    background-color: #29292d;
+}
+
+#sidebar QListWidget {
+    background-color: transparent;
+    border: none;
+}
+
+/* ---------- Seiten-/Section-Titel ---------- */
+QLabel#label_2,
+QLabel#hobbyLabel,
+QLabel#label_5,
+QLabel#label_6 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #eaeaec;
+    padding-bottom: 4px;
+}
+
+QLabel#exercisesHeaderLabel,
+QLabel#timelineHeaderLabel,
+QLabel#roadmapHeaderLabel,
+QLabel#roadmapInfoTitle,
+QLabel#titleLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Sekundäre/Meta-Header innerhalb des Roadmap-Infopanels und des Execution-Dialogs */
+QLabel#roadmapInfoStatusHeader,
+QLabel#roadmapInfoDescriptionHeader,
+QLabel#roadmapInfoParentHeader,
+QLabel#exerciseLabel,
+QLabel#goalTitleLabel,
+QLabel#valueTitleLabel,
+QLabel#durationTitleLabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d6d73;
+    padding-top: 8px;
+}
+
+/* Wertanzeigen im Execution-Dialog */
+QLabel#exerciseNameLabel,
+QLabel#goalLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #eaeaec;
+}
+
+QLabel#unitLabel {
+    color: #9a9aa0;
+}
+
+/* Gedämpfte Body-/Hinweistexte */
+QLabel#todayLabel,
+QLabel#goalsSummaryLabel,
+QLabel#progressSummaryLabel,
+QLabel#hobbyTodayLabel,
+QLabel#hobbyGoalsSummaryLabel,
+QLabel#hobbyProgressSummaryLabel,
+QLabel#historyHintLabel,
+QLabel#progressPlaceholderLabel,
+QLabel#timelineEmptyLabel,
+QLabel#roadmapInfoNameLabel,
+QLabel#roadmapInfoStatusLabel,
+QLabel#roadmapInfoDescriptionLabel,
+QLabel#roadmapInfoParentLabel {
+    color: #9a9aa0;
+    font-size: 13px;
+}
+
+QFrame#roadmapInfoSeparator {
+    background-color: #29292d;
+    max-height: 1px;
+    border: none;
+}
+
+/* ---------- Cards (QGroupBox) ---------- */
+QGroupBox {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    margin-top: 14px;
+    padding: 16px 12px 12px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 12px;
+    top: 2px;
+    padding: 0 4px;
+    color: #eaeaec;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ---------- Tabs (QToolButton als Hobby-Navigation & View-Toggle) ---------- */
+QToolButton {
+    border: none;
+    background: transparent;
+    padding: 8px 14px;
+    color: #9a9aa0;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+QToolButton:hover {
+    color: #eaeaec;
+}
+
+QToolButton:checked {
+    color: #eaeaec;
+    border-bottom: 2px solid #ff6f61;
+}
+
+/* ---------- Buttons ---------- */
+QPushButton {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #212124;
+    border-color: #333338;
+}
+
+QPushButton:pressed {
+    background-color: #29292d;
+}
+
+QPushButton:disabled {
+    color: #55555a;
+    border-color: #212124;
+    background-color: #17171a;
+}
+
+QPushButton:focus {
+    border-color: #ff6f61;
+    outline: none;
+}
+
+/* Primary-Buttons: alle "+ hinzufügen"-Aktionen */
+QPushButton#addExerciseButton,
+QPushButton#addRoutineButton,
+QPushButton#addGoalButton,
+QPushButton#addRoadmapGoalButton,
+QPushButton#addTimelinePhaseButton,
+QPushButton#addButton {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QPushButton#addExerciseButton:hover,
+QPushButton#addRoutineButton:hover,
+QPushButton#addGoalButton:hover,
+QPushButton#addRoadmapGoalButton:hover,
+QPushButton#addTimelinePhaseButton:hover,
+QPushButton#addButton:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QPushButton#addExerciseButton:pressed,
+QPushButton#addRoutineButton:pressed,
+QPushButton#addGoalButton:pressed,
+QPushButton#addRoadmapGoalButton:pressed,
+QPushButton#addTimelinePhaseButton:pressed,
+QPushButton#addButton:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
+}
+
+/* Destruktive Aktionen: dezent über Textfarbe, keine Fläche */
+QPushButton#deleteButton {
+    color: #e5484d;
+    border-color: #29292d;
+    background-color: transparent;
+}
+
+QPushButton#deleteButton:hover {
+    background-color: rgba(229, 72, 77, 0.12);
+    border-color: rgba(229, 72, 77, 0.35);
+}
+
+/* QDialogButtonBox Buttons (Save/Cancel) */
+QDialogButtonBox QPushButton {
+    min-width: 84px;
+}
+
+/* ---------- Inputs ---------- */
+QLineEdit, QPlainTextEdit, QTextEdit {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: #eaeaec;
+    selection-background-color: #ff6f61;
+    selection-color: #171012;
+}
+
+QLineEdit:hover, QPlainTextEdit:hover, QTextEdit:hover {
+    border-color: #333338;
+}
+
+QLineEdit:focus, QPlainTextEdit:focus, QTextEdit:focus {
+    border-color: #ff6f61;
+}
+
+QLineEdit:disabled, QPlainTextEdit:disabled {
+    background-color: #17171a;
+    color: #55555a;
+}
+
+QComboBox {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #eaeaec;
+}
+
+QComboBox:hover {
+    border-color: #333338;
+}
+
+QComboBox:focus {
+    border-color: #ff6f61;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    color: #eaeaec;
+    selection-background-color: #29292d;
+    selection-color: #eaeaec;
+    outline: none;
+}
+
+/* ---------- Listen / Trees ---------- */
+QListWidget, QTreeWidget {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 4px;
+    color: #eaeaec;
+    outline: none;
+}
+
+QListWidget::item, QTreeWidget::item {
+    padding: 6px 8px;
+    border-radius: 4px;
+}
+
+QListWidget::item:hover, QTreeWidget::item:hover {
+    background-color: #212124;
+}
+
+QListWidget::item:selected, QTreeWidget::item:selected {
+    background-color: rgba(255, 111, 97, 0.15);
+    color: #eaeaec;
+}
+
+QTreeWidget {
+    show-decoration-selected: 1;
+}
+
+QHeaderView::section {
+    background-color: #19191c;
+    color: #9a9aa0;
+    padding: 6px 8px;
+    border: none;
+    border-bottom: 1px solid #29292d;
+    font-weight: 600;
+}
+
+/* ---------- Scroll-Bereiche für Card-Grids ---------- */
+QScrollArea#exerciseScrollArea,
+QScrollArea#timelinePhaseScrollArea,
+QWidget#exerciseCardsWidget,
+QWidget#timelinePhasesWidget {
+    background-color: transparent;
+    border: none;
+}
+
+/* ---------- Splitter ---------- */
+QSplitter::handle {
+    background-color: #29292d;
+}
+
+QSplitter::handle:horizontal {
+    width: 1px;
+}
+
+QSplitter::handle:vertical {
+    height: 1px;
+}
+
+#roadmapInfoPanel {
+    background-color: #19191c;
+    border-left: 1px solid #29292d;
+}
+
+/* ---------- Scrollbars ---------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: #333338;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #45454b;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 10px;
+    margin: 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #333338;
+    border-radius: 4px;
+    min-width: 24px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #45454b;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ---------- Statusbar ---------- */
+QStatusBar {
+    background-color: #0e0e10;
+    color: #6d6d73;
+    border-top: 1px solid #29292d;
+}
+
+/* ---------- Checkbox ---------- */
+QCheckBox {
+    color: #eaeaec;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #333338;
+    border-radius: 4px;
+    background-color: #19191c;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #ff6f61;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #ff6f61;
+    border-color: #ff6f61;
+}

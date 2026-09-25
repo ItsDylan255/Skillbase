@@ -585,6 +585,7 @@ void MainWindow::editExercise(int exerciseId)
             : "Archivieren"
         );
 
+
     // Archivieren und Wiederherstellen sind eigenständige Aktionen.
     // Deshalb wird dafür nicht der normale Speichern-Button benötigt.
     connect(
@@ -603,6 +604,36 @@ void MainWindow::editExercise(int exerciseId)
                 loadExerciseCards();
             } else {
                 qDebug() << "Archivstatus konnte nicht geändert werden.";
+            }
+        }
+        );
+
+    connect(
+        dialogUi.deleteButton,
+        &QPushButton::clicked,
+        &dialog,
+        [&]() {
+
+            const auto result = QMessageBox::warning(
+                &dialog,
+                "Übung löschen",
+                "Möchtest du diese Übung wirklich löschen?\n\n"
+                "Alle zugehörigen Ausführungen werden ebenfalls gelöscht.",
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+                );
+
+            if (result != QMessageBox::Yes)
+                return;
+
+            if (ExerciseRepository::remove(exercise.id)) {
+
+                dialog.accept();
+                loadExerciseCards();
+
+            } else {
+
+                qDebug() << "Übung konnte nicht gelöscht werden.";
             }
         }
         );

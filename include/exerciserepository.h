@@ -33,6 +33,8 @@ public:
         const QString &goal
         );
     static bool getById(int exerciseId, Exercise &exercise);
+
+    static bool remove(int exerciseId);
 };
 
 #endif

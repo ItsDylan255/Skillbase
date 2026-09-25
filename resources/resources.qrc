@@ -3,5 +3,6 @@
         <file>icons/skillbase_black.svg</file>
         <file>icons/skillbase_white.svg</file>
         <file>audio/timer_complete.mp3</file>
+        <file>theme.qss</file>
     </qresource>
 </RCC>

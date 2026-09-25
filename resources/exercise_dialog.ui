@@ -138,13 +138,20 @@
      </property>
     </spacer>
    </item>
-   <!-- Untere Button-Leiste: Archivieren links | Abbrechen + Speichern rechts -->
+   <!-- Untere Button-Leiste: Archivieren, Löschen links | Abbrechen + Speichern rechts -->
    <item>
     <layout class="QHBoxLayout" name="bottomButtonLayout">
      <item>
       <widget class="QPushButton" name="archiveButton">
        <property name="text">
         <string>Archivieren</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteButton">
+       <property name="text">
+        <string>Löschen</string>
        </property>
       </widget>
      </item>

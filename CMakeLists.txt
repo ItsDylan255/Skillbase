@@ -74,6 +74,14 @@ qt_add_executable(Skillbase
     include/categoryrepository.h
     src/categoryrepository.cpp
     resources/category_management_dialog.ui
+    include/timelinephase.h
+    include/timelinephaserepository.h
+    src/timelinephaserepository.cpp
+    include/timelinephaserepository.h
+    include/timelinebarwidget.h
+    src/timelinebarwidget.cpp
+    resources/exercise_execution_dialog.ui
+
 
 
 )

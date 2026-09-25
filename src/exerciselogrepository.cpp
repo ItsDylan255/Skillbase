@@ -91,3 +91,4 @@ bool ExerciseLogRepository::getLatestForExercise(int exerciseId, ExerciseLog &ou
     out.durationSeconds = query.value("duration_seconds").toInt();
     return true;
 }
+
