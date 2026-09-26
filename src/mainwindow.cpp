@@ -25,12 +25,101 @@
 #include "timelinephaserepository.h"
 #include "timelinebarwidget.h"
 #include "timelinephasedialog.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // ── Timeline: Klick auf einen Phasen-Balken ─────────────────────────────
+    //
+    // Phasen werden nur noch als Balken direkt in der Timeline dargestellt
+    // (keine separaten Cards mehr). Ein Klick auf ein Segment soll die
+    // bestehende Bearbeiten-Funktion für diese Phase öffnen.
+    //
+    // TODO: Sobald timelinephasedialog.h/.cpp und
+    // timelinephaserepository.h/.cpp vorliegen, hier den
+    // TimelinePhaseDialog im Bearbeiten-Modus öffnen, die Änderungen über
+    // TimelinePhaseRepository speichern (bzw. die Phase löschen) und
+    // anschließend loadTimeline() aufrufen.
+    if (auto *timelineBar =
+            qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget)) {
+
+        connect(
+            timelineBar,
+            &TimelineBarWidget::phaseClicked,
+            this,
+            [this](const TimelinePhase &phase) {
+
+                TimelinePhaseDialog dialog(this);
+
+                dialog.setWindowTitle("Phase bearbeiten");
+
+                // Die bestehenden Werte der angeklickten Phase
+                // werden in den Dialog übernommen.
+                dialog.setName(phase.name);
+                dialog.setDescription(phase.description);
+
+                dialog.setDateRange(
+                    QDate::fromString(phase.startDate, "yyyy-MM-dd"),
+                    QDate::fromString(phase.endDate, "yyyy-MM-dd")
+                    );
+
+                // Speichern wird hier bewusst selbst behandelt.
+                // Der Dialog soll sich nur schließen, wenn das Update
+                // tatsächlich erfolgreich war.
+                connect(
+                    dialog.saveButton(),
+                    &QPushButton::clicked,
+                    &dialog,
+                    [&dialog, this, phase]() {
+
+                        // Zuerst die Eingaben im Dialog prüfen.
+                        if (!dialog.validateInput())
+                            return;
+
+                        // Die Änderungen in der Datenbank speichern.
+                        const bool success =
+                            TimelinePhaseRepository::update(
+                                phase.id,
+                                dialog.name(),
+                                dialog.description(),
+                                dialog.startDate().toString("yyyy-MM-dd"),
+                                dialog.endDate().toString("yyyy-MM-dd")
+                                );
+
+                        // Bei einem Fehler bleibt derselbe Dialog geöffnet.
+                        if (!success) {
+
+                            QMessageBox::warning(
+                                &dialog,
+                                "Phase konnte nicht gespeichert werden",
+                                "Die Phase überschneidet sich mit einer "
+                                "bereits vorhandenen Phase oder konnte "
+                                "nicht gespeichert werden."
+                                );
+
+                            return;
+                        }
+
+                        // Nur bei erfolgreichem Speichern schließen.
+                        dialog.accept();
+                    }
+                    );
+
+                // Der Dialog bleibt geöffnet, bis der Benutzer
+                // entweder abbricht oder erfolgreich speichert.
+                if (dialog.exec() != QDialog::Accepted)
+                    return;
+
+                // Nach erfolgreichem Speichern die Timeline neu laden.
+                loadTimeline();
+            }
+            );
+    }
+
     connect(
         ui->historyFilterAllButton,
         &QPushButton::clicked,
@@ -143,56 +232,93 @@ MainWindow::MainWindow(QWidget *parent)
 
             TimelinePhaseDialog dialog(this);
 
+            dialog.setWindowTitle("Phase hinzufügen");
+
             // Das späteste vorhandene Enddatum des Hobbys ermitteln.
             const QDate latestEndDate =
                 TimelinePhaseRepository::getLatestEndDateForHobby(currentHobbyId);
 
             QDate suggestedStartDate;
-            QDate suggestedEndDate;
 
             if (latestEndDate.isValid()) {
 
-                // Eine neue Phase beginnt immer am Tag nach der bisher letzten Phase.
+                // Eine neue Phase beginnt standardmäßig
+                // am Tag nach der letzten vorhandenen Phase.
                 suggestedStartDate = latestEndDate.addDays(1);
 
             } else {
 
-                // Wenn noch keine Phase existiert, beginnt die erste Phase heute.
+                // Wenn noch keine Phase existiert,
+                // wird heute als Startdatum vorgeschlagen.
                 suggestedStartDate = QDate::currentDate();
             }
 
-            // Das vorgeschlagene Ende liegt genau einen Monat nach dem Start.
-            suggestedEndDate = suggestedStartDate.addMonths(1);
+            // Einen Monat als Standarddauer vorschlagen.
+            const QDate suggestedEndDate =
+                suggestedStartDate.addMonths(1);
 
-            // Die berechneten Werte im Dialog vorbelegen.
             dialog.setDateRange(
                 suggestedStartDate,
                 suggestedEndDate
                 );
 
-            // Dialog öffnen und nur weitermachen,
-            // wenn der Benutzer tatsächlich auf "Speichern" geklickt hat.
+            // Der Speichern-Button wird manuell behandelt.
+            // Dadurch können wir erst speichern und den Dialog
+            // nur bei Erfolg schließen.
+            connect(
+                dialog.saveButton(),
+                &QPushButton::clicked,
+                &dialog,
+                [&dialog, this]() {
+
+                    // Zuerst die Eingaben im Dialog prüfen.
+                    // Bei einem Fehler bleibt der Dialog offen.
+                    if (!dialog.validateInput())
+                        return;
+
+                    int phaseId = 0;
+
+                    // Erst jetzt versuchen wir, die Phase
+                    // tatsächlich in der Datenbank anzulegen.
+                    const bool success =
+                        TimelinePhaseRepository::add(
+                            currentHobbyId,
+                            dialog.name(),
+                            dialog.description(),
+                            dialog.startDate().toString("yyyy-MM-dd"),
+                            dialog.endDate().toString("yyyy-MM-dd"),
+                            phaseId
+                            );
+
+                    if (!success) {
+
+                        // Die Datenbank hat die Phase abgelehnt,
+                        // beispielsweise wegen einer Überschneidung.
+                        // Der Dialog bleibt geöffnet.
+                        QMessageBox::warning(
+                            &dialog,
+                            "Phase konnte nicht gespeichert werden",
+                            "Die Phase überschneidet sich mit einer "
+                            "bereits vorhandenen Phase oder konnte "
+                            "nicht gespeichert werden."
+                            );
+
+                        return;
+                    }
+
+                    // Nur bei erfolgreichem Speichern wird
+                    // der Dialog tatsächlich geschlossen.
+                    dialog.accept();
+                }
+                );
+
+            // Der Dialog wird genau einmal geöffnet.
+            // Abbrechen funktioniert weiterhin über die
+            // rejected()-Verbindung aus der .ui-Datei.
             if (dialog.exec() != QDialog::Accepted)
                 return;
 
-            int phaseId = 0;
-
-            // Die eingegebenen Daten in die Datenbank schreiben.
-            const bool success =
-                TimelinePhaseRepository::add(
-                    currentHobbyId,
-                    dialog.name(),
-                    dialog.description(),
-                    dialog.startDate().toString("yyyy-MM-dd"),
-                    dialog.endDate().toString("yyyy-MM-dd"),
-                    phaseId
-                    );
-
-            if (!success)
-                return;
-
-            // Nach dem Speichern die Timeline neu aus der Datenbank laden,
-            // damit die neue Phase sofort sichtbar wird.
+            // Die Timeline erst nach erfolgreichem Speichern aktualisieren.
             loadTimeline();
         }
         );
@@ -1130,136 +1256,39 @@ void MainWindow::loadTimeline()
     if (currentHobbyId == 0)
         return;
 
-    // Alle bereits erzeugten Phase-Cards entfernen.
-    // Feste UI-Elemente wie Empty-State und Spacer bleiben erhalten.
-    for (int i = ui->timelinePhasesLayout->count() - 1; i >= 0; --i) {
-
-        QLayoutItem *item =
-            ui->timelinePhasesLayout->itemAt(i);
-
-        QWidget *widget = item->widget();
-
-        // Nur unsere dynamisch erzeugten Cards besitzen
-        // dieses Property.
-        if (widget &&
-            widget->property("timelinePhaseCard").toBool()) {
-
-            ui->timelinePhasesLayout->removeWidget(widget);
-            widget->deleteLater();
-        }
-    }
-
     // Alle Phasen des aktuellen Hobbys aus der Datenbank laden.
     const QList<TimelinePhase> phases =
         TimelinePhaseRepository::getForHobby(currentHobbyId);
 
-    // Timeline-Balken holen.
-    auto *timelineBar =
-        qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget);
+    // Die tatsächliche Farbe des aktuellen Hobbys ermitteln.
+    // Fallback: Skillbase-Akzentfarbe, falls das Hobby (noch) keine
+    // gültige Farbe besitzt.
+    QColor hobbyColor("#ff6f61");
 
-    if (timelineBar) {
+    for (const Hobby &hobby : HobbyRepository::getAll()) {
 
-        // Dadurch werden auch alte Phasen entfernt,
-        // wenn das neue Hobby noch keine Phasen besitzt.
+        if (hobby.id != currentHobbyId)
+            continue;
+
+        const QColor storedColor(hobby.color);
+
+        if (storedColor.isValid())
+            hobbyColor = storedColor;
+
+        break;
+    }
+
+    // Die Phasen werden ausschließlich als Balken innerhalb der Timeline
+    // dargestellt - eine separate Card-Liste gibt es nicht mehr.
+    if (auto *timelineBar =
+            qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget)) {
+
         timelineBar->setPhases(phases);
-
-        // Die Farbe des aktuellen Hobbys setzen.
-        // TODO: hier später die tatsächliche Hobbyfarbe verwenden.
+        timelineBar->setHobbyColor(hobbyColor);
     }
 
     // Empty-State nur anzeigen, wenn keine Phasen vorhanden sind.
     ui->timelineEmptyLabel->setVisible(phases.isEmpty());
-
-    if (phases.isEmpty())
-        return;
-
-    // Für jede Phase wird eine eigene Card erzeugt.
-    for (const TimelinePhase &phase : phases) {
-
-        auto *card =
-            new QFrame(ui->timelinePhasesWidget);
-
-        // Dieses Property markiert die Card als dynamisch erzeugt.
-        // Dadurch können wir sie beim nächsten Laden gezielt entfernen.
-        card->setProperty(
-            "timelinePhaseCard",
-            true
-            );
-
-        card->setFrameShape(QFrame::StyledPanel);
-
-        auto *layout =
-            new QVBoxLayout(card);
-
-        layout->setSpacing(4);
-        layout->setContentsMargins(12, 12, 12, 12);
-
-        // Name der Phase
-        auto *nameLabel =
-            new QLabel(phase.name, card);
-
-        nameLabel->setStyleSheet(
-            "font-weight: bold; font-size: 13px;"
-            );
-
-        layout->addWidget(nameLabel);
-
-        // Zeitraum
-        const QDate start =
-            QDate::fromString(
-                phase.startDate,
-                "yyyy-MM-dd"
-                );
-
-        const QDate end =
-            QDate::fromString(
-                phase.endDate,
-                "yyyy-MM-dd"
-                );
-
-        auto *dateLabel =
-            new QLabel(
-                QString("%1 – %2")
-                    .arg(start.toString("dd.MM.yyyy"))
-                    .arg(end.toString("dd.MM.yyyy")),
-                card
-                );
-
-        layout->addWidget(dateLabel);
-
-        // Dauer
-        auto *durationLabel =
-            new QLabel(
-                phase.durationText(),
-                card
-                );
-
-        durationLabel->setStyleSheet(
-            "color: #888888; font-size: 11px;"
-            );
-
-        layout->addWidget(durationLabel);
-
-        // Beschreibung nur anzeigen, wenn tatsächlich eine vorhanden ist.
-        if (!phase.description.isEmpty()) {
-
-            auto *descriptionLabel =
-                new QLabel(
-                    phase.description,
-                    card
-                    );
-
-            descriptionLabel->setWordWrap(true);
-
-            descriptionLabel->setStyleSheet(
-                "color: #888888;"
-                );
-
-            layout->addWidget(descriptionLabel);
-        }
-
-        ui->timelinePhasesLayout->addWidget(card);
-    }
 }
 
 MainWindow::~MainWindow()

@@ -184,22 +184,6 @@
  <connections>
   <connection>
    <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>TimelinePhaseDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>220</x>
-     <y>396</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>220</x>
-     <y>210</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>TimelinePhaseDialog</receiver>
    <slot>reject()</slot>

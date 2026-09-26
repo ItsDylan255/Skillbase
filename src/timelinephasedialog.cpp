@@ -51,7 +51,22 @@ void TimelinePhaseDialog::setDateRange(
     ui->endDateEdit->setDate(endDate);
 }
 
-void TimelinePhaseDialog::accept()
+void TimelinePhaseDialog::setName(const QString &name)
+{
+    // Beim Bearbeiten wird der bestehende Name
+    // wieder in das Eingabefeld übernommen.
+    ui->nameEdit->setText(name);
+}
+
+void TimelinePhaseDialog::setDescription(const QString &description)
+{
+    // Die bestehende Beschreibung wird ebenfalls
+    // für die Bearbeitung vorausgefüllt.
+    ui->descriptionEdit->setPlainText(description);
+}
+
+
+bool TimelinePhaseDialog::validateInput()
 {
     // Der Name ist das einzige Pflichtfeld für die Bezeichnung der Phase.
     if (name().isEmpty()) {
@@ -63,7 +78,7 @@ void TimelinePhaseDialog::accept()
             );
 
         ui->nameEdit->setFocus();
-        return;
+        return false;
     }
 
     // Der Zeitraum muss chronologisch korrekt sein.
@@ -76,10 +91,22 @@ void TimelinePhaseDialog::accept()
             );
 
         ui->endDateEdit->setFocus();
-        return;
+        return false;
     }
 
-    // Alle Eingaben sind gültig.
-    // QDialog::accept() schließt den Dialog mit dem Ergebnis Accepted.
+    return true;
+}
+
+void TimelinePhaseDialog::accept()
+{
+    // accept() wird weiterhin verwendet, um den Dialog
+    // nach einem erfolgreichen Speichern tatsächlich zu schließen.
     QDialog::accept();
+}
+
+QPushButton *TimelinePhaseDialog::saveButton() const
+{
+    // Gibt den Speichern-Button zurück,
+    // damit MainWindow seinen Klick selbst behandeln kann.
+    return ui->buttonBox->button(QDialogButtonBox::Save);
 }

@@ -795,90 +795,68 @@
                 </layout>
                </item>
                <item>
-                <widget class="TimelineBarWidget" name="timelineBarWidget" native="true">
+                <widget class="QScrollArea" name="timelineBarScrollArea">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>88</height>
+                   <height>84</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>88</height>
+                   <height>84</height>
                   </size>
                  </property>
-                 <property name="toolTip">
-                  <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="timelinePhasesHeaderLabel">
-                 <property name="text">
-                  <string>PHASEN</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QScrollArea" name="timelinePhaseScrollArea">
                  <property name="frameShape">
                   <enum>QFrame::Shape::NoFrame</enum>
                  </property>
-                 <property name="widgetResizable">
-                  <bool>true</bool>
+                 <property name="verticalScrollBarPolicy">
+                  <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
                  </property>
-                 <widget class="QWidget" name="timelinePhasesWidget">
+                 <property name="horizontalScrollBarPolicy">
+                  <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+                 </property>
+                 <property name="widgetResizable">
+                  <bool>false</bool>
+                 </property>
+                 <widget class="TimelineBarWidget" name="timelineBarWidget" native="true">
                   <property name="geometry">
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>835</width>
-                    <height>379</height>
+                    <width>400</width>
+                    <height>84</height>
                    </rect>
                   </property>
-                  <layout class="QVBoxLayout" name="timelinePhasesLayout">
-                   <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="timelineEmptyLabel">
-                     <property name="text">
-                      <string>Noch keine Lernphasen geplant.</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="timelinePhasesSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Vertical</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
+                  <property name="toolTip">
+                   <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
+                  </property>
                  </widget>
                 </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="timelineEmptyLabel">
+                 <property name="text">
+                  <string>Noch keine Lernphasen geplant.</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="timelinePageSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
              </widget>

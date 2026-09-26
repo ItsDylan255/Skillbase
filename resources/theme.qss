@@ -120,8 +120,7 @@ QLabel#roadmapInfoParentHeader,
 QLabel#exerciseLabel,
 QLabel#goalTitleLabel,
 QLabel#valueTitleLabel,
-QLabel#durationTitleLabel,
-QLabel#timelinePhasesHeaderLabel {
+QLabel#durationTitleLabel {
     font-size: 11px;
     font-weight: 600;
     color: #6d6d73;
@@ -446,10 +445,8 @@ HistoryDateHeaderWidget QLabel#dateLabel {
 
 /* ---------- Scroll-Bereiche für Card-Grids ---------- */
 QScrollArea#exerciseScrollArea,
-QScrollArea#timelinePhaseScrollArea,
 QScrollArea#historyScrollArea,
 QWidget#exerciseCardsWidget,
-QWidget#timelinePhasesWidget,
 QWidget#historyEntriesWidget {
     background-color: transparent;
     border: none;
