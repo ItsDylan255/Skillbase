@@ -79,7 +79,7 @@ The full entity-relationship model (hobbies, exercises, routines, goals, logs) l
 ### Build
 
 ```bash
-git clone https://github.com/<your-user>/Skillbase.git
+git clone https://github.com/ItsDylan255/Skillbase.git
 cd Skillbase
 mkdir build && cd build
 cmake ..
