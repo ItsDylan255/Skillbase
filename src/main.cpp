@@ -14,7 +14,11 @@ int main(int argc, char *argv[])
     QFile themeFile(":/theme.qss");
 
     if (themeFile.open(QFile::ReadOnly | QFile::Text)) {
-        a.setStyleSheet(QString::fromUtf8(themeFile.readAll()));
+        QByteArray css = themeFile.readAll();
+        qDebug() << "theme.qss geladen, Bytes:" << css.size();
+        a.setStyleSheet(QString::fromUtf8(css));
+    } else {
+        qWarning() << "theme.qss konnte NICHT aus den Ressourcen geöffnet werden!";
     }
 
     Database::connect();

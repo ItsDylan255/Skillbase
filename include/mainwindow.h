@@ -26,5 +26,16 @@ private:
     QString currentHobby;
     int currentHobbyId = 0;
 
+    enum class HistoryFilter
+    {
+        All,
+        Exercises,
+        Routines
+    };
+
+    HistoryFilter historyFilter =
+        HistoryFilter::All;
+
+    void loadHistory();
 };
 #endif // MAINWINDOW_H

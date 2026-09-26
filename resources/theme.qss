@@ -95,7 +95,8 @@ QLabel#label_3 {
 QLabel#label_2,
 QLabel#hobbyLabel,
 QLabel#label_5,
-QLabel#label_6 {
+QLabel#label_6,
+QLabel#historyHeaderLabel {
     font-size: 22px;
     font-weight: 600;
     color: #eaeaec;
@@ -145,7 +146,8 @@ QLabel#progressSummaryLabel,
 QLabel#hobbyTodayLabel,
 QLabel#hobbyGoalsSummaryLabel,
 QLabel#hobbyProgressSummaryLabel,
-QLabel#historyHintLabel,
+QLabel#historyHeaderDescriptionLabel,
+QLabel#historyEmptyStateLabel,
 QLabel#progressPlaceholderLabel,
 QLabel#timelineEmptyLabel,
 QLabel#roadmapInfoNameLabel,
@@ -378,11 +380,48 @@ QHeaderView::section {
     font-weight: 600;
 }
 
+/* ---------- Verlauf: History Entry Row ---------- */
+HistoryEntryWidget {
+    background-color: transparent;
+    border-radius: 6px;
+}
+
+HistoryEntryWidget:hover {
+    background-color: #212124;
+}
+
+/* Rollenbasierte Textfarben (dynamic property "role" auf QLabel, siehe HistoryEntryWidget) */
+QLabel[role="secondary"] {
+    color: #9a9aa0;
+}
+
+QLabel[role="muted"] {
+    color: #6d6d73;
+}
+
+QLabel[role="accent"] {
+    color: #ff6f61;
+}
+
+/* ---------- Verlauf: Datums-Trenner ---------- */
+HistoryDateHeaderWidget {
+    background-color: transparent;
+    border-bottom: 1px solid #29292d;
+}
+
+HistoryDateHeaderWidget QLabel#dateLabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d6d73;
+}
+
 /* ---------- Scroll-Bereiche für Card-Grids ---------- */
 QScrollArea#exerciseScrollArea,
 QScrollArea#timelinePhaseScrollArea,
+QScrollArea#historyScrollArea,
 QWidget#exerciseCardsWidget,
-QWidget#timelinePhasesWidget {
+QWidget#timelinePhasesWidget,
+QWidget#historyEntriesWidget {
     background-color: transparent;
     border: none;
 }

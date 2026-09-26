@@ -18,12 +18,53 @@
 #include <QHBoxLayout>
 #include "exerciselogrepository.h"
 #include <QDateTime>
+#include "exerciseexecutiondialog.h"
+#include "historyentrywidget.h"
+#include "historydateheaderwidget.h"
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(
+        ui->historyFilterAllButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            historyFilter = HistoryFilter::All;
+            loadHistory();
+        }
+        );
+
+    connect(
+        ui->historyFilterExercisesButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            historyFilter = HistoryFilter::Exercises;
+            loadHistory();
+        }
+        );
+
+    connect(
+        ui->historyFilterRoutinesButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            historyFilter = HistoryFilter::Routines;
+            loadHistory();
+        }
+        );
+    connect(
+        ui->historySearchLineEdit,
+        &QLineEdit::textChanged,
+        this,
+        [this](const QString &) {
+            loadHistory();
+        }
+        );
 
     for (const Hobby &hobby : HobbyRepository::getAll()) {
         QListWidgetItem *item = new QListWidgetItem(hobby.name);
@@ -149,6 +190,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         loadExerciseCards();
+        loadHistory();
 
         ui->dashboardTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
@@ -397,14 +439,49 @@ void MainWindow::loadExerciseCards()
 
         cardLayout->addSpacing(4);
 
+
+        ExerciseLog latestLog;
+        const bool hasLatestLog =
+            ExerciseLogRepository::getLatestForExercise(
+                exercise.id,
+                latestLog
+                );
+
         // Wert
         auto *wertRow = new QHBoxLayout();
         wertRow->addWidget(new QLabel("Wert", card));
         wertRow->addStretch();
-        QString wertText = (exercise.value > 0)
-            ? QString("%1%2").arg(exercise.value, 0, 'f', 1)
-                             .arg(exercise.unit.isEmpty() ? "" : " " + exercise.unit)
-            : "–";
+
+        // Der angezeigte Wert entspricht immer dem zuletzt gespeicherten Wert.
+        // Wenn noch keine Ausführung existiert, wird der ursprüngliche Wert verwendet.
+        QString wertText;
+
+        if (hasLatestLog) {
+
+            wertText =
+                QString("%1%2")
+                    .arg(latestLog.value, 0, 'g', 15)
+                    .arg(
+                        latestLog.unit.isEmpty()
+                            ? ""
+                            : " " + latestLog.unit
+                        );
+
+        } else if (exercise.value > 0) {
+
+            wertText =
+                QString("%1%2")
+                    .arg(exercise.value, 0, 'g', 15)
+                    .arg(
+                        exercise.unit.isEmpty()
+                            ? ""
+                            : " " + exercise.unit
+                        );
+
+        } else {
+
+            wertText = "–";
+        }
         wertRow->addWidget(new QLabel(wertText, card));
         cardLayout->addLayout(wertRow);
 
@@ -412,7 +489,17 @@ void MainWindow::loadExerciseCards()
         auto *goalRow = new QHBoxLayout();
         goalRow->addWidget(new QLabel("Ziel", card));
         goalRow->addStretch();
-        goalRow->addWidget(new QLabel(exercise.goal.isEmpty() ? "–" : exercise.goal, card));
+        QString goalText = exercise.goal;
+
+        if (!goalText.isEmpty() && !exercise.unit.isEmpty())
+            goalText += " " + exercise.unit;
+
+        if (goalText.isEmpty())
+            goalText = "–";
+
+        goalRow->addWidget(
+            new QLabel(goalText, card)
+            );
         cardLayout->addLayout(goalRow);
 
         cardLayout->addSpacing(4);
@@ -423,16 +510,12 @@ void MainWindow::loadExerciseCards()
         cardLayout->addWidget(lastHeader);
 
         auto *lastRow = new QHBoxLayout();
-        ExerciseLog latestLog;
-        if (ExerciseLogRepository::getLatestForExercise(exercise.id, latestLog)) {
+
+        if (hasLatestLog) {
             const QDateTime performedAt = QDateTime::fromString(
-                latestLog.performedAt, "yyyy-MM-dd HH:mm:ss");
+                latestLog.performedAt, "yyyy-MM-dd HH:mm:ss").toLocalTime();
             lastRow->addWidget(new QLabel(performedAt.toString("dd.MM.yyyy"), card));
             lastRow->addStretch();
-            if (!latestLog.unit.isEmpty()) {
-                lastRow->addWidget(new QLabel(
-                    QString("%1 %2").arg(latestLog.value).arg(latestLog.unit), card));
-            }
         } else {
             lastRow->addWidget(new QLabel("–", card));
             lastRow->addStretch();
@@ -474,9 +557,26 @@ void MainWindow::loadExerciseCards()
         connect(editBtn, &QPushButton::clicked, this, [this, exercise]() {
             editExercise(exercise.id);
         });
-        connect(runBtn, &QPushButton::clicked, this, [exercise]() {
-            qDebug() << "Ausführen:" << exercise.id;
-        });
+        connect(
+            runBtn,
+            &QPushButton::clicked,
+            this,
+            [this, exercise]() {
+
+                ExerciseExecutionDialog dialog(
+                    exercise,
+                    this
+                    );
+
+                // Der Dialog liefert Accepted zurück,
+                // wenn die Ausführung erfolgreich gespeichert wurde.
+                if (dialog.exec() == QDialog::Accepted) {
+                    loadExerciseCards();
+                    loadHistory();
+                }
+            }
+            );
+
 
         // Position im Grid
         const int row    = visibleCount / columnCount;
@@ -506,6 +606,15 @@ void MainWindow::editExercise(int exerciseId)
         qDebug() << "Übung konnte nicht geladen werden.";
         return;
     }
+
+    // Der zuletzt eingetragene Wert wird nur für die Anzeige im Eingabefeld verwendet.
+    // Der gespeicherte Übungswert selbst wird dadurch nicht verändert.
+    ExerciseLog latestLog;
+    const bool hasLatestLog =
+        ExerciseLogRepository::getLatestForExercise(
+            exercise.id,
+            latestLog
+            );
 
     QDialog dialog(this);
     Ui::ExerciseDialog dialogUi;
@@ -639,9 +748,22 @@ void MainWindow::editExercise(int exerciseId)
         );
 
     // Bestehende Werte eintragen
+
     dialogUi.nameLineEdit->setText(exercise.name);
     dialogUi.descriptionLineEdit->setText(exercise.description);
-    dialogUi.valueLineEdit->setText(QString::number(exercise.value));
+
+    if (hasLatestLog) {
+        // Wenn bereits eine Ausführung existiert, zeigen wir deren Wert an.
+        dialogUi.valueLineEdit->setText(
+            QString::number(latestLog.value, 'g', 15)
+            );
+    } else {
+        // Ohne Ausführung verwenden wir den ursprünglichen Übungswert.
+        dialogUi.valueLineEdit->setText(
+            QString::number(exercise.value, 'g', 15)
+            );
+    }
+
     dialogUi.unitLineEdit->setText(exercise.unit);
     dialogUi.goalLineEdit->setText(exercise.goal);
 
@@ -687,14 +809,239 @@ void MainWindow::editExercise(int exerciseId)
             goal)) {
 
         loadExerciseCards();
+        // Verlauf aktualisieren, damit auch alte Logs den neuen Übungsnamen anzeigen.
+        loadHistory();
 
     } else {
 
         qDebug() << "Übung konnte nicht aktualisiert werden.";
     }
 }
+void MainWindow::loadHistory()
+{
+    // Nur dynamisch erzeugte Verlaufselemente entfernen.
+    // Die festen UI-Elemente (Empty-State und Spacer) bleiben bestehen.
+    for (int i = ui->historyEntriesLayout->count() - 1; i >= 0; --i) {
+
+        QLayoutItem *item =
+            ui->historyEntriesLayout->itemAt(i);
+
+        QWidget *widget = item->widget();
+
+        if (auto *entry =
+            qobject_cast<HistoryEntryWidget *>(widget)) {
+
+            ui->historyEntriesLayout->removeWidget(entry);
+            entry->deleteLater();
+        }
+
+        if (auto *header =
+            qobject_cast<HistoryDateHeaderWidget *>(widget)) {
+
+            ui->historyEntriesLayout->removeWidget(header);
+            header->deleteLater();
+        }
+    }
+
+    // Alle Verlaufseinträge zunächst gemeinsam sammeln.
+    // So können wir später alle Übungen unabhängig voneinander
+    // nach dem tatsächlichen Ausführungszeitpunkt sortieren.
+    struct HistoryItem
+    {
+        Exercise exercise;
+        ExerciseLog log;
+        QDateTime performedAt;
+    };
+
+    QList<HistoryItem> historyItems;
+    const QString searchText =
+        ui->historySearchLineEdit->text().trimmed();
+
+    // Alle vorhandenen Übungen laden.
+    const QList<Exercise> exercises =
+        ExerciseRepository::getForHobby(currentHobbyId);
+
+    // Übungen werden verarbeitet, wenn "Alle" oder "Übungen"
+    // ausgewählt wurde. Bei "Routinen" werden sie übersprungen.
+    const bool showExercises =
+        historyFilter == HistoryFilter::All ||
+        historyFilter == HistoryFilter::Exercises;
+
+    if (showExercises) {
+
+        for (const Exercise &exercise : exercises) {
+            // Wenn eine Suche aktiv ist, nur Übungen mit passendem Namen übernehmen.
+            if (!searchText.isEmpty() &&
+                !exercise.name.contains(searchText, Qt::CaseInsensitive)) {
+
+                continue;
+            }
+
+            // Alle Ausführungen dieser Übung laden.
+            const QList<ExerciseLog> logs =
+                ExerciseLogRepository::getForExercise(exercise.id);
+
+            for (const ExerciseLog &log : logs) {
+
+                const QDateTime performedAt =
+                    QDateTime::fromString(
+                        log.performedAt,
+                        "yyyy-MM-dd HH:mm:ss"
+                        ).toLocalTime();
+
+                historyItems.append({
+                    exercise,
+                    log,
+                    performedAt
+                });
+            }
+        }
+    }
+
+    // Alle Einträge gemeinsam vom neuesten zum ältesten sortieren.
+    std::sort(
+        historyItems.begin(),
+        historyItems.end(),
+        [](const HistoryItem &a, const HistoryItem &b) {
+            return a.performedAt > b.performedAt;
+        }
+        );
+
+    // Merkt sich den Tag des zuletzt eingefügten Eintrags.
+    QDate lastDate;
+
+    for (const HistoryItem &item : historyItems) {
+
+        const Exercise &exercise = item.exercise;
+        const ExerciseLog &log = item.log;
+        const QDateTime &performedAt = item.performedAt;
+
+        const QDate currentDate =
+            performedAt.date();
+
+        // Neuer Tag -> neuen Datums-Header einfügen.
+        if (currentDate != lastDate) {
+
+            auto *header =
+                new HistoryDateHeaderWidget(
+                    ui->historyEntriesWidget
+                    );
+
+            QString dateText;
+
+            const QDate today =
+                QDate::currentDate();
+
+            if (currentDate == today) {
+                dateText = "HEUTE";
+            }
+            else if (currentDate == today.addDays(-1)) {
+                dateText = "GESTERN";
+            }
+            else {
+                dateText =
+                    currentDate.toString("dd.MM.yyyy");
+            }
+
+            header->setDateText(dateText);
+
+            ui->historyEntriesLayout->addWidget(header);
+
+            lastDate = currentDate;
+        }
+
+        // Wert mit der im Log gespeicherten Einheit anzeigen.
+        QString valueText;
+
+        if (log.value != 0.0) {
+            valueText =
+                QString("%1%2")
+                    .arg(log.value, 0, 'g', 15)
+                    .arg(
+                        log.unit.isEmpty()
+                            ? ""
+                            : " " + log.unit
+                        );
+        }
+
+        // Dauer in Minuten und Sekunden umwandeln.
+        QString durationText;
+
+        if (log.durationSeconds > 0) {
+
+            const int minutes =
+                log.durationSeconds / 60;
+
+            const int seconds =
+                log.durationSeconds % 60;
+
+            durationText =
+                QString("%1:%2 min")
+                    .arg(minutes)
+                    .arg(
+                        seconds,
+                        2,
+                        10,
+                        QChar('0')
+                        );
+        }
+
+        auto *entry =
+            new HistoryEntryWidget(
+                ui->historyEntriesWidget
+                );
+
+        entry->setData(
+            false,
+            exercise.name,
+            valueText,
+            durationText,
+            performedAt.toString("HH:mm")
+            );
+
+        connect(
+            entry,
+            &HistoryEntryWidget::clicked,
+            this,
+            [this, exercise]() {
+
+                ExerciseExecutionDialog dialog(
+                    exercise,
+                    this
+                    );
+
+                // Wenn eine neue Ausführung gespeichert wurde,
+                // müssen Verlauf und Übungsdaten direkt aktualisiert werden.
+                if (dialog.exec() == QDialog::Accepted) {
+                    loadExerciseCards();
+                    loadHistory();
+                }
+            }
+            );
+
+        ui->historyEntriesLayout->addWidget(entry);
+
+    }
+
+    // Prüfen, ob mindestens ein echter Verlaufseintrag vorhanden ist.
+    bool hasEntries = false;
+
+    for (int i = 0; i < ui->historyEntriesLayout->count(); ++i) {
+
+        QLayoutItem *item =
+            ui->historyEntriesLayout->itemAt(i);
+
+        if (qobject_cast<HistoryEntryWidget *>(item->widget())) {
+            hasEntries = true;
+            break;
+        }
+    }
+
+    // Empty-State nur anzeigen, wenn keine Einträge vorhanden sind.
+    ui->historyEmptyStateLabel->setVisible(!hasEntries);
+}
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
+};

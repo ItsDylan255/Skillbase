@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HistoryEntryWidget</class>
+ <widget class="QWidget" name="HistoryEntryWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>48</height>
+   </rect>
+  </property>
+  <property name="cursor">
+   <cursorShape>Qt::CursorShape::PointingHandCursor</cursorShape>
+  </property>
+  <layout class="QHBoxLayout" name="entryLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>8</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>8</number>
+   </property>
+   <!-- Links: Typ-Indikator (● Übung / ◆ Routine) -->
+   <item>
+    <widget class="QLabel" name="entryTypeIconLabel">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>●</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+     <!-- Custom property (stdset="0") für QSS-Selektor QLabel[role="accent"] -->
+     <property name="role" stdset="0">
+      <string>accent</string>
+     </property>
+    </widget>
+   </item>
+   <!-- Mitte: Name + Wert · Dauer -->
+   <item>
+    <layout class="QVBoxLayout" name="entryTextLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="entryTitleLabel">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Bankdrücken</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="entrySubtitleLabel">
+       <property name="text">
+        <string>80 kg · 20 min</string>
+       </property>
+       <property name="role" stdset="0">
+        <string>secondary</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="entrySpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+    </spacer>
+   </item>
+   <!-- Rechts: Uhrzeit -->
+   <item>
+    <widget class="QLabel" name="entryTimeLabel">
+     <property name="text">
+      <string>18:42</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set>
+     </property>
+     <property name="role" stdset="0">
+      <string>muted</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

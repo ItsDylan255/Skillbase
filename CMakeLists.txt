@@ -4,6 +4,7 @@ project(Skillbase LANGUAGES CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC ON)
@@ -20,70 +21,67 @@ endif()
 qt_add_executable(Skillbase
     WIN32 MACOSX_BUNDLE
     ${APP_ICON_RESOURCE}
+
     src/main.cpp
+
     src/mainwindow.cpp
     include/mainwindow.h
     resources/mainwindow.ui
-    resources/exercise_dialog.ui
-    resources/category_management_dialog.ui
-    include/database.h
+
     src/database.cpp
+    include/database.h
+
     include/hobby.h
+    src/hobbyrepository.cpp
+    include/hobbyrepository.h
+
     include/exercise.h
-    include/hobbyrepository.h
-    src/hobbyrepository.cpp
-    include/exerciserepository.h
     src/exerciserepository.cpp
-    include/hobbyrepository.h
-    src/hobbyrepository.cpp
     include/exerciserepository.h
-    src/exerciserepository.cpp
+
     include/routine.h
     include/routinestep.h
     include/routinelog.h
-    include/routinerepository.h
     src/routinerepository.cpp
-    include/exerciselog.h
-    include/exerciselogrepository.h
-    src/exerciselogrepository.cpp
-    include/goal.h
-    include/goalrepository.h
-    src/goalrepository.cpp
-    include/routine.h
-    include/routine.h
-    include/routine.h
-    include/routinestep.h
-    include/routinelog.h
     include/routinerepository.h
-    src/routinerepository.cpp
+
     include/exerciselog.h
-    include/exerciselogrepository.h
     src/exerciselogrepository.cpp
+    include/exerciselogrepository.h
+
     include/goal.h
-    include/goalrepository.h
     src/goalrepository.cpp
-    resources/resources.qrc
-    include/hobbynoterepository.h
+    include/goalrepository.h
+
     src/hobbynoterepository.cpp
     include/hobbynoterepository.h
-    src/hobbynoterepository.cpp
+
     include/category.h
-    include/categoryrepository.h
     src/categoryrepository.cpp
-    include/category.h
     include/categoryrepository.h
-    src/categoryrepository.cpp
     resources/category_management_dialog.ui
+
     include/timelinephase.h
-    include/timelinephaserepository.h
     src/timelinephaserepository.cpp
     include/timelinephaserepository.h
-    include/timelinebarwidget.h
+
     src/timelinebarwidget.cpp
+    include/timelinebarwidget.h
+
+    src/exerciseexecutiondialog.cpp
+    include/exerciseexecutiondialog.h
     resources/exercise_execution_dialog.ui
 
+    src/historyentrywidget.cpp
+    include/historyentrywidget.h
+    resources/historyentrywidget.ui
 
+    src/historydateheaderwidget.cpp
+    include/historydateheaderwidget.h
+    resources/historydateheaderwidget.ui
 
+    resources/exercise_dialog.ui
+    resources/resources.qrc
 )
 
 target_include_directories(Skillbase PRIVATE include)

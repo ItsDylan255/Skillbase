@@ -976,15 +976,162 @@
              </widget>
              <widget class="QWidget" name="historyPage">
               <layout class="QVBoxLayout" name="historyPageLayout">
+               <property name="spacing">
+                <number>16</number>
+               </property>
+               <property name="leftMargin">
+                <number>12</number>
+               </property>
+               <property name="topMargin">
+                <number>12</number>
+               </property>
+               <property name="rightMargin">
+                <number>12</number>
+               </property>
+               <property name="bottomMargin">
+                <number>12</number>
+               </property>
+               <!-- Header: Titel + Beschreibung -->
                <item>
-                <widget class="QLabel" name="historyHintLabel">
-                 <property name="text">
-                  <string>Einträge entstehen automatisch beim Ausführen von Übungen und Routinen.</string>
+                <layout class="QVBoxLayout" name="historyHeaderLayout">
+                 <property name="spacing">
+                  <number>4</number>
                  </property>
-                </widget>
+                 <item>
+                  <widget class="QLabel" name="historyHeaderLabel">
+                   <property name="text">
+                    <string>Verlauf</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="historyHeaderDescriptionLabel">
+                   <property name="text">
+                    <string>Deine bisherigen Aktivitäten</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
+               <!-- Toolbar: Filter (Alle/Übungen/Routinen) + Suche -->
                <item>
-                <widget class="QListWidget" name="historyList"/>
+                <layout class="QHBoxLayout" name="historyToolbarLayout">
+                 <item>
+                  <widget class="QToolButton" name="historyFilterAllButton">
+                   <property name="text">
+                    <string>Alle</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="historyFilterExercisesButton">
+                   <property name="text">
+                    <string>Übungen</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="historyFilterRoutinesButton">
+                   <property name="text">
+                    <string>Routinen</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="autoExclusive">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="historyToolbarSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="historySearchLineEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>240</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="placeholderText">
+                    <string>🔍 Verlauf durchsuchen...</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <!-- Activity-Liste: nach Datum gruppiert (Gruppen-Header + Einträge werden zur Laufzeit als HistoryEntryWidget eingefügt) -->
+               <item>
+                <widget class="QScrollArea" name="historyScrollArea">
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::NoFrame</enum>
+                 </property>
+                 <widget class="QWidget" name="historyEntriesWidget">
+                  <layout class="QVBoxLayout" name="historyEntriesLayout">
+                   <property name="spacing">
+                    <number>16</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <!-- Leerer Zustand: per C++ ausblenden, sobald Einträge vorhanden sind -->
+                   <item>
+                    <widget class="QLabel" name="historyEmptyStateLabel">
+                     <property name="text">
+                      <string>Noch keine Aktivitäten
+
+Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="historyEntriesSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
                </item>
               </layout>
              </widget>

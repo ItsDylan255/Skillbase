@@ -29,7 +29,6 @@
    <property name="bottomMargin">
     <number>20</number>
    </property>
-   <!-- Dialogtitel -->
    <item>
     <widget class="QLabel" name="titleLabel">
      <property name="text">
@@ -37,49 +36,53 @@
      </property>
     </widget>
    </item>
-   <!-- Übung -->
    <item>
-    <widget class="QLabel" name="exerciseLabel">
-     <property name="text">
-      <string>Übung</string>
+    <layout class="QHBoxLayout" name="exerciseLayout">
+     <property name="spacing">
+      <number>8</number>
      </property>
-    </widget>
+     <item>
+      <widget class="QLabel" name="exerciseLabel">
+       <property name="text">
+        <string>Übung:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="exerciseNameLabel">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLabel" name="exerciseNameLabel">
-     <property name="text">
-      <string/>
+    <layout class="QHBoxLayout" name="goalLayout">
+     <property name="spacing">
+      <number>8</number>
      </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <!-- Ziel -->
-   <item>
-    <widget class="QLabel" name="goalTitleLabel">
-     <property name="text">
-      <string>Ziel</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="goalLabel">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <!-- Wert -->
-   <item>
-    <widget class="QLabel" name="valueTitleLabel">
-     <property name="text">
-      <string>Wert</string>
-     </property>
-    </widget>
+     <item>
+      <widget class="QLabel" name="goalTitleLabel">
+       <property name="text">
+        <string>Ziel:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="goalLabel">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="valueLayout">
@@ -87,35 +90,41 @@
       <number>8</number>
      </property>
      <item>
+      <widget class="QLabel" name="valueTitleLabel">
+       <property name="text">
+        <string>Wert:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLineEdit" name="valueLineEdit">
        <property name="placeholderText">
         <string>Wert</string>
        </property>
       </widget>
      </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="durationLayout">
+     <property name="spacing">
+      <number>8</number>
+     </property>
      <item>
-      <widget class="QLabel" name="unitLabel">
+      <widget class="QLabel" name="durationTitleLabel">
        <property name="text">
-        <string/>
+        <string>Dauer:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="durationLineEdit">
+       <property name="placeholderText">
+        <string>MM:SS</string>
        </property>
       </widget>
      </item>
     </layout>
-   </item>
-   <!-- Dauer -->
-   <item>
-    <widget class="QLabel" name="durationTitleLabel">
-     <property name="text">
-      <string>Dauer</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLineEdit" name="durationLineEdit">
-     <property name="placeholderText">
-      <string>MM:SS</string>
-     </property>
-    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -130,13 +139,18 @@
      </property>
     </spacer>
    </item>
-   <!-- Abbrechen / Speichern -->
    <item>
     <layout class="QHBoxLayout" name="bottomButtonLayout">
      <item>
       <spacer name="bottomButtonSpacer">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
        </property>
       </spacer>
      </item>
@@ -155,7 +169,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>valueLineEdit</tabstop>
   <tabstop>durationLineEdit</tabstop>
  </tabstops>
  <resources/>
