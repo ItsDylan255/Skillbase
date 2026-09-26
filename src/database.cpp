@@ -160,6 +160,24 @@ bool Database::createTables()
                  << query.lastError().text();
         return false;
     }
+    // Timeline-Phasen gehören zu einem Hobby.
+    // Wird das Hobby gelöscht, werden auch seine Phasen gelöscht.
+    if (!query.exec(
+            "CREATE TABLE IF NOT EXISTS timeline_phases ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hobby_id INTEGER NOT NULL,"
+            "name TEXT NOT NULL,"
+            "description TEXT,"
+            "start_date TEXT NOT NULL,"
+            "end_date TEXT NOT NULL,"
+            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
+            ")"
+            )) {
+        qDebug() << "Fehler beim Erstellen der timeline_phases-Tabelle:"
+                 << query.lastError().text();
+        return false;
+    }
+
 
     return true;
 }

@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QString>
+#include <QDate>
 
 #include "timelinephase.h"
 
@@ -39,6 +40,10 @@ public:
         int hobbyId,
         TimelinePhase &out
         );
+
+    // Liefert das späteste Enddatum aller Phasen eines Hobbys.
+    // Wird keine Phase gefunden, ist das zurückgegebene Datum ungültig.
+    static QDate getLatestEndDateForHobby(int hobbyId);
 
 private:
     static bool hasOverlap(

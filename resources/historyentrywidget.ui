@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>420</width>
-    <height>48</height>
+    <height>52</height>
    </rect>
   </property>
   <property name="cursor">
-   <cursorShape>Qt::CursorShape::PointingHandCursor</cursorShape>
+   <cursorShape>PointingHandCursor</cursorShape>
   </property>
   <layout class="QHBoxLayout" name="entryLayout">
    <property name="spacing">
@@ -29,7 +29,6 @@
    <property name="bottomMargin">
     <number>8</number>
    </property>
-   <!-- Links: Typ-Indikator (● Übung / ◆ Routine) -->
    <item>
     <widget class="QLabel" name="entryTypeIconLabel">
      <property name="minimumSize">
@@ -55,13 +54,11 @@
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
-     <!-- Custom property (stdset="0") für QSS-Selektor QLabel[role="accent"] -->
      <property name="role" stdset="0">
       <string>accent</string>
      </property>
     </widget>
    </item>
-   <!-- Mitte: Name + Wert · Dauer -->
    <item>
     <layout class="QVBoxLayout" name="entryTextLayout">
      <property name="spacing">
@@ -96,16 +93,21 @@
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
     </spacer>
    </item>
-   <!-- Rechts: Uhrzeit -->
    <item>
     <widget class="QLabel" name="entryTimeLabel">
      <property name="text">
       <string>18:42</string>
      </property>
      <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
      <property name="role" stdset="0">
       <string>muted</string>

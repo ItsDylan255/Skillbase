@@ -22,6 +22,9 @@
 #include "historyentrywidget.h"
 #include "historydateheaderwidget.h"
 #include <algorithm>
+#include "timelinephaserepository.h"
+#include "timelinebarwidget.h"
+#include "timelinephasedialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -118,8 +121,81 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(ui->timelineTab, &QToolButton::clicked, this, [this]() {
+        // Beim Öffnen der Timeline werden die aktuellen Phasen
+        // aus der Datenbank geladen und anschließend dargestellt.
+        loadTimeline();
+
         ui->hobbyPageStack->setCurrentWidget(ui->timelinePage);
     });
+
+
+    // ── Timeline: Phase hinzufügen ─────────────────────────────────────────────
+
+    connect(
+        ui->addTimelinePhaseButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+
+            // Ohne ausgewähltes Hobby kann keine Phase angelegt werden.
+            if (currentHobbyId == 0)
+                return;
+
+            TimelinePhaseDialog dialog(this);
+
+            // Das späteste vorhandene Enddatum des Hobbys ermitteln.
+            const QDate latestEndDate =
+                TimelinePhaseRepository::getLatestEndDateForHobby(currentHobbyId);
+
+            QDate suggestedStartDate;
+            QDate suggestedEndDate;
+
+            if (latestEndDate.isValid()) {
+
+                // Eine neue Phase beginnt immer am Tag nach der bisher letzten Phase.
+                suggestedStartDate = latestEndDate.addDays(1);
+
+            } else {
+
+                // Wenn noch keine Phase existiert, beginnt die erste Phase heute.
+                suggestedStartDate = QDate::currentDate();
+            }
+
+            // Das vorgeschlagene Ende liegt genau einen Monat nach dem Start.
+            suggestedEndDate = suggestedStartDate.addMonths(1);
+
+            // Die berechneten Werte im Dialog vorbelegen.
+            dialog.setDateRange(
+                suggestedStartDate,
+                suggestedEndDate
+                );
+
+            // Dialog öffnen und nur weitermachen,
+            // wenn der Benutzer tatsächlich auf "Speichern" geklickt hat.
+            if (dialog.exec() != QDialog::Accepted)
+                return;
+
+            int phaseId = 0;
+
+            // Die eingegebenen Daten in die Datenbank schreiben.
+            const bool success =
+                TimelinePhaseRepository::add(
+                    currentHobbyId,
+                    dialog.name(),
+                    dialog.description(),
+                    dialog.startDate().toString("yyyy-MM-dd"),
+                    dialog.endDate().toString("yyyy-MM-dd"),
+                    phaseId
+                    );
+
+            if (!success)
+                return;
+
+            // Nach dem Speichern die Timeline neu aus der Datenbank laden,
+            // damit die neue Phase sofort sichtbar wird.
+            loadTimeline();
+        }
+        );
 
     connect(ui->roadmapTab, &QToolButton::clicked, this, [this]() {
         ui->hobbyPageStack->setCurrentWidget(ui->roadmapPage);
@@ -191,6 +267,8 @@ MainWindow::MainWindow(QWidget *parent)
 
         loadExerciseCards();
         loadHistory();
+        loadTimeline();
+
 
         ui->dashboardTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
@@ -811,6 +889,7 @@ void MainWindow::editExercise(int exerciseId)
         loadExerciseCards();
         // Verlauf aktualisieren, damit auch alte Logs den neuen Übungsnamen anzeigen.
         loadHistory();
+        loadTimeline();
 
     } else {
 
@@ -1015,6 +1094,7 @@ void MainWindow::loadHistory()
                 if (dialog.exec() == QDialog::Accepted) {
                     loadExerciseCards();
                     loadHistory();
+                    loadTimeline();
                 }
             }
             );
@@ -1039,6 +1119,147 @@ void MainWindow::loadHistory()
 
     // Empty-State nur anzeigen, wenn keine Einträge vorhanden sind.
     ui->historyEmptyStateLabel->setVisible(!hasEntries);
+}
+
+// ── Timeline laden ───────────────────────────────────────────────────────────
+
+void MainWindow::loadTimeline()
+{
+    // Ohne ausgewähltes Hobby gibt es keine Timeline,
+    // die wir anzeigen können.
+    if (currentHobbyId == 0)
+        return;
+
+    // Alle bereits erzeugten Phase-Cards entfernen.
+    // Feste UI-Elemente wie Empty-State und Spacer bleiben erhalten.
+    for (int i = ui->timelinePhasesLayout->count() - 1; i >= 0; --i) {
+
+        QLayoutItem *item =
+            ui->timelinePhasesLayout->itemAt(i);
+
+        QWidget *widget = item->widget();
+
+        // Nur unsere dynamisch erzeugten Cards besitzen
+        // dieses Property.
+        if (widget &&
+            widget->property("timelinePhaseCard").toBool()) {
+
+            ui->timelinePhasesLayout->removeWidget(widget);
+            widget->deleteLater();
+        }
+    }
+
+    // Alle Phasen des aktuellen Hobbys aus der Datenbank laden.
+    const QList<TimelinePhase> phases =
+        TimelinePhaseRepository::getForHobby(currentHobbyId);
+
+    // Timeline-Balken holen.
+    auto *timelineBar =
+        qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget);
+
+    if (timelineBar) {
+
+        // Dadurch werden auch alte Phasen entfernt,
+        // wenn das neue Hobby noch keine Phasen besitzt.
+        timelineBar->setPhases(phases);
+
+        // Die Farbe des aktuellen Hobbys setzen.
+        // TODO: hier später die tatsächliche Hobbyfarbe verwenden.
+    }
+
+    // Empty-State nur anzeigen, wenn keine Phasen vorhanden sind.
+    ui->timelineEmptyLabel->setVisible(phases.isEmpty());
+
+    if (phases.isEmpty())
+        return;
+
+    // Für jede Phase wird eine eigene Card erzeugt.
+    for (const TimelinePhase &phase : phases) {
+
+        auto *card =
+            new QFrame(ui->timelinePhasesWidget);
+
+        // Dieses Property markiert die Card als dynamisch erzeugt.
+        // Dadurch können wir sie beim nächsten Laden gezielt entfernen.
+        card->setProperty(
+            "timelinePhaseCard",
+            true
+            );
+
+        card->setFrameShape(QFrame::StyledPanel);
+
+        auto *layout =
+            new QVBoxLayout(card);
+
+        layout->setSpacing(4);
+        layout->setContentsMargins(12, 12, 12, 12);
+
+        // Name der Phase
+        auto *nameLabel =
+            new QLabel(phase.name, card);
+
+        nameLabel->setStyleSheet(
+            "font-weight: bold; font-size: 13px;"
+            );
+
+        layout->addWidget(nameLabel);
+
+        // Zeitraum
+        const QDate start =
+            QDate::fromString(
+                phase.startDate,
+                "yyyy-MM-dd"
+                );
+
+        const QDate end =
+            QDate::fromString(
+                phase.endDate,
+                "yyyy-MM-dd"
+                );
+
+        auto *dateLabel =
+            new QLabel(
+                QString("%1 – %2")
+                    .arg(start.toString("dd.MM.yyyy"))
+                    .arg(end.toString("dd.MM.yyyy")),
+                card
+                );
+
+        layout->addWidget(dateLabel);
+
+        // Dauer
+        auto *durationLabel =
+            new QLabel(
+                phase.durationText(),
+                card
+                );
+
+        durationLabel->setStyleSheet(
+            "color: #888888; font-size: 11px;"
+            );
+
+        layout->addWidget(durationLabel);
+
+        // Beschreibung nur anzeigen, wenn tatsächlich eine vorhanden ist.
+        if (!phase.description.isEmpty()) {
+
+            auto *descriptionLabel =
+                new QLabel(
+                    phase.description,
+                    card
+                    );
+
+            descriptionLabel->setWordWrap(true);
+
+            descriptionLabel->setStyleSheet(
+                "color: #888888;"
+                );
+
+            layout->addWidget(descriptionLabel);
+        }
+
+        ui->timelinePhasesLayout->addWidget(card);
+    }
 }
 
 MainWindow::~MainWindow()

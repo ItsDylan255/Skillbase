@@ -82,6 +82,12 @@ qt_add_executable(Skillbase
 
     resources/exercise_dialog.ui
     resources/resources.qrc
+    src/timelinephasedialog.cpp
+    include/timelinephasedialog.h
+
+    include/timelinephasedialog.h
+    src/timelinephasedialog.cpp
+    resources/timelinephasedialog.ui
 )
 
 target_include_directories(Skillbase PRIVATE include)

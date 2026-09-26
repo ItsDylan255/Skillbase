@@ -18,16 +18,16 @@ bool TimelinePhaseRepository::hasOverlap(
     query.prepare(
         "SELECT id "
         "FROM timeline_phases "
-        "WHERE hobby_id = :hobby_id "
-        "AND start_date <= :end_date "
-        "AND end_date >= :start_date "
-        "AND id != :exclude_id"
+        "WHERE hobby_id = ? "
+        "AND start_date <= ? "
+        "AND end_date >= ? "
+        "AND id != ?"
         );
 
-    query.bindValue(":hobby_id", hobbyId);
-    query.bindValue(":start_date", startDate);
-    query.bindValue(":end_date", endDate);
-    query.bindValue(":exclude_id", excludePhaseId);
+    query.addBindValue(hobbyId);
+    query.addBindValue(endDate);
+    query.addBindValue(startDate);
+    query.addBindValue(excludePhaseId);
 
     if (!query.exec()) {
         qDebug() << "Überschneidung konnte nicht geprüft werden:"
@@ -90,11 +90,11 @@ QList<TimelinePhase> TimelinePhaseRepository::getForHobby(int hobbyId)
     query.prepare(
         "SELECT id, hobby_id, name, description, start_date, end_date "
         "FROM timeline_phases "
-        "WHERE hobby_id = :hobby_id "
+        "WHERE hobby_id = ? "
         "ORDER BY start_date ASC"
         );
 
-    query.bindValue(":hobby_id", hobbyId);
+    query.addBindValue(hobbyId);
 
     if (!query.exec()) {
         qDebug() << "Timeline-Phasen konnten nicht geladen werden:"
@@ -116,6 +116,37 @@ QList<TimelinePhase> TimelinePhaseRepository::getForHobby(int hobbyId)
     }
 
     return phases;
+}
+
+
+QDate TimelinePhaseRepository::getLatestEndDateForHobby(int hobbyId)
+{
+    QSqlQuery query;
+
+    // Wir brauchen nur das späteste Enddatum.
+    // MAX() übernimmt den Vergleich der gespeicherten ISO-Datumswerte.
+    query.prepare(
+        "SELECT MAX(end_date) "
+        "FROM timeline_phases "
+        "WHERE hobby_id = ?"
+        );
+
+    query.addBindValue(hobbyId);
+
+    if (!query.exec()) {
+        qDebug() << "Spätestes Timeline-Enddatum konnte nicht geladen werden:"
+                 << query.lastError().text();
+
+        return QDate();
+    }
+
+    if (!query.next())
+        return QDate();
+
+    return QDate::fromString(
+        query.value(0).toString(),
+        "yyyy-MM-dd"
+        );
 }
 
 bool TimelinePhaseRepository::getCurrentForHobby(
@@ -206,10 +237,26 @@ bool TimelinePhaseRepository::update(
         return false;
     }
 
+    // Zuerst die bestehende Phase laden.
+    // Dadurch kennen wir das Hobby, zu dem die Phase gehört.
     TimelinePhase phase;
 
     if (!getById(phaseId, phase)) {
         qDebug() << "Timeline-Phase konnte nicht geladen werden.";
+        return false;
+    }
+
+    // Beim Bearbeiten darf die Phase keine andere bestehende Phase
+    // desselben Hobbys überschneiden.
+    // Die eigene Phase wird über ihre ID von der Prüfung ausgeschlossen.
+    if (hasOverlap(
+            phase.hobbyId,
+            startDate,
+            endDate,
+            phaseId
+            )) {
+
+        qDebug() << "Timeline-Phase überschneidet sich mit einer bestehenden Phase.";
         return false;
     }
 

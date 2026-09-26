@@ -163,10 +163,7 @@
            </item>
            <item>
             <layout class="QGridLayout" name="dashboardCardsLayout">
-             <property name="horizontalSpacing">
-              <number>16</number>
-             </property>
-             <property name="verticalSpacing">
+             <property name="spacing">
               <number>16</number>
              </property>
              <item row="0" column="0">
@@ -389,7 +386,7 @@
            <item>
             <widget class="QStackedWidget" name="hobbyPageStack">
              <property name="currentIndex">
-              <number>1</number>
+              <number>2</number>
              </property>
              <widget class="QWidget" name="dashboardHobbyPage">
               <layout class="QGridLayout" name="dashboardHobbyPageLayout">
@@ -497,7 +494,6 @@
                <property name="bottomMargin">
                 <number>12</number>
                </property>
-               <!-- Header: Titel + Button -->
                <item>
                 <layout class="QHBoxLayout" name="roadmapHeaderLayout">
                  <item>
@@ -512,6 +508,12 @@
                    <property name="orientation">
                     <enum>Qt::Orientation::Horizontal</enum>
                    </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                   </spacer>
                  </item>
                  <item>
@@ -523,7 +525,6 @@
                  </item>
                 </layout>
                </item>
-               <!-- View-Toggle: Tree | Diagram -->
                <item>
                 <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
                  <item>
@@ -560,11 +561,16 @@
                    <property name="orientation">
                     <enum>Qt::Orientation::Horizontal</enum>
                    </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                   </spacer>
                  </item>
                 </layout>
                </item>
-               <!-- Splitter: linke Ansicht | rechtes Info-Panel -->
                <item>
                 <widget class="QSplitter" name="roadmapSplitter">
                  <property name="orientation">
@@ -573,12 +579,10 @@
                  <property name="childrenCollapsible">
                   <bool>false</bool>
                  </property>
-                 <!-- Linke Seite: Tree / Diagram (umschaltbar) -->
                  <widget class="QStackedWidget" name="roadmapViewStack">
                   <property name="currentIndex">
                    <number>0</number>
                   </property>
-                  <!-- Tree View -->
                   <widget class="QWidget" name="roadmapTreePage">
                    <layout class="QVBoxLayout" name="roadmapTreePageLayout">
                     <property name="leftMargin">
@@ -610,7 +614,6 @@
                     </item>
                    </layout>
                   </widget>
-                  <!-- Diagram View (Custom Widget Placeholder) -->
                   <widget class="QWidget" name="roadmapDiagramPage">
                    <layout class="QVBoxLayout" name="roadmapDiagramPageLayout">
                     <property name="leftMargin">
@@ -635,7 +638,6 @@
                    </layout>
                   </widget>
                  </widget>
-                 <!-- Rechte Seite: Info-Panel (per C++ ein-/ausblenden) -->
                  <widget class="QWidget" name="roadmapInfoPanel" native="true">
                   <property name="minimumSize">
                    <size>
@@ -667,7 +669,6 @@
                      </property>
                     </widget>
                    </item>
-                   <!-- Name -->
                    <item>
                     <widget class="QLabel" name="roadmapInfoNameLabel">
                      <property name="text">
@@ -678,7 +679,6 @@
                      </property>
                     </widget>
                    </item>
-                   <!-- Status -->
                    <item>
                     <widget class="QLabel" name="roadmapInfoStatusHeader">
                      <property name="text">
@@ -693,7 +693,6 @@
                      </property>
                     </widget>
                    </item>
-                   <!-- Beschreibung -->
                    <item>
                     <widget class="QLabel" name="roadmapInfoDescriptionHeader">
                      <property name="text">
@@ -706,15 +705,14 @@
                      <property name="text">
                       <string/>
                      </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+                     </property>
                      <property name="wordWrap">
                       <bool>true</bool>
                      </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignTop|Qt::AlignmentFlag::AlignLeft</set>
-                     </property>
                     </widget>
                    </item>
-                   <!-- Übergeordnetes Ziel -->
                    <item>
                     <widget class="QLabel" name="roadmapInfoParentHeader">
                      <property name="text">
@@ -733,6 +731,12 @@
                     <spacer name="roadmapInfoSpacer">
                      <property name="orientation">
                       <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
                      </property>
                     </spacer>
                    </item>
@@ -759,7 +763,6 @@
                <property name="bottomMargin">
                 <number>12</number>
                </property>
-               <!-- Header: Titel + Button -->
                <item>
                 <layout class="QHBoxLayout" name="timelineHeaderLayout">
                  <item>
@@ -774,6 +777,12 @@
                    <property name="orientation">
                     <enum>Qt::Orientation::Horizontal</enum>
                    </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                   </spacer>
                  </item>
                  <item>
@@ -785,36 +794,49 @@
                  </item>
                 </layout>
                </item>
-               <!-- Horizontaler Timeline-Balken (Custom Widget) -->
                <item>
-                <widget class="QWidget" name="timelineBarWidget" native="true">
+                <widget class="TimelineBarWidget" name="timelineBarWidget" native="true">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>60</height>
+                   <height>88</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>88</height>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>Geplante Lernphasen – Breite entspricht der zeitlichen Dauer</string>
+                  <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
                  </property>
                 </widget>
                </item>
-               <!-- Scroll Area für Phasen-Cards -->
+               <item>
+                <widget class="QLabel" name="timelinePhasesHeaderLabel">
+                 <property name="text">
+                  <string>PHASEN</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QScrollArea" name="timelinePhaseScrollArea">
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
                  <property name="frameShape">
                   <enum>QFrame::Shape::NoFrame</enum>
                  </property>
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
                  <widget class="QWidget" name="timelinePhasesWidget">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>835</width>
+                    <height>379</height>
+                   </rect>
+                  </property>
                   <layout class="QVBoxLayout" name="timelinePhasesLayout">
                    <property name="spacing">
                     <number>12</number>
@@ -845,6 +867,12 @@
                     <spacer name="timelinePhasesSpacer">
                      <property name="orientation">
                       <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
                      </property>
                     </spacer>
                    </item>
@@ -885,7 +913,6 @@
                <property name="bottomMargin">
                 <number>12</number>
                </property>
-               <!-- Header: Titel + Button -->
                <item>
                 <layout class="QHBoxLayout" name="exercisesHeaderLayout">
                  <item>
@@ -911,7 +938,6 @@
                  </item>
                 </layout>
                </item>
-               <!-- Filterleiste: Suche + Kategorie + Verwaltung -->
                <item>
                 <layout class="QHBoxLayout" name="exercisesFilterLayout">
                  <item>
@@ -939,23 +965,24 @@
                  </item>
                 </layout>
                </item>
-               <!-- Scroll Area für Übungs-Cards -->
                <item>
                 <widget class="QScrollArea" name="exerciseScrollArea">
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
                  <property name="frameShape">
                   <enum>QFrame::Shape::NoFrame</enum>
                  </property>
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
                  <widget class="QWidget" name="exerciseCardsWidget">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>100</width>
+                    <height>30</height>
+                   </rect>
+                  </property>
                   <layout class="QGridLayout" name="exerciseCardsLayout">
-                   <property name="horizontalSpacing">
-                    <number>12</number>
-                   </property>
-                   <property name="verticalSpacing">
-                    <number>12</number>
-                   </property>
                    <property name="leftMargin">
                     <number>0</number>
                    </property>
@@ -967,6 +994,9 @@
                    </property>
                    <property name="bottomMargin">
                     <number>0</number>
+                   </property>
+                   <property name="spacing">
+                    <number>12</number>
                    </property>
                   </layout>
                  </widget>
@@ -991,7 +1021,6 @@
                <property name="bottomMargin">
                 <number>12</number>
                </property>
-               <!-- Header: Titel + Beschreibung -->
                <item>
                 <layout class="QVBoxLayout" name="historyHeaderLayout">
                  <property name="spacing">
@@ -1013,7 +1042,6 @@
                  </item>
                 </layout>
                </item>
-               <!-- Toolbar: Filter (Alle/Übungen/Routinen) + Suche -->
                <item>
                 <layout class="QHBoxLayout" name="historyToolbarLayout">
                  <item>
@@ -1080,16 +1108,23 @@
                  </item>
                 </layout>
                </item>
-               <!-- Activity-Liste: nach Datum gruppiert (Gruppen-Header + Einträge werden zur Laufzeit als HistoryEntryWidget eingefügt) -->
                <item>
                 <widget class="QScrollArea" name="historyScrollArea">
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
                  <property name="frameShape">
                   <enum>QFrame::Shape::NoFrame</enum>
                  </property>
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
                  <widget class="QWidget" name="historyEntriesWidget">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>98</width>
+                    <height>128</height>
+                   </rect>
+                  </property>
                   <layout class="QVBoxLayout" name="historyEntriesLayout">
                    <property name="spacing">
                     <number>16</number>
@@ -1106,7 +1141,6 @@
                    <property name="bottomMargin">
                     <number>0</number>
                    </property>
-                   <!-- Leerer Zustand: per C++ ausblenden, sobald Einträge vorhanden sind -->
                    <item>
                     <widget class="QLabel" name="historyEmptyStateLabel">
                      <property name="text">
@@ -1254,6 +1288,14 @@ Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TimelineBarWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">timelinebarwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

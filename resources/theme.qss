@@ -120,7 +120,8 @@ QLabel#roadmapInfoParentHeader,
 QLabel#exerciseLabel,
 QLabel#goalTitleLabel,
 QLabel#valueTitleLabel,
-QLabel#durationTitleLabel {
+QLabel#durationTitleLabel,
+QLabel#timelinePhasesHeaderLabel {
     font-size: 11px;
     font-weight: 600;
     color: #6d6d73;
@@ -341,6 +342,34 @@ QComboBox QAbstractItemView {
     selection-background-color: #29292d;
     selection-color: #eaeaec;
     outline: none;
+}
+
+QDateEdit {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #eaeaec;
+    selection-background-color: #ff6f61;
+    selection-color: #171012;
+}
+
+QDateEdit:hover {
+    border-color: #333338;
+}
+
+QDateEdit:focus {
+    border-color: #ff6f61;
+}
+
+QDateEdit:disabled {
+    background-color: #17171a;
+    color: #55555a;
+}
+
+QDateEdit::drop-down {
+    border: none;
+    width: 20px;
 }
 
 /* ---------- Listen / Trees ---------- */

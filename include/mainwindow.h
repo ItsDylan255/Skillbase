@@ -37,5 +37,6 @@ private:
         HistoryFilter::All;
 
     void loadHistory();
+    void loadTimeline();
 };
 #endif // MAINWINDOW_H
