@@ -59,6 +59,7 @@ bool Database::createTables()
             "name TEXT NOT NULL,"
             "description TEXT,"
             "category_id INTEGER,"
+            "start_value REAL,"
             "value REAL,"
             "unit TEXT,"
             "goal TEXT,"
@@ -69,6 +70,37 @@ bool Database::createTables()
             )) {
         qDebug() << "Fehler beim Erstellen der exercises-Tabelle:"
                  << query.lastError().text();
+        return false;
+    }
+    // Ältere Datenbanken besitzen die start_value-Spalte noch nicht.
+    // Deshalb ergänzen wir sie bei bereits vorhandenen Datenbanken.
+    if (!query.exec(
+            "ALTER TABLE exercises "
+            "ADD COLUMN start_value REAL"
+            )) {
+
+        // Wenn die Spalte bereits existiert, ist alles in Ordnung.
+        // Andere Fehler müssen dagegen gemeldet werden.
+        if (!query.lastError().text().contains("duplicate column name")) {
+
+            qDebug() << "Fehler beim Hinzufügen von start_value:"
+                     << query.lastError().text();
+
+            return false;
+        }
+    }
+
+    // Bei bestehenden Übungen war bisher kein Startwert gespeichert.
+    // Der bisherige Wert wird deshalb einmalig als Startwert übernommen.
+    if (!query.exec(
+            "UPDATE exercises "
+            "SET start_value = value "
+            "WHERE start_value IS NULL"
+            )) {
+
+        qDebug() << "Fehler beim Übernehmen der bisherigen Werte als Startwert:"
+                 << query.lastError().text();
+
         return false;
     }
 

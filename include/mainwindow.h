@@ -38,5 +38,8 @@ private:
 
     void loadHistory();
     void loadTimeline();
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 #endif // MAINWINDOW_H

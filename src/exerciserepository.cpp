@@ -20,9 +20,9 @@ bool ExerciseRepository::add(
 
     query.prepare(
         "INSERT INTO exercises "
-        "(hobby_id, name, description, category_id, value, unit, goal) "
+        "(hobby_id, name, description, category_id, start_value, value, unit, goal) "
         "VALUES "
-        "(:hobby_id, :name, :description, :category_id, :value, :unit, :goal)"
+        "(:hobby_id, :name, :description, :category_id, :start_value, :value, :unit, :goal)"
         );
 
     query.bindValue(":hobby_id", hobbyId);
@@ -36,7 +36,12 @@ bool ExerciseRepository::add(
         query.bindValue(":category_id", QVariant());
     }
 
+
     query.bindValue(":value", value);
+
+    // Beim Erstellen ist der erste eingegebene Wert gleichzeitig
+    // der Ausgangspunkt für die spätere Fortschrittsberechnung.
+    query.bindValue(":start_value", value);
     query.bindValue(":unit", unit);
     query.bindValue(":goal", goal);
 
@@ -61,7 +66,7 @@ QList<Exercise> ExerciseRepository::getForHobby(
 
     QString sql =
         "SELECT id, hobby_id, name, description, "
-        "category_id, value, unit, goal, archived "
+        "category_id, start_value, value, unit, goal, archived "
         "FROM exercises "
         "WHERE hobby_id = :hobby_id";
 
@@ -86,9 +91,10 @@ QList<Exercise> ExerciseRepository::getForHobby(
         exercise.name = query.value("name").toString();
         exercise.description = query.value("description").toString();
         exercise.categoryId = query.value("category_id").toInt();
+        exercise.startValue = query.value("start_value").toDouble();
         exercise.value = query.value("value").toDouble();
         exercise.unit = query.value("unit").toString();
-        exercise.goal = query.value("goal").toString();
+        exercise.goal = query.value("goal").toDouble();
         exercise.archived = query.value("archived").toInt() != 0;
 
         exercises.append(exercise);
@@ -103,7 +109,7 @@ bool ExerciseRepository::getById(int exerciseId, Exercise &exercise)
 
     query.prepare(
         "SELECT id, hobby_id, name, description, "
-        "category_id, value, unit, goal, archived "
+        "category_id, start_value, value, unit, goal, archived "
         "FROM exercises "
         "WHERE id = :id"
         );
@@ -125,9 +131,10 @@ bool ExerciseRepository::getById(int exerciseId, Exercise &exercise)
     exercise.name = query.value("name").toString();
     exercise.description = query.value("description").toString();
     exercise.categoryId = query.value("category_id").toInt();
+    exercise.startValue = query.value("start_value").toDouble();
     exercise.value = query.value("value").toDouble();
     exercise.unit = query.value("unit").toString();
-    exercise.goal = query.value("goal").toString();
+    exercise.goal = query.value("goal").toDouble();
     exercise.archived = query.value("archived").toInt() != 0;
 
     return true;
@@ -216,6 +223,33 @@ bool ExerciseRepository::remove(int exerciseId)
 
     if (!query.exec()) {
         qDebug() << "Übung konnte nicht gelöscht werden:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+bool ExerciseRepository::updateStartValue(
+    int exerciseId,
+    double startValue
+    )
+{
+    QSqlQuery query;
+
+    // Der Startwert wird bewusst getrennt vom normalen
+    // Bearbeiten einer Übung gespeichert.
+    query.prepare(
+        "UPDATE exercises "
+        "SET start_value = :start_value "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":start_value", startValue);
+    query.bindValue(":id", exerciseId);
+
+    if (!query.exec()) {
+        qDebug() << "Startwert der Übung konnte nicht aktualisiert werden:"
                  << query.lastError().text();
         return false;
     }

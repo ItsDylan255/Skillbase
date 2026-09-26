@@ -32,9 +32,16 @@ public:
         const QString &unit,
         const QString &goal
         );
+
+    static bool updateStartValue(
+        int exerciseId,
+        double startValue
+        );
+
     static bool getById(int exerciseId, Exercise &exercise);
 
     static bool remove(int exerciseId);
+
 };
 
 #endif

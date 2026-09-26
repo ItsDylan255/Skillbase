@@ -26,6 +26,7 @@
 #include "timelinebarwidget.h"
 #include "timelinephasedialog.h"
 #include <QMessageBox>
+#include <QEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -572,7 +573,32 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 }
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    // Wir reagieren nur auf Mausklicks auf eine Exercise-Card.
+    if (event->type() == QEvent::MouseButtonRelease) {
 
+        auto *card = qobject_cast<QFrame *>(watched);
+
+        if (card) {
+            const int exerciseId =
+                card->property("exerciseId").toInt();
+
+            if (exerciseId > 0) {
+
+                // TODO:
+                // Hier öffnen wir im nächsten Schritt
+                // die Detailansicht der Übung.
+                qDebug() << "Exercise angeklickt:" << exerciseId;
+
+                return true;
+            }
+        }
+    }
+
+    // Alle anderen Events normal weiterverarbeiten.
+    return QMainWindow::eventFilter(watched, event);
+}
 // ── Übungs-Cards laden ──────────────────────────────────────────────────────
 
 void MainWindow::loadExerciseCards()
@@ -630,6 +656,8 @@ void MainWindow::loadExerciseCards()
         // ── Card ────────────────────────────────────────────────────────────
         auto *card = new QFrame(ui->exerciseCardsWidget);
         card->setFrameShape(QFrame::StyledPanel);
+        // Die Card selbst soll später die Detailansicht der Übung öffnen.
+        card->setCursor(Qt::PointingHandCursor);
 
         auto *cardLayout = new QVBoxLayout(card);
         cardLayout->setSpacing(4);
@@ -693,17 +721,19 @@ void MainWindow::loadExerciseCards()
         auto *goalRow = new QHBoxLayout();
         goalRow->addWidget(new QLabel("Ziel", card));
         goalRow->addStretch();
-        QString goalText = exercise.goal;
+        QString goalText;
 
-        if (!goalText.isEmpty() && !exercise.unit.isEmpty())
-            goalText += " " + exercise.unit;
+        if (exercise.goal != 0.0) {
+            goalText = QString::number(exercise.goal, 'g', 15);
 
-        if (goalText.isEmpty())
+            if (!exercise.unit.isEmpty())
+                goalText += " " + exercise.unit;
+        } else {
             goalText = "–";
+        }
 
-        goalRow->addWidget(
-            new QLabel(goalText, card)
-            );
+        goalRow->addWidget(new QLabel(goalText, card));
+
         cardLayout->addLayout(goalRow);
 
         cardLayout->addSpacing(4);
@@ -780,7 +810,10 @@ void MainWindow::loadExerciseCards()
                 }
             }
             );
-
+        // Klick auf die Card öffnet später die Detailansicht.
+        // Die Buttons innerhalb der Card werden separat behandelt.
+        card->installEventFilter(this);
+        card->setProperty("exerciseId", exercise.id);
 
         // Position im Grid
         const int row    = visibleCount / columnCount;
@@ -969,7 +1002,9 @@ void MainWindow::editExercise(int exerciseId)
     }
 
     dialogUi.unitLineEdit->setText(exercise.unit);
-    dialogUi.goalLineEdit->setText(exercise.goal);
+    dialogUi.goalLineEdit->setText(
+        QString::number(exercise.goal, 'g', 15)
+        );
 
     const int categoryIndex =
         dialogUi.categoryComboBox->findData(exercise.categoryId);

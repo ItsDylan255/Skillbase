@@ -95,7 +95,7 @@ ExerciseExecutionDialog::ExerciseExecutionDialog(
     // Ziel und Einheit werden gemeinsam angezeigt,
     // da die Einheit zur Übung gehört und nicht separat eingegeben wird.
     ui->goalLabel->setText(
-        exercise.goal + " " + exercise.unit
+        QString::number(exercise.goal, 'g', 15) + " " + exercise.unit
         );
 
     // Der Wert darf nur als positive Zahl eingegeben werden.
