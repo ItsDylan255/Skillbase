@@ -52,6 +52,7 @@ qt_add_executable(Skillbase
     include/goal.h
     src/goalrepository.cpp
     include/goalrepository.h
+    resources/goal_dialog.ui
 
     src/hobbynoterepository.cpp
     include/hobbynoterepository.h
@@ -67,6 +68,9 @@ qt_add_executable(Skillbase
 
     src/timelinebarwidget.cpp
     include/timelinebarwidget.h
+
+    src/exerciseprogresschartwidget.cpp
+    include/exerciseprogresschartwidget.h
 
     src/exerciseexecutiondialog.cpp
     include/exerciseexecutiondialog.h

@@ -18,6 +18,13 @@
    --accent-hover  #ff8677
    --accent-pressed#e85c4e
    --danger        #e5484d   Destruktive Aktionen (nur Text)
+   --success       #3fb950   Erfolg / abgeschlossen (zurückhaltend einsetzen)
+   --warning       #d29922   Warnung / Achtung
+   --info          #58a6ff   Neutraler Hinweis
+   ============================================================
+   Qt Style Sheets kennen keine CSS-Variablen - die Werte oben
+   sind die Referenz, die tatsächlichen Farbwerte werden unten
+   direkt in den Selektoren wiederholt.
    ============================================================ */
 
 /* ---------- Basis ---------- */
@@ -26,6 +33,22 @@ QMainWindow, QDialog, QWidget {
     color: #eaeaec;
     font-family: "Inter", "Segoe UI", sans-serif;
     font-size: 13px;
+}
+QToolButton#goalCurrentButton {
+    padding: 0;
+    border: none;
+    border-bottom: none;
+    background: transparent;
+    border-radius: 6px;
+}
+
+QToolButton#goalCurrentButton:hover {
+    background-color: #212124;
+}
+/* Labels sollen standardmäßig keine eigene Fläche zeichnen.
+   Dadurch bleibt innerhalb von Cards deren Surface sichtbar. */
+QLabel {
+    background-color: transparent;
 }
 
 QWidget:disabled {
@@ -52,14 +75,14 @@ QFrame#line {
     border: none;
 }
 
-QLabel#label {
+QLabel#sidebarTitleLabel {
     font-size: 16px;
     font-weight: 600;
     color: #eaeaec;
     padding: 8px 4px 16px 4px;
 }
 
-QLabel#label_3 {
+QLabel#sidebarHobbySectionLabel {
     font-size: 11px;
     font-weight: 600;
     color: #6d6d73;
@@ -69,10 +92,11 @@ QLabel#label_3 {
 #sidebar QPushButton {
     background-color: transparent;
     border: none;
-    border-radius: 6px;
+    border-left: 2px solid transparent;
+    border-radius: 0px;
     color: #9a9aa0;
     text-align: left;
-    padding: 8px 10px;
+    padding: 8px 10px 8px 8px;
     font-size: 13px;
     font-weight: 500;
 }
@@ -86,50 +110,111 @@ QLabel#label_3 {
     background-color: #29292d;
 }
 
+/* Aktiver Menüpunkt: dezenter Accent-Indikator am linken Rand statt
+   einer vollflächigen Farbfläche (siehe ui-guidelines.md, "Navigation"). */
+#sidebar QPushButton:checked {
+    background-color: transparent;
+    border-left: 2px solid #ff6f61;
+    color: #eaeaec;
+    font-weight: 600;
+}
+
 #sidebar QListWidget {
     background-color: transparent;
     border: none;
 }
 
 /* ---------- Seiten-/Section-Titel ---------- */
-QLabel#label_2,
+QLabel#dashboardTitleLabel,
 QLabel#hobbyLabel,
-QLabel#label_5,
-QLabel#label_6,
-QLabel#historyHeaderLabel {
+QLabel#settingsTitleLabel,
+QLabel#statisticsTitleLabel {
     font-size: 22px;
     font-weight: 600;
     color: #eaeaec;
     padding-bottom: 4px;
 }
 
+/* Tab-Section-Titel innerhalb einer Hobby-Seite (Übungen/Ziele/Verlauf/
+   Timeline/Roadmap) - bewusst eine Stufe kleiner als die Seiten-Titel
+   oben und einheitlich für alle Tabs, damit z. B. "Ziele" und "Verlauf"
+   an derselben Stelle/Größe wie "Übungen" stehen. */
 QLabel#exercisesHeaderLabel,
+QLabel#goalsHeaderLabel,
+QLabel#historyHeaderLabel,
 QLabel#timelineHeaderLabel,
 QLabel#roadmapHeaderLabel,
 QLabel#roadmapInfoTitle,
-QLabel#titleLabel {
+QLabel#exerciseDetailNameLabel {
     font-size: 16px;
     font-weight: 600;
     color: #eaeaec;
 }
 
-/* Sekundäre/Meta-Header innerhalb des Roadmap-Infopanels und des Execution-Dialogs */
+/* "titleLabel" ist als Objektname doppelt vergeben: im
+   Execution-Dialog die große Dialog-Überschrift ("Übung ausführen"),
+   im GoalDialog dagegen nur die Feldbeschriftung von "Titel *".
+   Deshalb hier bewusst auf den Execution-Dialog verankert (per
+   Root-ObjectName-Selektor), statt global über QLabel#titleLabel zu
+   gehen - siehe namensvorschlaege.md, Punkt 1. */
+#ExerciseExecutionDialog QLabel#titleLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Sekundäre/Meta-Header innerhalb des Roadmap-Infopanels und des Execution-Dialogs,
+   sowie die kleinen Section-Header auf der Übersicht und dem Hobby-Dashboard
+   ("AKTUELLE PHASE", "ROUTINEN", "NOTIZ", "STATISTIK" usw.). */
 QLabel#roadmapInfoStatusHeader,
 QLabel#roadmapInfoDescriptionHeader,
 QLabel#roadmapInfoParentHeader,
 QLabel#exerciseLabel,
 QLabel#goalTitleLabel,
 QLabel#valueTitleLabel,
-QLabel#durationTitleLabel {
+QLabel#durationTitleLabel,
+QLabel#exerciseDetailStartHeaderLabel,
+QLabel#exerciseDetailCurrentHeaderLabel,
+QLabel#exerciseDetailGoalHeaderLabel,
+QLabel#exerciseDetailLastPerformedHeaderLabel,
+QLabel#exerciseDetailExecutionCountHeaderLabel,
+QLabel#exerciseDetailTotalTimeHeaderLabel,
+QLabel#todaySectionLabel,
+QLabel#goalsSectionLabel,
+QLabel#progressSectionLabel,
+QLabel#recentActivitySectionLabel,
+QLabel#hobbyPhaseSectionLabel,
+QLabel#hobbyGoalSectionLabel,
+QLabel#hobbyRoutinesSectionLabel,
+QLabel#hobbyNoteSectionLabel,
+QLabel#hobbyStatsSectionLabel {
     font-size: 11px;
     font-weight: 600;
     color: #6d6d73;
     padding-top: 8px;
 }
 
-/* Wertanzeigen im Execution-Dialog */
+/* Wertanzeigen im Execution-Dialog, in der Übungs-Detailansicht sowie
+   die aktuelle Phase / das aktuelle Ziel im Hobby-Dashboard. */
 QLabel#exerciseNameLabel,
-QLabel#goalLabel {
+QLabel#exerciseDetailStartValueLabel,
+QLabel#exerciseDetailCurrentValueLabel,
+QLabel#exerciseDetailGoalValueLabel,
+QLabel#exerciseDetailLastPerformedLabel,
+QLabel#exerciseDetailExecutionCountLabel,
+QLabel#exerciseDetailTotalTimeLabel,
+QLabel#hobbyPhaseNameLabel,
+QLabel#hobbyGoalNameLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #eaeaec;
+}
+
+/* "goalLabel" ist als Objektname doppelt vergeben: im Execution-Dialog
+   die dynamische Wertanzeige (Ziel + Einheit), im ExerciseDialog dagegen
+   nur die Feldbeschriftung von "Ziel" (soll wie nameLabel/valueLabel/
+   unitLabel aussehen, siehe namensvorschlaege.md, Punkt 2). */
+#ExerciseExecutionDialog QLabel#goalLabel {
     font-size: 14px;
     font-weight: 500;
     color: #eaeaec;
@@ -139,29 +224,131 @@ QLabel#unitLabel {
     color: #9a9aa0;
 }
 
-/* Gedämpfte Body-/Hinweistexte */
+/* Gedämpfte Body-/Hinweistexte, inkl. Untertitel der Übersicht/des
+   Hobby-Dashboards und der Countdown-/Deadline-Zeilen. */
+QLabel#dashboardSubtitleLabel,
+QLabel#hobbyDashboardSubtitleLabel,
+QLabel#hobbyPhaseCountdownLabel,
+QLabel#hobbyGoalDeadlineLabel,
+QLabel#hobbyRoutinesEmptyLabel,
 QLabel#todayLabel,
 QLabel#goalsSummaryLabel,
 QLabel#progressSummaryLabel,
 QLabel#hobbyTodayLabel,
 QLabel#hobbyGoalsSummaryLabel,
 QLabel#hobbyProgressSummaryLabel,
-QLabel#historyHeaderDescriptionLabel,
 QLabel#historyEmptyStateLabel,
-QLabel#progressPlaceholderLabel,
 QLabel#timelineEmptyLabel,
 QLabel#roadmapInfoNameLabel,
 QLabel#roadmapInfoStatusLabel,
 QLabel#roadmapInfoDescriptionLabel,
-QLabel#roadmapInfoParentLabel {
+QLabel#roadmapInfoParentLabel,
+QLabel#exerciseDetailDescriptionLabel,
+QLabel#exerciseDetailPercentLabel {
     color: #9a9aa0;
     font-size: 13px;
 }
 
-QFrame#roadmapInfoSeparator {
+/* Große Statistik-Werte im Hobby-Dashboard ("126", "34 h 20 min", ...) -
+   dürfen laut ui-guidelines.md stärker hervorgehoben werden. */
+QLabel#hobbyStatExercisesValueLabel,
+QLabel#hobbyStatTimeValueLabel,
+QLabel#hobbyStatSessionsValueLabel,
+QLabel#hobbyStatGoalsValueLabel {
+    font-size: 20px;
+    font-weight: 700;
+    color: #eaeaec;
+}
+
+QLabel#hobbyStatExercisesCaptionLabel,
+QLabel#hobbyStatTimeCaptionLabel,
+QLabel#hobbyStatSessionsCaptionLabel,
+QLabel#hobbyStatGoalsCaptionLabel {
+    font-size: 12px;
+    color: #9a9aa0;
+}
+
+/* ---------- Übungs-Detailansicht ---------- */
+
+/* Kategorie-Tag im Kopfbereich der Detailansicht (gleiche Optik wie
+   die Kategorie-Tags auf den Übungskarten). */
+QLabel#exerciseDetailCategoryTagLabel {
+    background-color: #2a2a2a;
+    color: #aaaaaa;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    max-width: 200px;
+}
+
+/* Kleiner, zurückhaltender Link-artiger Button zum Bearbeiten des
+   Startwerts - bewusst leichter als ein normaler Secondary-Button. */
+QPushButton#exerciseDetailEditStartValueButton {
+    background-color: transparent;
+    border: none;
+    color: #9a9aa0;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 6px;
+}
+
+QPushButton#exerciseDetailEditStartValueButton:hover {
+    color: #eaeaec;
+    text-decoration: underline;
+}
+
+QPushButton#exerciseDetailEditStartValueButton:pressed {
+    color: #ff6f61;
+}
+
+/* Fortschrittsbalken in der Übungs-Detailansicht */
+QProgressBar#exerciseDetailProgressBar {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    height: 8px;
+    max-height: 8px;
+}
+
+QProgressBar#exerciseDetailProgressBar::chunk {
+    background-color: #ff6f61;
+    border-radius: 4px;
+}
+
+QFrame#roadmapInfoSeparator,
+QFrame#dashboardDivider1,
+QFrame#dashboardDivider2,
+QFrame#dashboardDivider3,
+QFrame#hobbyDashboardDivider1,
+QFrame#hobbyDashboardDivider2,
+QFrame#hobbyDashboardDivider3,
+QFrame#hobbyDashboardDivider4 {
     background-color: #29292d;
     max-height: 1px;
     border: none;
+}
+
+/* Fortschrittsbalken der aktuellen Phase im Hobby-Dashboard - gleiche
+   Optik wie der Fortschrittsbalken in der Übungs-Detailansicht. */
+QProgressBar#hobbyPhaseProgressBar {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    height: 8px;
+    max-height: 8px;
+}
+
+QProgressBar#hobbyPhaseProgressBar::chunk {
+    background-color: #ff6f61;
+    border-radius: 4px;
+}
+
+/* "+ Routine hinzufügen" im Empty-State des Dashboards ist eine
+   sekundäre Aktion, kein Primary-Button (davon gibt es max. einen
+   pro Kontext - das ist bereits addRoutineButton auf der Routinen-Seite). */
+QPushButton#hobbyRoutinesAddButton {
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 /* ---------- Cards (QGroupBox) ---------- */
@@ -286,6 +473,32 @@ QPushButton#deleteButton:hover {
 /* QDialogButtonBox Buttons (Save/Cancel) */
 QDialogButtonBox QPushButton {
     min-width: 84px;
+}
+
+/* Die primäre Aktion eines Dialogs (Speichern/Erstellen) wird als
+   Default-Button gesetzt und erhält dieselbe Primary-Button-Farbe
+   wie "+ hinzufügen"-Aktionen (siehe oben). */
+QDialogButtonBox QPushButton[default="true"] {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QDialogButtonBox QPushButton[default="true"]:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QDialogButtonBox QPushButton[default="true"]:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
+}
+
+QDialogButtonBox QPushButton[default="true"]:disabled {
+    background-color: #17171a;
+    color: #55555a;
+    border-color: #212124;
 }
 
 /* ---------- Inputs ---------- */
@@ -431,6 +644,18 @@ QLabel[role="accent"] {
     color: #ff6f61;
 }
 
+QLabel[role="success"] {
+    color: #3fb950;
+}
+
+QLabel[role="warning"] {
+    color: #d29922;
+}
+
+QLabel[role="info"] {
+    color: #58a6ff;
+}
+
 /* ---------- Verlauf: Datums-Trenner ---------- */
 HistoryDateHeaderWidget {
     background-color: transparent;
@@ -441,6 +666,94 @@ HistoryDateHeaderWidget QLabel#dateLabel {
     font-size: 11px;
     font-weight: 600;
     color: #6d6d73;
+}
+
+/* Eintragstitel im Verlauf (fett, wie jeder andere Primary-Body-Text) */
+QLabel#entryTitleLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* "Zeitraum"-Zwischenüberschrift im TimelinePhaseDialog - gleiche
+   Optik wie eine Feld-Gruppenüberschrift, etwas stärker als die
+   einfachen Feldbeschriftungen (Name/Beschreibung) darüber. */
+QLabel#periodLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Status-Punkt vor jedem Verlaufseintrag: kleiner, echter Kreis statt
+   Font-Glyph ("●"), damit Größe/Position pixelgenau und rendererunabhängig
+   sind. Farbe kommt weiterhin über die role-Property (aktuell "accent"). */
+QLabel#entryTypeIconLabel {
+    background-color: #ff6f61;
+    border-radius: 4px;
+    min-width: 8px;
+    max-width: 8px;
+    min-height: 8px;
+    max-height: 8px;
+}
+
+QLabel#entryTypeIconLabel[role="secondary"] {
+    background-color: #9a9aa0;
+}
+
+QLabel#entryTypeIconLabel[role="muted"] {
+    background-color: #6d6d73;
+}
+
+/* ---------- Exercise Card & Goal Card ----------
+   Gleiche Card-Sprache wie QGroupBox (Surface/Border/Radius),
+   aber ohne Titel-Notch, da der Name als eigenes Label geführt wird. */
+QFrame#exerciseCard,
+QFrame#goalCard {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+}
+
+QFrame#exerciseCard:hover,
+QFrame#goalCard:hover {
+    border: 1px solid #333338;
+}
+
+QLabel#exerciseCardNameLabel,
+QLabel#goalCardTitleLabel {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QLabel#exerciseCardMetaHeaderLabel {
+    font-size: 11px;
+}
+
+QLabel#exerciseCardCategoryTagLabel {
+    background-color: #212124;
+    color: #9a9aa0;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+QFrame#exerciseCardSeparator,
+QFrame#goalCardSeparator {
+    background-color: #29292d;
+    max-height: 1px;
+    border: none;
+}
+
+QPushButton#exerciseCardRunButton {
+    font-weight: 600;
+}
+
+QLabel#goalCardDeadlineLabel {
+    font-size: 11px;
+}
+
+QLabel#goalCardDescriptionLabel {
+    font-size: 12px;
 }
 
 /* ---------- Scroll-Bereiche für Card-Grids ---------- */
@@ -524,6 +837,12 @@ QCheckBox {
     spacing: 8px;
 }
 
+QCheckBox {
+    color: #eaeaec;
+    spacing: 8px;
+    background: transparent;
+}
+
 QCheckBox::indicator {
     width: 16px;
     height: 16px;
@@ -539,4 +858,55 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background-color: #ff6f61;
     border-color: #ff6f61;
+}
+
+QListWidget#hobbyList {
+    background: transparent;
+    border: none;
+}
+
+QListWidget#hobbyList::item {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+}
+
+QListWidget#hobbyList::item:selected {
+    background: transparent;
+    border-left: 2px solid #ff6f61;
+}
+
+/* ---------- Ziel-Filter ---------- */
+
+/* "Offen" und "Geschafft" verhalten sich wie normale sekundäre
+   Filter-Buttons und nicht wie die Hobby-Navigation. */
+QToolButton#goalsFilterOpenButton,
+QToolButton#goalsFilterDoneButton {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid #29292d;
+}
+
+QToolButton#goalsFilterOpenButton:hover,
+QToolButton#goalsFilterDoneButton:hover {
+    background-color: #212124;
+    border-color: #333338;
+}
+
+QToolButton#goalsFilterOpenButton:pressed,
+QToolButton#goalsFilterDoneButton:pressed {
+    background-color: #29292d;
+}
+
+QToolButton#goalsFilterOpenButton:checked,
+QToolButton#goalsFilterDoneButton:checked {
+    background-color: #212124;
+    color: #eaeaec;
+    border: 1px solid #333338;
+    border-bottom: 1px solid #333338;
 }

@@ -3,14 +3,25 @@
 
 #include <QString>
 
+// Ein einfaches persönliches Ziel innerhalb eines Hobbys.
+//
+// Bewusst simpel gehalten: keine Unterziele, keine Fortschrittsprozente,
+// keine Messwerte - siehe docs/design (Feature-Konzept "Ziele").
 struct Goal
 {
     int id = 0;
     int hobbyId = 0;
     QString title;
-    QString deadline;        // ISO date string, e.g. "2026-12-15"; empty if none set
-    int progressPercent = 0;
-    QString status = "in_progress";
+    QString description;
+    QString deadline;        // ISO-Datum, z. B. "2026-12-15"; leer, wenn keine Deadline gesetzt ist
+    QString status = "open"; // "open" oder "done"
+    int sortOrder = 0;       // vom Benutzer per Drag & Drop bestimmte Reihenfolge (nur offene Ziele)
+    bool isCurrent = false; // Kennzeichnet das aktuelle Hauptziel dieses Hobbys
+
+    bool isDone() const
+    {
+        return status == "done";
+    }
 };
 
 #endif

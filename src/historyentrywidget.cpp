@@ -11,6 +11,8 @@ HistoryEntryWidget::HistoryEntryWidget(QWidget *parent)
     // Der Hover-Zustand wird über das zentrale Stylesheet gesteuert.
     // WA_Hover sorgt dafür, dass das Widget auf Mausbewegungen reagieren kann.
     setAttribute(Qt::WA_Hover, true);
+
+
 }
 
 HistoryEntryWidget::~HistoryEntryWidget()
@@ -28,9 +30,9 @@ void HistoryEntryWidget::setData(
 {
     // Das Symbol zeigt auf einen Blick, ob es sich um eine
     // ausgeführte Übung oder Routine handelt.
-    ui->entryTypeIconLabel->setText(
-        isRoutine ? "◆" : "●"
-        );
+    // Jede Aktivität verwendet dasselbe Symbol.
+    // Der Verlauf unterscheidet nicht mehr zwischen Übungen und Routinen.
+    ui->entryTypeIconLabel->setText("●");
 
     ui->entryTitleLabel->setText(title);
     ui->entryTimeLabel->setText(timeText);

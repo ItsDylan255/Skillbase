@@ -7,115 +7,184 @@
     <x>0</x>
     <y>0</y>
     <width>420</width>
-    <height>52</height>
+    <height>60</height>
    </rect>
   </property>
+
   <property name="cursor">
    <cursorShape>PointingHandCursor</cursorShape>
   </property>
-  <layout class="QHBoxLayout" name="entryLayout">
+
+  <layout class="QVBoxLayout" name="entryMainLayout">
    <property name="spacing">
-    <number>12</number>
+    <number>0</number>
    </property>
+
    <property name="leftMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
+
    <property name="topMargin">
-    <number>8</number>
+    <number>4</number>
    </property>
+
    <property name="rightMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
+
    <property name="bottomMargin">
-    <number>8</number>
+    <number>0</number>
    </property>
+
    <item>
-    <widget class="QLabel" name="entryTypeIconLabel">
-     <property name="minimumSize">
-      <size>
-       <width>16</width>
-       <height>16</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16</width>
-       <height>16</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>●</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-     <property name="role" stdset="0">
-      <string>accent</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="entryTextLayout">
+    <layout class="QHBoxLayout" name="entryLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>12</number>
      </property>
+
+     <property name="leftMargin">
+      <number>12</number>
+     </property>
+
+     <property name="topMargin">
+      <number>4</number>
+     </property>
+
+     <property name="rightMargin">
+      <number>12</number>
+     </property>
+
+     <property name="bottomMargin">
+      <number>8</number>
+     </property>
+
+     <!-- Einheitliches Symbol für jede Aktivität -->
      <item>
-      <widget class="QLabel" name="entryTitleLabel">
-       <property name="font">
-        <font>
-         <bold>true</bold>
-        </font>
+      <widget class="QLabel" name="entryTypeIconLabel">
+       <property name="minimumSize">
+        <size>
+         <width>8</width>
+         <height>8</height>
+        </size>
        </property>
+
+       <property name="maximumSize">
+        <size>
+         <width>8</width>
+         <height>8</height>
+        </size>
+       </property>
+
        <property name="text">
-        <string>Bankdrücken</string>
+        <string/>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="entrySubtitleLabel">
-       <property name="text">
-        <string>80 kg · 20 min</string>
+
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
        </property>
+
        <property name="role" stdset="0">
-        <string>secondary</string>
+        <string>accent</string>
        </property>
       </widget>
      </item>
+
+     <!-- Titel und Zusatzinformationen -->
+     <item>
+      <layout class="QVBoxLayout" name="entryTextLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+
+       <item>
+        <widget class="QLabel" name="entryTitleLabel">
+         <property name="text">
+          <string>Bankdrücken</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QLabel" name="entrySubtitleLabel">
+         <property name="text">
+          <string>80 kg · 20 min</string>
+         </property>
+
+         <property name="role" stdset="0">
+          <string>secondary</string>
+         </property>
+        </widget>
+       </item>
+
+      </layout>
+     </item>
+
+     <!-- Schiebt die Uhrzeit an den rechten Rand -->
+     <item>
+      <spacer name="entrySpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+
+     <!-- Uhrzeit -->
+     <item>
+      <widget class="QLabel" name="entryTimeLabel">
+       <property name="text">
+        <string>18:42</string>
+       </property>
+
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+       </property>
+
+       <property name="role" stdset="0">
+        <string>muted</string>
+       </property>
+      </widget>
+     </item>
+
     </layout>
    </item>
+
+   <!-- Dezente Trennlinie zwischen den Verlaufseinträgen -->
    <item>
-    <spacer name="entrySpacer">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
+    <widget class="QFrame" name="historyEntrySeparator">
+     <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>0</height>
+       <height>1</height>
       </size>
      </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="entryTimeLabel">
-     <property name="text">
-      <string>18:42</string>
+
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>1</height>
+      </size>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+
+     <property name="frameShape">
+      <enum>QFrame::Shape::HLine</enum>
      </property>
-     <property name="role" stdset="0">
-      <string>muted</string>
+
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
      </property>
     </widget>
    </item>
+
   </layout>
  </widget>
+
  <resources/>
  <connections/>
 </ui>

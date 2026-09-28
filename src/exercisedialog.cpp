@@ -5,6 +5,10 @@ ExerciseDialog::ExerciseDialog(QWidget *parent)
 {
     ui.setupUi(this);
 
+    // Speichern ist die primäre Aktion des Dialogs (siehe Design System:
+    // Primary Button für Save/Add/Start-Aktionen).
+    ui.buttonBox->button(QDialogButtonBox::Save)->setDefault(true);
+
     // Speichern nur aktiv wenn Name nicht leer
     ui.buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     connect(ui.nameLineEdit, &QLineEdit::textChanged, this, [this](const QString &text) {

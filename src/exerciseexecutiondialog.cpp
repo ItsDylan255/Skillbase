@@ -5,6 +5,7 @@
 #include <QDoubleValidator>
 #include <QRegularExpression>
 #include <QMessageBox>
+#include <QPushButton>
 
 ExerciseExecutionDialog::ExerciseExecutionDialog(
     const Exercise &exercise,
@@ -14,6 +15,9 @@ ExerciseExecutionDialog::ExerciseExecutionDialog(
     ui(new Ui::ExerciseExecutionDialog)
 {
     ui->setupUi(this);
+
+    // Speichern ist die primäre Aktion des Dialogs.
+    ui->buttonBox->button(QDialogButtonBox::Save)->setDefault(true);
 
     // Die Dauer wird von rechts nach links aufgebaut.
     // Der Nutzer gibt nur die Ziffern ein, der Doppelpunkt wird automatisch gesetzt.
@@ -95,7 +99,7 @@ ExerciseExecutionDialog::ExerciseExecutionDialog(
     // Ziel und Einheit werden gemeinsam angezeigt,
     // da die Einheit zur Übung gehört und nicht separat eingegeben wird.
     ui->goalLabel->setText(
-        exercise.goal + " " + exercise.unit
+        QString::number(exercise.goal, 'g', 15) + " " + exercise.unit
         );
 
     // Der Wert darf nur als positive Zahl eingegeben werden.

@@ -29,11 +29,6 @@
    <!-- Einziges Kind: reine Anzeige, keine Interaktion, keine eigene Datumslogik -->
    <item>
     <widget class="QLabel" name="dateLabel">
-     <property name="font">
-      <font>
-       <bold>true</bold>
-      </font>
-     </property>
      <property name="text">
       <string>HEUTE</string>
      </property>

@@ -13,6 +13,9 @@ TimelinePhaseDialog::TimelinePhaseDialog(QWidget *parent)
     // Die Standard-Buttontexte von Qt werden an die deutsche UI angepasst.
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Abbrechen");
     ui->buttonBox->button(QDialogButtonBox::Save)->setText("Speichern");
+
+    // Speichern ist die primäre Aktion des Dialogs.
+    ui->buttonBox->button(QDialogButtonBox::Save)->setDefault(true);
 }
 
 TimelinePhaseDialog::~TimelinePhaseDialog()

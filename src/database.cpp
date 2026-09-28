@@ -59,6 +59,7 @@ bool Database::createTables()
             "name TEXT NOT NULL,"
             "description TEXT,"
             "category_id INTEGER,"
+            "start_value REAL,"
             "value REAL,"
             "unit TEXT,"
             "goal TEXT,"
@@ -69,6 +70,37 @@ bool Database::createTables()
             )) {
         qDebug() << "Fehler beim Erstellen der exercises-Tabelle:"
                  << query.lastError().text();
+        return false;
+    }
+    // Ältere Datenbanken besitzen die start_value-Spalte noch nicht.
+    // Deshalb ergänzen wir sie bei bereits vorhandenen Datenbanken.
+    if (!query.exec(
+            "ALTER TABLE exercises "
+            "ADD COLUMN start_value REAL"
+            )) {
+
+        // Wenn die Spalte bereits existiert, ist alles in Ordnung.
+        // Andere Fehler müssen dagegen gemeldet werden.
+        if (!query.lastError().text().contains("duplicate column name")) {
+
+            qDebug() << "Fehler beim Hinzufügen von start_value:"
+                     << query.lastError().text();
+
+            return false;
+        }
+    }
+
+    // Bei bestehenden Übungen war bisher kein Startwert gespeichert.
+    // Der bisherige Wert wird deshalb einmalig als Startwert übernommen.
+    if (!query.exec(
+            "UPDATE exercises "
+            "SET start_value = value "
+            "WHERE start_value IS NULL"
+            )) {
+
+        qDebug() << "Fehler beim Übernehmen der bisherigen Werte als Startwert:"
+                 << query.lastError().text();
+
         return false;
     }
 
@@ -137,13 +169,57 @@ bool Database::createTables()
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "hobby_id INTEGER NOT NULL,"
             "title TEXT NOT NULL,"
+            "description TEXT NOT NULL DEFAULT '',"
             "deadline TEXT,"
-            "progress_percent INTEGER NOT NULL DEFAULT 0,"
-            "status TEXT NOT NULL DEFAULT 'in_progress',"
+            "status TEXT NOT NULL DEFAULT 'open',"
+            "sort_order INTEGER NOT NULL DEFAULT 0,"
+            "is_current INTEGER NOT NULL DEFAULT 0,"
             "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
             ")"
             )) {
         qDebug() << "Fehler beim Erstellen der goals-Tabelle:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    // Ältere Datenbanken kannten Ziele noch ohne Beschreibung und ohne
+    // frei bestimmbare Reihenfolge (nur Fortschrittsprozent + Status).
+    // Beide Spalten werden deshalb bei Bedarf ergänzt.
+    if (!query.exec(
+            "ALTER TABLE goals "
+            "ADD COLUMN description TEXT NOT NULL DEFAULT ''"
+            )) {
+
+        if (!query.lastError().text().contains("duplicate column name")) {
+
+            qDebug() << "Fehler beim Hinzufügen von description:"
+                     << query.lastError().text();
+
+            return false;
+        }
+    }
+
+    if (!query.exec(
+            "ALTER TABLE goals "
+            "ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0"
+            )) {
+
+        if (!query.lastError().text().contains("duplicate column name")) {
+
+            qDebug() << "Fehler beim Hinzufügen von sort_order:"
+                     << query.lastError().text();
+
+            return false;
+        }
+    }
+
+    // Der frühere Status "in_progress" entspricht dem neuen "open".
+    // Ein Fortschrittsprozent gibt es beim einfachen Ziele-Feature
+    // bewusst nicht mehr - die Spalte bleibt (falls vorhanden) unbenutzt.
+    if (!query.exec(
+            "UPDATE goals SET status = 'open' WHERE status = 'in_progress'"
+            )) {
+        qDebug() << "Fehler beim Migrieren des Ziel-Status:"
                  << query.lastError().text();
         return false;
     }
