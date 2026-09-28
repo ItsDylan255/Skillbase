@@ -45,6 +45,9 @@
 #include <QLineEdit>
 #include <QIcon>
 #include <QSet>
+#include "routinedialog.h"
+#include "routinerepository.h"
+#include "routine.h"
 
 namespace {
 
@@ -279,7 +282,7 @@ MainWindow::MainWindow(QWidget *parent)
     // TimelinePhaseRepository speichern (bzw. die Phase löschen) und
     // anschließend loadTimeline() aufrufen.
     if (auto *timelineBar =
-            qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget)) {
+        qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget)) {
 
         connect(
             timelineBar,
@@ -612,6 +615,24 @@ MainWindow::MainWindow(QWidget *parent)
         );
 
 
+    connect(
+        ui->addRoutineButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+
+            RoutineDialog dialog(
+                currentHobbyId,
+                this
+                );
+
+            // Nur wenn tatsächlich gespeichert wurde,
+            // müssen die Routinen neu aus der Datenbank geladen werden.
+            if (dialog.exec() == QDialog::Accepted) {
+                loadRoutineCards();
+            }
+        }
+        );
 
     connect(ui->roadmapTab, &QToolButton::clicked, this, [this]() {
         ui->roadmapTab->setChecked(true);
@@ -626,7 +647,7 @@ MainWindow::MainWindow(QWidget *parent)
         HobbyNoteRepository::setContent(
             currentHobbyId,
             ui->hobbyNotesTextEdit->toPlainText()
-        );
+            );
     });
 
     // ── Hobby-Liste ─────────────────────────────────────────────────────────
@@ -699,9 +720,11 @@ MainWindow::MainWindow(QWidget *parent)
         loadExerciseCards();
         loadHistory();
         loadTimeline();
+        loadRoutineCards();
         ui->goalsFilterOpenButton->setChecked(true);
         ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
         loadGoalCards();
+        loadRoutineCards();
 
 
         ui->dashboardTab->setChecked(true);
@@ -723,31 +746,31 @@ MainWindow::MainWindow(QWidget *parent)
         dialogUi.categoryComboBox->addItem("+ Kategorie erstellen", -2);
 
         connect(dialogUi.categoryComboBox, &QComboBox::activated, &dialog,
-            [&dialog, &dialogUi, this](int index) {
-                if (dialogUi.categoryComboBox->itemData(index).toInt() != -2)
-                    return;
+                [&dialog, &dialogUi, this](int index) {
+                    if (dialogUi.categoryComboBox->itemData(index).toInt() != -2)
+                        return;
 
-                bool ok = false;
-                QString categoryName = QInputDialog::getText(
-                    &dialog, "Neue Kategorie", "Name der Kategorie:",
-                    QLineEdit::Normal, "", &ok).trimmed();
+                    bool ok = false;
+                    QString categoryName = QInputDialog::getText(
+                                               &dialog, "Neue Kategorie", "Name der Kategorie:",
+                                               QLineEdit::Normal, "", &ok).trimmed();
 
-                if (!ok || categoryName.isEmpty()) {
-                    dialogUi.categoryComboBox->setCurrentIndex(0);
-                    return;
-                }
+                    if (!ok || categoryName.isEmpty()) {
+                        dialogUi.categoryComboBox->setCurrentIndex(0);
+                        return;
+                    }
 
-                int categoryId = 0;
-                if (!CategoryRepository::add(currentHobbyId, categoryName, categoryId)) {
-                    qDebug() << "Kategorie konnte nicht gespeichert werden.";
-                    dialogUi.categoryComboBox->setCurrentIndex(0);
-                    return;
-                }
+                    int categoryId = 0;
+                    if (!CategoryRepository::add(currentHobbyId, categoryName, categoryId)) {
+                        qDebug() << "Kategorie konnte nicht gespeichert werden.";
+                        dialogUi.categoryComboBox->setCurrentIndex(0);
+                        return;
+                    }
 
-                const int createIndex = dialogUi.categoryComboBox->findData(-2);
-                dialogUi.categoryComboBox->insertItem(createIndex, categoryName, categoryId);
-                dialogUi.categoryComboBox->setCurrentIndex(createIndex);
-            });
+                    const int createIndex = dialogUi.categoryComboBox->findData(-2);
+                    dialogUi.categoryComboBox->insertItem(createIndex, categoryName, categoryId);
+                    dialogUi.categoryComboBox->setCurrentIndex(createIndex);
+                });
 
         if (dialog.exec() != QDialog::Accepted)
             return;
@@ -806,11 +829,11 @@ MainWindow::MainWindow(QWidget *parent)
 
         // Buttons erst aktiv wenn eine Kategorie ausgewählt ist
         connect(dialogUi.categoryListWidget, &QListWidget::currentItemChanged, &dialog,
-            [&dialogUi](QListWidgetItem *current) {
-                bool has = current != nullptr;
-                dialogUi.renameButton->setEnabled(has);
-                dialogUi.deleteButton->setEnabled(has);
-            });
+                [&dialogUi](QListWidgetItem *current) {
+                    bool has = current != nullptr;
+                    dialogUi.renameButton->setEnabled(has);
+                    dialogUi.deleteButton->setEnabled(has);
+                });
 
         // Umbenennen
         connect(dialogUi.renameButton, &QPushButton::clicked, &dialog, [&]() {
@@ -818,8 +841,8 @@ MainWindow::MainWindow(QWidget *parent)
             if (!item) return;
             bool ok;
             QString newName = QInputDialog::getText(
-                &dialog, "Kategorie umbenennen", "Neuer Name:",
-                QLineEdit::Normal, item->text(), &ok).trimmed();
+                                  &dialog, "Kategorie umbenennen", "Neuer Name:",
+                                  QLineEdit::Normal, item->text(), &ok).trimmed();
             if (ok && !newName.isEmpty()) {
                 CategoryRepository::rename(item->data(Qt::UserRole).toInt(), newName);
                 item->setText(newName);
@@ -1519,6 +1542,7 @@ void MainWindow::loadExerciseCards()
 
                     loadExerciseCards();
                     loadHistory();
+                    loadRoutineCards();
                 }
             }
             );
@@ -1807,6 +1831,7 @@ void MainWindow::editExercise(int exerciseId)
         // Verlauf aktualisieren, damit auch alte Logs den neuen Übungsnamen anzeigen.
         loadHistory();
         loadTimeline();
+        loadRoutineCards();
 
     } else {
 
@@ -1842,6 +1867,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         // zurück zur normalen Übersicht.
         showExerciseOverview();
         loadExerciseCards();
+        loadRoutineCards();
         return;
     }
 
@@ -2202,6 +2228,7 @@ void MainWindow::loadHistory()
                     loadExerciseCards();
                     loadHistory();
                     loadTimeline();
+                    loadRoutineCards();
                 }
             }
             );
@@ -2810,6 +2837,600 @@ void MainWindow::openGoalDialog(int goalId)
 
     loadGoalCards();
     refreshHobbyDashboardOverview(ui, currentHobbyId);
+}
+
+void MainWindow::loadRoutineCards()
+{
+    // Entfernt alle bisher erzeugten Cards aus einem Layout.
+    // Das Layout selbst bleibt bestehen und kann danach wieder
+    // mit neuen Cards gefüllt werden.
+    auto clearLayout = [](QLayout *layout) {
+
+        while (layout->count() > 0) {
+
+            QLayoutItem *item =
+                layout->takeAt(0);
+
+            if (item->widget())
+                item->widget()->deleteLater();
+
+            delete item;
+        }
+    };
+
+    clearLayout(ui->routineActiveCardsLayout);
+    clearLayout(ui->routineArchiveCardsLayout);
+
+    ui->routineActiveCardsLayout->setRowStretch(0, 0);
+    ui->routineArchiveCardsLayout->setRowStretch(0, 0);
+
+    if (currentHobbyId == 0) {
+
+        // Wenn kein Hobby ausgewählt ist, werden beide Empty States
+        // angezeigt und die Scrollbereiche ausgeblendet.
+        ui->routinesActiveEmptyLabel->setVisible(true);
+        ui->routinesActiveScrollArea->setVisible(false);
+
+
+
+        return;
+    }
+
+    const QList<Routine> routines =
+        RoutineRepository::getForHobby(
+            currentHobbyId
+            );
+
+    constexpr int columnCount = 3;
+
+    int activeCount = 0;
+    int archiveCount = 0;
+
+    // Erstellt eine einzelne Routine-Card.
+    auto buildCard =
+        [this](const Routine &routine) -> QFrame * {
+
+        auto *card =
+            new QFrame();
+
+        card->setObjectName(
+            "routineCard"
+            );
+
+        card->setFrameShape(
+            QFrame::StyledPanel
+            );
+
+        // Zwei normale Card-Höhen + ein normaler Card-Abstand.
+        card->setFixedHeight(364);
+
+        card->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Fixed
+            );
+
+        card->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        auto *cardLayout =
+            new QVBoxLayout(card);
+
+        cardLayout->setContentsMargins(
+            12,
+            12,
+            12,
+            12
+            );
+
+        cardLayout->setSpacing(4);
+
+        // ─────────────────────────────────────────────────────────
+        // Kopf: Name + Stern
+        // ─────────────────────────────────────────────────────────
+
+        auto *topRow =
+            new QHBoxLayout();
+
+        topRow->setContentsMargins(
+            0,
+            0,
+            0,
+            0
+            );
+
+        topRow->setSpacing(8);
+
+        auto *nameLabel =
+            new QLabel(
+                routine.name,
+                card
+                );
+
+        nameLabel->setObjectName(
+            "routineCardNameLabel"
+            );
+
+        nameLabel->setWordWrap(true);
+
+        topRow->addWidget(
+            nameLabel,
+            1
+            );
+
+        auto *favoriteButton =
+            new QToolButton(card);
+
+        favoriteButton->setObjectName(
+            "routineFavoriteButton"
+            );
+
+        favoriteButton->setFixedSize(
+            24,
+            24
+            );
+
+        favoriteButton->setIconSize(
+            QSize(16, 16)
+            );
+
+        favoriteButton->setAutoRaise(true);
+
+        favoriteButton->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        favoriteButton->setIcon(
+            QIcon(
+                ":/icons/star-outline.svg"
+                )
+            );
+
+        favoriteButton->setToolTip(
+            "Zum Dashboard hinzufügen"
+            );
+
+        topRow->addWidget(
+            favoriteButton,
+            0,
+            Qt::AlignTop | Qt::AlignRight
+            );
+
+        cardLayout->addLayout(
+            topRow
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Beschreibung
+        // ─────────────────────────────────────────────────────────
+
+        auto *descriptionLabel =
+            new QLabel(
+                routine.description,
+                card
+                );
+
+        descriptionLabel->setObjectName(
+            "routineCardDescriptionLabel"
+            );
+
+        descriptionLabel->setProperty(
+            "role",
+            "secondary"
+            );
+
+        descriptionLabel->setWordWrap(true);
+
+        descriptionLabel->setMaximumHeight(
+            42
+            );
+
+        cardLayout->addWidget(
+            descriptionLabel
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Übungen
+        // ─────────────────────────────────────────────────────────
+
+        auto *exercisesHeader =
+            new QLabel(
+                "Übungen",
+                card
+                );
+
+        exercisesHeader->setObjectName(
+            "routineCardMetaHeaderLabel"
+            );
+
+        exercisesHeader->setProperty(
+            "role",
+            "muted"
+            );
+
+        cardLayout->addWidget(
+            exercisesHeader
+            );
+
+        const QList<RoutineStep> steps =
+            RoutineRepository::getSteps(
+                routine.id
+                );
+
+        const QList<Exercise> exercises =
+            ExerciseRepository::getForHobby(
+                currentHobbyId,
+                true
+                );
+
+        QHash<int, QString> exerciseNames;
+
+        for (const Exercise &exercise : exercises) {
+
+            exerciseNames.insert(
+                exercise.id,
+                exercise.name
+                );
+        }
+
+        constexpr int visibleExerciseCount = 4;
+
+        int shownCount = 0;
+
+        int totalDurationSeconds = 0;
+
+        for (const RoutineStep &step : steps) {
+
+            totalDurationSeconds +=
+                step.durationSeconds;
+
+            if (shownCount >= visibleExerciseCount)
+                continue;
+
+            auto *exerciseRow =
+                new QHBoxLayout();
+
+            exerciseRow->setSpacing(
+                8
+                );
+
+            auto *exerciseLabel =
+                new QLabel(
+                    exerciseNames.value(
+                        step.exerciseId,
+                        "Unbekannte Übung"
+                        ),
+                    card
+                    );
+
+            exerciseLabel->setObjectName(
+                "routineCardExerciseLabel"
+                );
+
+            exerciseRow->addWidget(
+                exerciseLabel
+                );
+
+            exerciseRow->addStretch();
+
+            const int minutes =
+                step.durationSeconds / 60;
+
+            auto *durationLabel =
+                new QLabel(
+                    QString("%1 min")
+                        .arg(minutes),
+                    card
+                    );
+
+            durationLabel->setObjectName(
+                "routineCardDurationLabel"
+                );
+
+            durationLabel->setProperty(
+                "role",
+                "secondary"
+                );
+
+            exerciseRow->addWidget(
+                durationLabel
+                );
+
+            cardLayout->addLayout(
+                exerciseRow
+                );
+
+            ++shownCount;
+        }
+
+        if (steps.size() > visibleExerciseCount) {
+
+            const int remaining =
+                steps.size() -
+                visibleExerciseCount;
+
+            auto *moreLabel =
+                new QLabel(
+                    QString("+ %1 weitere")
+                        .arg(remaining),
+                    card
+                    );
+
+            moreLabel->setObjectName(
+                "routineCardMoreLabel"
+                );
+
+            moreLabel->setProperty(
+                "role",
+                "secondary"
+                );
+
+            cardLayout->addWidget(
+                moreLabel
+                );
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // Gesamtdauer
+        // ─────────────────────────────────────────────────────────
+
+        const int totalMinutes =
+            totalDurationSeconds / 60;
+
+        auto *totalDurationRow =
+            new QHBoxLayout();
+
+        auto *totalDurationLabel =
+            new QLabel(
+                "Gesamtdauer",
+                card
+                );
+
+        totalDurationLabel->setObjectName(
+            "routineCardMetaHeaderLabel"
+            );
+
+        totalDurationLabel->setProperty(
+            "role",
+            "muted"
+            );
+
+        totalDurationRow->addWidget(
+            totalDurationLabel
+            );
+
+        totalDurationRow->addStretch();
+
+        auto *totalDurationValue =
+            new QLabel(
+                QString("%1 min")
+                    .arg(totalMinutes),
+                card
+                );
+
+        totalDurationValue->setObjectName(
+            "routineCardDurationLabel"
+            );
+
+        totalDurationRow->addWidget(
+            totalDurationValue
+            );
+
+        cardLayout->addLayout(
+            totalDurationRow
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Letzte Ausführung
+        // ─────────────────────────────────────────────────────────
+
+        // Der Stretch sorgt dafür, dass dieser Bereich immer
+        // möglichst weit unten in der Card sitzt.
+        cardLayout->addStretch();
+
+        auto *lastHeader =
+            new QLabel(
+                "Letzte Ausführung",
+                card
+                );
+
+        lastHeader->setObjectName(
+            "routineCardMetaHeaderLabel"
+            );
+
+        lastHeader->setProperty(
+            "role",
+            "muted"
+            );
+
+        cardLayout->addWidget(
+            lastHeader
+            );
+
+        const QList<RoutineLog> logs =
+            RoutineRepository::getLogs(
+                routine.id
+                );
+
+        auto *lastRow =
+            new QHBoxLayout();
+
+        if (!logs.isEmpty()) {
+
+            const QDateTime performedAt =
+                QDateTime::fromString(
+                    logs.first().performedAt,
+                    "yyyy-MM-dd HH:mm:ss"
+                    ).toLocalTime();
+
+            lastRow->addWidget(
+                new QLabel(
+                    performedAt.toString(
+                        "dd.MM.yyyy"
+                        ),
+                    card
+                    )
+                );
+
+        } else {
+
+            lastRow->addWidget(
+                new QLabel(
+                    "–",
+                    card
+                    )
+                );
+        }
+
+        lastRow->addStretch();
+
+        cardLayout->addLayout(
+            lastRow
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Trennlinie
+        // ─────────────────────────────────────────────────────────
+
+        auto *separator =
+            new QFrame(card);
+
+        separator->setObjectName(
+            "routineCardSeparator"
+            );
+
+        separator->setFrameShape(
+            QFrame::HLine
+            );
+
+        cardLayout->addWidget(
+            separator
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Buttons
+        // ─────────────────────────────────────────────────────────
+
+        auto *buttonRow =
+            new QHBoxLayout();
+
+        auto *editButton =
+            new QPushButton(
+                "Bearbeiten",
+                card
+                );
+
+        auto *executeButton =
+            new QPushButton(
+                "Ausführen",
+                card
+                );
+
+        executeButton->setObjectName(
+            "routineCardRunButton"
+            );
+
+        buttonRow->addWidget(
+            editButton
+            );
+
+        buttonRow->addWidget(
+            executeButton
+            );
+
+        cardLayout->addLayout(
+            buttonRow
+            );
+
+        // Die Aktionen werden später mit Bearbeiten/Ausführen verbunden.
+        connect(
+            editButton,
+            &QPushButton::clicked,
+            this,
+            [this, routine]() {
+                Q_UNUSED(routine);
+            }
+            );
+
+        connect(
+            executeButton,
+            &QPushButton::clicked,
+            this,
+            [this, routine]() {
+                Q_UNUSED(routine);
+            }
+            );
+
+        return card;
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // Cards auf aktive / archivierte Ansicht verteilen
+    // ─────────────────────────────────────────────────────────────
+
+    for (const Routine &routine : routines) {
+
+        QFrame *card =
+            buildCard(routine);
+
+        if (routine.archived) {
+
+            ui->routineArchiveCardsLayout->addWidget(
+                card,
+                archiveCount / columnCount,
+                archiveCount % columnCount
+                );
+
+            ++archiveCount;
+
+        } else {
+
+            ui->routineActiveCardsLayout->addWidget(
+                card,
+                activeCount / columnCount,
+                activeCount % columnCount
+                );
+
+            ++activeCount;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Aktive Ansicht
+    // ─────────────────────────────────────────────────────────────
+
+    // Die aktive Seite zeigt entweder den Empty-State
+    // oder die vorhandenen Routine-Karten.
+    ui->routinesActiveEmptyLabel->setVisible(
+        activeCount == 0
+        );
+
+    ui->routinesActiveScrollArea->setVisible(
+        activeCount > 0
+        );
+    // ─────────────────────────────────────────────────────────────
+    // Archiv-Ansicht
+    // ─────────────────────────────────────────────────────────────
+
+
+    // Stretch hält die Cards am oberen Rand.
+    const int activeRowCount =
+        (activeCount + columnCount - 1) /
+        columnCount;
+
+    const int archiveRowCount =
+        (archiveCount + columnCount - 1) /
+        columnCount;
+
+    ui->routineActiveCardsLayout->setRowStretch(
+        activeRowCount,
+        1
+        );
+
+    ui->routineArchiveCardsLayout->setRowStretch(
+        archiveRowCount,
+        1
+        );
 }
 
 MainWindow::~MainWindow()

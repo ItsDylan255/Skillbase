@@ -64,6 +64,10 @@ private:
     QPoint goalDragStartPos;
     QSoundEffect *goalCompletedSound = nullptr;
 
+    // Lädt die Routinen des aktuellen Hobbys und verteilt
+    // aktive und archivierte Routinen auf die jeweiligen Ansichten.
+    void loadRoutineCards();
+
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 

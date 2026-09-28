@@ -92,6 +92,13 @@ qt_add_executable(Skillbase
     include/timelinephasedialog.h
     src/timelinephasedialog.cpp
     resources/timelinephasedialog.ui
+    resources/selected_exercise_row.ui
+    resources/routine_dialog.ui
+    include/routinedialog.h
+    src/routinedialog.cpp
+
+
+
 )
 
 target_include_directories(Skillbase PRIVATE include)

@@ -31,7 +31,13 @@ QList<Routine> RoutineRepository::getForHobby(int hobbyId)
     QList<Routine> routines;
     QSqlQuery query;
 
-    query.prepare("SELECT id, hobby_id, name, description FROM routines WHERE hobby_id = :hobby_id");
+    query.prepare(
+        "SELECT id, hobby_id, name, description, archived "
+        "FROM routines "
+        "WHERE hobby_id = :hobby_id "
+        "ORDER BY id ASC"
+        );
+
     query.bindValue(":hobby_id", hobbyId);
 
     if (!query.exec()) {
@@ -42,14 +48,42 @@ QList<Routine> RoutineRepository::getForHobby(int hobbyId)
 
     while (query.next()) {
         Routine routine;
+
         routine.id = query.value("id").toInt();
         routine.hobbyId = query.value("hobby_id").toInt();
         routine.name = query.value("name").toString();
         routine.description = query.value("description").toString();
+
+        // SQLite speichert boolesche Werte als INTEGER:
+        // 0 = aktiv, 1 = archiviert.
+        routine.archived = query.value("archived").toBool();
+
         routines.append(routine);
     }
 
     return routines;
+}
+
+bool RoutineRepository::setArchived(int routineId, bool archived)
+{
+    QSqlQuery query;
+
+    query.prepare(
+        "UPDATE routines "
+        "SET archived = :archived "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":archived", archived ? 1 : 0);
+    query.bindValue(":id", routineId);
+
+    if (!query.exec()) {
+        qDebug() << "Fehler beim Ändern des Archivstatus der Routine:"
+                 << query.lastError().text();
+        return false;
+    }
+
+    return true;
 }
 
 bool RoutineRepository::addStep(int routineId, int exerciseId, int position, int durationSeconds, int &id)

@@ -126,12 +126,31 @@ bool Database::createTables()
             "hobby_id INTEGER NOT NULL,"
             "name TEXT NOT NULL,"
             "description TEXT,"
+            "archived INTEGER NOT NULL DEFAULT 0,"
             "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
             ")"
             )) {
         qDebug() << "Fehler beim Erstellen der routines-Tabelle:"
                  << query.lastError().text();
         return false;
+    }
+
+    // Ältere Datenbanken besitzen die archived-Spalte noch nicht.
+    // Deshalb ergänzen wir sie bei bereits vorhandenen Datenbanken.
+    if (!query.exec(
+            "ALTER TABLE routines "
+            "ADD COLUMN archived INTEGER NOT NULL DEFAULT 0"
+            )) {
+
+        // Wenn die Spalte bereits existiert, ist alles in Ordnung.
+        // Andere Fehler dürfen nicht unbemerkt bleiben.
+        if (!query.lastError().text().contains("duplicate column name")) {
+
+            qDebug() << "Fehler beim Hinzufügen von archived zu routines:"
+                     << query.lastError().text();
+
+            return false;
+        }
     }
 
     if (!query.exec(
