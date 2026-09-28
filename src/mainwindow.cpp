@@ -226,6 +226,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    goalCompletedSound = new QSoundEffect(this);
+    goalCompletedSound->setSource(
+        QUrl(QStringLiteral("qrc:/audio/goal-completed.wav"))
+        );
+    goalCompletedSound->setVolume(0.5);
+
     // ── Suchfelder: einheitliches Icon statt Emoji ──────────────────────────
     //
     // Alle Suchfelder im Hobby-Bereich erhalten dasselbe führende Icon
@@ -285,9 +291,15 @@ MainWindow::MainWindow(QWidget *parent)
 
                 dialog.setWindowTitle("Phase bearbeiten");
 
+                // Der Löschen-Button ist beim Erstellen einer neuen Phase
+                // standardmäßig versteckt. Beim Bearbeiten existiert die Phase
+                // bereits und kann deshalb gelöscht werden.
+                dialog.deleteButton()->setVisible(true);
+
                 // Die bestehenden Werte der angeklickten Phase
                 // werden in den Dialog übernommen.
                 dialog.setName(phase.name);
+
                 dialog.setDescription(phase.description);
 
                 dialog.setDateRange(
@@ -336,6 +348,44 @@ MainWindow::MainWindow(QWidget *parent)
                         dialog.accept();
                     }
                     );
+                connect(
+                    dialog.deleteButton(),
+                    &QPushButton::clicked,
+                    &dialog,
+                    [&dialog, this, phase]() {
+
+                        // Das Löschen ist eine irreversible Aktion.
+                        // Deshalb muss der Benutzer es zuerst bestätigen.
+                        const auto answer =
+                            QMessageBox::question(
+                                &dialog,
+                                "Phase löschen",
+                                QString("Möchtest du die Phase „%1“ wirklich löschen?")
+                                    .arg(phase.name),
+                                QMessageBox::Yes | QMessageBox::No,
+                                QMessageBox::No
+                                );
+
+                        if (answer != QMessageBox::Yes)
+                            return;
+
+                        // Erst nach der Bestätigung wird die Phase
+                        // tatsächlich aus der Datenbank entfernt.
+                        if (!TimelinePhaseRepository::remove(phase.id)) {
+
+                            QMessageBox::warning(
+                                &dialog,
+                                "Löschen fehlgeschlagen",
+                                "Die Phase konnte nicht gelöscht werden."
+                                );
+
+                            return;
+                        }
+
+                        // Nach erfolgreichem Löschen schließen wir den Dialog.
+                        dialog.accept();
+                    }
+                    );
 
                 // Der Dialog bleibt geöffnet, bis der Benutzer
                 // entweder abbricht oder erfolgreich speichert.
@@ -347,6 +397,8 @@ MainWindow::MainWindow(QWidget *parent)
                 refreshHobbyDashboardOverview(ui, currentHobbyId);
             }
             );
+
+
     }
 
     connect(
@@ -383,12 +435,39 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     // ── Hobby-Tab-Navigation ────────────────────────────────────────────────
+    // Die Hobby-Tabs verhalten sich wie eine feste Navigation:
+    // Immer genau ein Tab bleibt ausgewählt.
+    // Ein erneuter Klick auf den bereits aktiven Tab darf ihn nicht abwählen.
+    const QList<QToolButton*> hobbyTabs = {
+        ui->dashboardTab,
+        ui->routinesTab,
+        ui->exercisesTab,
+        ui->historyTab,
+        ui->goalsTab,
+        ui->roadmapTab
+    };
 
-    connect(ui->dashboardTab, &QToolButton::clicked, this, [this]() {
-        ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
+    for (QToolButton *tab : hobbyTabs) {
+        tab->setCheckable(true);
+        tab->setAutoExclusive(true);
+    }
+    // Aktiviert den ausgewählten Hobby-Tab.
+    // Der aktuelle Tab bleibt dadurch auch bei einem erneuten Klick markiert.
+    auto selectHobbyTab = [this](QToolButton *tab, QWidget *page) {
+        tab->setChecked(true);
+        ui->hobbyPageStack->setCurrentWidget(page);
+    };
+
+
+    connect(ui->dashboardTab, &QToolButton::clicked, this, [this, selectHobbyTab]() {
+        selectHobbyTab(
+            ui->dashboardTab,
+            ui->dashboardHobbyPage
+            );
     });
 
     connect(ui->routinesTab, &QToolButton::clicked, this, [this]() {
+        ui->routinesTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->routinesPage);
     });
 
@@ -402,18 +481,23 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(ui->exercisesTab, &QToolButton::clicked, this, [this]() {
+        ui->exercisesTab->setChecked(true);
+
         // Der Reiter "Übungen" zeigt immer zunächst die normale
         // Kartenübersicht - unabhängig davon, ob zuvor eine
         // Detail-/Fortschrittsansicht geöffnet war.
         showExerciseOverview();
+
         ui->hobbyPageStack->setCurrentWidget(ui->exercisesPage);
     });
 
     connect(ui->historyTab, &QToolButton::clicked, this, [this]() {
+        ui->historyTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->historyPage);
     });
 
     connect(ui->goalsTab, &QToolButton::clicked, this, [this]() {
+        ui->goalsTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->goalsPage);
     });
 
@@ -513,6 +597,8 @@ MainWindow::MainWindow(QWidget *parent)
                 }
                 );
 
+
+
             // Der Dialog wird genau einmal geöffnet.
             // Abbrechen funktioniert weiterhin über die
             // rejected()-Verbindung aus der .ui-Datei.
@@ -525,7 +611,10 @@ MainWindow::MainWindow(QWidget *parent)
         }
         );
 
+
+
     connect(ui->roadmapTab, &QToolButton::clicked, this, [this]() {
+        ui->roadmapTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->roadmapPage);
     });
 
@@ -798,6 +887,17 @@ MainWindow::MainWindow(QWidget *parent)
                 );
         }
     });
+    connect(ui->progressBackButton, &QPushButton::clicked, this, [this]() {
+        showExerciseOverview();
+        ui->hobbyPageStack->setCurrentWidget(ui->exercisesPage);
+        ui->exercisesTab->setChecked(true);
+    });
+
+    connect(ui->timelineBackButton, &QPushButton::clicked, this, [this]() {
+        ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
+        ui->dashboardTab->setChecked(true);
+    });
+
 
     // ── Übungs-Detailansicht: Startwert bearbeiten ──────────────────────────
     //
@@ -1895,7 +1995,11 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         qobject_cast<ExerciseProgressChartWidget *>(
             ui->exerciseProgressChartWidget)) {
 
-        chart->setLogs(logs);
+        chart->setLogs(
+            logs,
+            exercise.startValue,
+            exercise.goal
+            );
     }
 }
 
@@ -2401,19 +2505,19 @@ void MainWindow::loadGoalCards()
             this,
             [this, goalId = goal.id](bool checked) {
 
-                const QString newStatus =
-                    checked
-                        ? QStringLiteral("done")
-                        : QStringLiteral("open");
+                if (GoalRepository::setStatus(
+                        goalId,
+                        checked ? QStringLiteral("done")
+                                : QStringLiteral("open"))) {
 
-                if (GoalRepository::setStatus(goalId, newStatus)) {
+                    // Der Sound soll nur beim Abschließen des Ziels ertönen,
+                    // nicht beim Zurücksetzen auf "offen".
+                    if (checked && goalCompletedSound) {
+                        goalCompletedSound->play();
+                    }
 
                     loadGoalCards();
-
-                    refreshHobbyDashboardOverview(
-                        ui,
-                        currentHobbyId
-                        );
+                    refreshHobbyDashboardOverview(ui, currentHobbyId);
                 }
             }
             );

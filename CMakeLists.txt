@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/resources)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql Multimedia)
 
 qt_standard_project_setup()
 
@@ -101,6 +101,7 @@ target_link_libraries(Skillbase
         Qt::Core
         Qt::Widgets
         Qt::Sql
+        Qt::Multimedia
 )
 
 install(TARGETS Skillbase

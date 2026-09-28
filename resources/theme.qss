@@ -328,10 +328,26 @@ QFrame#hobbyDashboardDivider4 {
     border: none;
 }
 
+/* Aktuelle Phase / Aktuelles Ziel im Hobby-Dashboard: untereinander
+   angeordnete, klickbare Cards - gleiche Card-Sprache wie exerciseCard/
+   goalCard (Surface, dünne Border, 6px Radius), Hover nur über die Border. */
+QFrame#hobbyPhaseSection,
+QFrame#hobbyGoalSection {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+}
+
+QFrame#hobbyPhaseSection:hover,
+QFrame#hobbyGoalSection:hover {
+    background-color: #1c1c1f;
+    border: 1px solid #333338;
+}
+
 /* Fortschrittsbalken der aktuellen Phase im Hobby-Dashboard - gleiche
    Optik wie der Fortschrittsbalken in der Übungs-Detailansicht. */
 QProgressBar#hobbyPhaseProgressBar {
-    background-color: #19191c;
+    background-color: #121214;
     border: 1px solid #29292d;
     border-radius: 4px;
     height: 8px;
@@ -458,16 +474,71 @@ QPushButton#addButton:pressed {
     border-color: #e85c4e;
 }
 
+/* Zurück-Buttons der Unterseiten (Fortschritt, Timeline): Ghost-Variante.
+   Gleiche Höhe/Radius/Schrift wie alle QPushButtons (Padding oben/unten 7px,
+   1px Border), aber ohne Fläche und mit schmalerem Horizontal-Padding,
+   damit der Button kompakt bleibt und nicht stärker wirkt als der Inhalt. */
+QPushButton#progressBackButton,
+QPushButton#timelineBackButton {
+    background-color: transparent;
+    color: #9a9aa0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton#progressBackButton:hover,
+QPushButton#timelineBackButton:hover {
+    background-color: #212124;
+    color: #eaeaec;
+}
+
+QPushButton#progressBackButton:pressed,
+QPushButton#timelineBackButton:pressed {
+    background-color: #29292d;
+    color: #eaeaec;
+}
+
+QPushButton#progressBackButton:focus,
+QPushButton#timelineBackButton:focus {
+    border: 1px solid #ff6f61;
+    color: #eaeaec;
+}
+
+QPushButton#progressBackButton:disabled,
+QPushButton#timelineBackButton:disabled {
+    background-color: transparent;
+    color: #55555a;
+    border: 1px solid transparent;
+}
+
 /* Destruktive Aktionen: dezent über Textfarbe, keine Fläche */
-QPushButton#deleteButton {
+QPushButton#deleteButton,
+QPushButton#deletePhaseButton {
     color: #e5484d;
     border-color: #29292d;
     background-color: transparent;
 }
 
-QPushButton#deleteButton:hover {
+QPushButton#deleteButton:hover,
+QPushButton#deletePhaseButton:hover {
     background-color: rgba(229, 72, 77, 0.12);
     border-color: rgba(229, 72, 77, 0.35);
+}
+
+QPushButton#deleteButton:pressed,
+QPushButton#deletePhaseButton:pressed {
+    background-color: rgba(229, 72, 77, 0.20);
+    border-color: rgba(229, 72, 77, 0.50);
+}
+
+QPushButton#deleteButton:disabled,
+QPushButton#deletePhaseButton:disabled {
+    color: #55555a;
+    border-color: #212124;
+    background-color: transparent;
 }
 
 /* QDialogButtonBox Buttons (Save/Cancel) */

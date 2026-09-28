@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <QPoint>
+#include <QSoundEffect>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -61,6 +62,7 @@ private:
     // Ziele lassen sich neu sortieren). 0, solange nichts gezogen wird.
     int goalDragCandidateId = 0;
     QPoint goalDragStartPos;
+    QSoundEffect *goalCompletedSound = nullptr;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

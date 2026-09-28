@@ -5,9 +5,8 @@
         <file>icons/search.svg</file>
         <file>icons/star-filled.svg</file>
         <file>icons/star-outline.svg</file>
-        <file>icons/checkbox-filled.svg</file>
-        <file>icons/checkbox-outline.svg</file>
         <file>audio/timer_complete.mp3</file>
+        <file>audio/goal-completed.wav</file>
         <file>theme.qss</file>
     </qresource>
 </RCC>

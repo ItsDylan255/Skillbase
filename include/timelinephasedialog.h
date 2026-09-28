@@ -32,6 +32,7 @@ public:
     void setName(const QString &name);
     void setDescription(const QString &description);
     QPushButton *saveButton() const;
+    QPushButton *deleteButton() const;
     void accept() override;
 
 protected:

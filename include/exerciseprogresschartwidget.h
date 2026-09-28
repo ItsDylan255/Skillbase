@@ -23,7 +23,11 @@ public:
 
     // Übergibt die Log-Einträge, aus denen der Verlauf gezeichnet wird.
     // Die Einträge müssen nicht vorsortiert sein.
-    void setLogs(const QList<ExerciseLog> &logs);
+    void setLogs(
+        const QList<ExerciseLog> &logs,
+        double startValue,
+        double goalValue
+        );
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
@@ -36,9 +40,12 @@ private:
     {
         QDateTime performedAt;
         double value = 0.0;
+
     };
 
     QList<DataPoint> points;
+    double startValue = 0.0;
+    double goalValue = 0.0;
 };
 
 #endif // EXERCISEPROGRESSCHARTWIDGET_H

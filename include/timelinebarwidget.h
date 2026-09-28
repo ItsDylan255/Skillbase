@@ -10,6 +10,8 @@
 #include "timelinephase.h"
 
 class QMouseEvent;
+class QEvent;
+class QShowEvent;
 
 class TimelineBarWidget : public QWidget
 {
@@ -28,15 +30,11 @@ public:
         const QColor &color
         );
 
-    // Feste Breite pro Monat statt Stauchung auf die verfügbare Breite -
-    // der Balken meldet seine tatsächlich benötigte Breite nach oben,
-    // damit die umgebende QScrollArea bei Bedarf horizontal scrollt.
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
 signals:
     // Wird ausgelöst, wenn der Benutzer auf das Segment einer Phase klickt.
-    // Der komplette Balken ist klickbar, nicht nur der Textbereich.
     void phaseClicked(const TimelinePhase &phase);
 
 protected:
@@ -44,24 +42,54 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
 
-private:
-    // Erster Tag des Monats der frühesten Phase.
-    QDate axisStartMonth() const;
+    // Beobachtet die Größe des sichtbaren Bereichs der QScrollArea.
+    bool eventFilter(
+        QObject *watched,
+        QEvent *event
+        ) override;
 
-    // Anzahl der Monate, die die Achse abdecken muss (mindestens 1).
+    // Wird aufgerufen, sobald das Widget sichtbar wird.
+    void showEvent(QShowEvent *event) override;
+
+private:
+    QDate axisStartMonth() const;
     int axisMonthCount() const;
 
-    // Position eines Datums in Pixeln relativ zum Achsenstart,
-    // auf Basis der festen Monatsbreite (siehe monthPixelWidth).
+    // Berechnet die Position eines Datums innerhalb der Timeline.
     qreal xForDate(const QDate &date) const;
 
-    // Berechnet für jede Phase das gezeichnete Segment-Rechteck.
-    // Wird sowohl beim Zeichnen als auch beim Hit-Test für Klicks
-    // verwendet, damit beides garantiert deckungsgleich bleibt.
     QList<QPair<TimelinePhase, QRectF>> segmentRects() const;
+
+    // Prüft, ob die Phase den heutigen Tag enthält.
+    bool isCurrentPhase(const TimelinePhase &phase) const;
+
+    // Aktualisiert die Breite der Timeline anhand des sichtbaren Bereichs.
+    void updateTimelineWidth();
+
+    // Scrollt die übergeordnete QScrollArea so,
+    // dass der heutige Monat sichtbar ist.
+    void scrollToToday();
+
+    // Berechnet die Breite eines Monats.
+    qreal monthPixelWidth() const;
+
+    // Zeichnet die Markierung für den heutigen Tag.
+    void drawTodayMarker(
+        QPainter &painter
+        ) const;
+
+    // Die Anzahl der Monate, die gleichzeitig sichtbar sein sollen.
+    static constexpr int VisibleMonthCount = 12;
+
+    // Fallback, falls die ScrollArea beim ersten Berechnen
+    // noch keine gültige Breite besitzt.
+    static constexpr int DefaultMonthPixelWidth = 64;
 
     QList<TimelinePhase> phases;
     QColor hobbyColor;
+
+    // Tatsächliche Breite des sichtbaren Bereichs der QScrollArea.
+    int viewportWidth = 0;
 };
 
 #endif

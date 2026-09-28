@@ -113,3 +113,8 @@ QPushButton *TimelinePhaseDialog::saveButton() const
     // damit MainWindow seinen Klick selbst behandeln kann.
     return ui->buttonBox->button(QDialogButtonBox::Save);
 }
+
+QPushButton *TimelinePhaseDialog::deleteButton() const
+{
+    return ui->deletePhaseButton;
+}
