@@ -440,7 +440,7 @@
            <item>
             <widget class="QStackedWidget" name="hobbyPageStack">
              <property name="currentIndex">
-              <number>5</number>
+              <number>3</number>
              </property>
              <widget class="QWidget" name="dashboardHobbyPage">
               <layout class="QVBoxLayout" name="hobbyDashboardLayout">
@@ -677,6 +677,33 @@
                  <property name="text">
                   <string>+ Routine hinzufügen</string>
                  </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="hobbyCurrentRoutinesContainer" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <layout class="QHBoxLayout" name="hobbyCurrentRoutinesLayout">
+                  <property name="spacing">
+                   <number>12</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                 </layout>
                 </widget>
                </item>
                <item>
@@ -2006,8 +2033,8 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>835</width>
-                    <height>453</height>
+                    <width>62</width>
+                    <height>160</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="historyEntriesLayout">

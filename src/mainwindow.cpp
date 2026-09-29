@@ -239,6 +239,30 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // Die beiden Filter wechseln nur die sichtbare Seite
+    // innerhalb des Routinen-Stacks.
+    connect(
+        ui->routinesFilterActiveButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->routinesViewStack->setCurrentWidget(
+                ui->routinesActivePage
+                );
+        }
+        );
+
+    connect(
+        ui->routinesFilterArchiveButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->routinesViewStack->setCurrentWidget(
+                ui->routinesArchivePage
+                );
+        }
+        );
+
     // Datumsfilter: Standardmäßig heute. Das Datum wird gesetzt, BEVOR
     // das Signal verbunden wird, damit beim Start kein unnötiges
     // zusätzliches Laden ausgelöst wird.
@@ -1109,6 +1133,90 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             }
         }
     }
+    // ── Routine-Cards: Hover für den Auswahl-Stern ───────────────────────────
+    //
+    // Ausgewählte Routinen zeigen ihren Stern dauerhaft.
+    // Bei nicht ausgewählten Routinen erscheint der Stern nur,
+    // solange die Maus über der Card liegt.
+    if (auto *card = qobject_cast<QFrame *>(watched)) {
+
+        const int routineId =
+            card->property("routineId").toInt();
+
+        if (routineId > 0) {
+
+            if (event->type() == QEvent::Enter) {
+
+                if (!card->property("routineIsCurrent").toBool()) {
+
+                    auto *favoriteButton =
+                        card->findChild<QToolButton *>(
+                            "routineFavoriteButton"
+                            );
+
+                    if (favoriteButton)
+                        favoriteButton->setVisible(true);
+                }
+            }
+
+            if (event->type() == QEvent::Leave) {
+
+                if (!card->property("routineIsCurrent").toBool()) {
+
+                    auto *favoriteButton =
+                        card->findChild<QToolButton *>(
+                            "routineFavoriteButton"
+                            );
+
+                    if (favoriteButton)
+                        favoriteButton->setVisible(false);
+                }
+            }
+        }
+    }
+
+    // ── Routine-Cards: Hover für den Auswahl-Stern ─────────────────────────
+    //
+    // Ausgewählte Routinen zeigen ihren Stern dauerhaft.
+    // Bei nicht ausgewählten Routinen erscheint er nur beim Hover.
+
+    if (auto *card = qobject_cast<QFrame *>(watched)) {
+
+        const int routineId =
+            card->property("routineId").toInt();
+
+        if (routineId > 0) {
+
+            if (event->type() == QEvent::Enter) {
+
+                if (!card->property("routineIsCurrent").toBool()) {
+
+                    auto *favoriteButton =
+                        card->findChild<QToolButton *>(
+                            "routineFavoriteButton"
+                            );
+
+                    if (favoriteButton)
+                        favoriteButton->setVisible(true);
+                }
+            }
+
+            if (event->type() == QEvent::Leave) {
+
+                if (!card->property("routineIsCurrent").toBool()) {
+
+                    auto *favoriteButton =
+                        card->findChild<QToolButton *>(
+                            "routineFavoriteButton"
+                            );
+
+                    if (favoriteButton)
+                        favoriteButton->setVisible(false);
+                }
+            }
+        }
+    }
+
 
     // ── Ziel-Cards: Klick öffnet die Bearbeitung, offene Ziele lassen ───────
     // sich zusätzlich per Drag & Drop neu sortieren.
@@ -3153,10 +3261,20 @@ void MainWindow::loadRoutineCards()
         return;
     }
 
-    const QList<Routine> routines =
+    QList<Routine> routines =
         RoutineRepository::getForHobby(
             currentHobbyId
             );
+
+    // Ausgewählte Routinen stehen immer vor den anderen Routinen.
+    // Die bisherige Reihenfolge innerhalb der beiden Gruppen bleibt erhalten.
+    std::stable_sort(
+        routines.begin(),
+        routines.end(),
+        [](const Routine &a, const Routine &b) {
+            return a.isCurrent && !b.isCurrent;
+        }
+        );
 
     constexpr int columnCount = 3;
 
@@ -3174,8 +3292,48 @@ void MainWindow::loadRoutineCards()
             "routineCard"
             );
 
+
+        card->setProperty(
+            "routineId",
+            routine.id
+            );
+
+        card->setProperty(
+            "routineIsCurrent",
+            routine.isCurrent
+            );
+
+        card->installEventFilter(this);
+
+        card->setAttribute(
+            Qt::WA_Hover,
+            true
+            );
+
         card->setFrameShape(
             QFrame::StyledPanel
+            );
+
+        // Die ID und der Auswahlstatus werden an der Card gespeichert,
+        // damit der EventFilter später weiß, zu welcher Routine sie gehört
+        // und ob der Stern dauerhaft sichtbar sein soll.
+        card->setProperty(
+            "routineId",
+            routine.id
+            );
+
+        card->setProperty(
+            "routineIsCurrent",
+            routine.isCurrent
+            );
+
+        // Die Card erhält Enter-/Leave-Events für die Hover-Anzeige
+        // des Auswahl-Sterns.
+        card->installEventFilter(this);
+
+        card->setAttribute(
+            Qt::WA_Hover,
+            true
             );
 
         // Zwei normale Card-Höhen + ein normaler Card-Abstand.
@@ -3235,43 +3393,93 @@ void MainWindow::loadRoutineCards()
             1
             );
 
-        auto *favoriteButton =
-            new QToolButton(card);
+        if (!routine.archived) {
 
-        favoriteButton->setObjectName(
-            "routineFavoriteButton"
-            );
+            auto *favoriteButton =
+                new QToolButton(card);
 
-        favoriteButton->setFixedSize(
-            24,
-            24
-            );
+            favoriteButton->setObjectName(
+                "routineFavoriteButton"
+                );
 
-        favoriteButton->setIconSize(
-            QSize(16, 16)
-            );
+            favoriteButton->setFixedSize(
+                24,
+                24
+                );
 
-        favoriteButton->setAutoRaise(true);
+            favoriteButton->setIconSize(
+                QSize(16, 16)
+                );
 
-        favoriteButton->setCursor(
-            Qt::PointingHandCursor
-            );
+            favoriteButton->setAutoRaise(true);
 
-        favoriteButton->setIcon(
-            QIcon(
-                ":/icons/star-outline.svg"
-                )
-            );
+            favoriteButton->setCursor(
+                Qt::PointingHandCursor
+                );
 
-        favoriteButton->setToolTip(
-            "Zum Dashboard hinzufügen"
-            );
+            // Aktuelle Routinen zeigen den Stern dauerhaft.
+            // Nicht ausgewählte aktive Routinen zeigen ihn erst beim Hover.
+            if (!routine.isCurrent)
+                favoriteButton->setVisible(false);
 
-        topRow->addWidget(
-            favoriteButton,
-            0,
-            Qt::AlignTop | Qt::AlignRight
-            );
+            favoriteButton->setIcon(
+                QIcon(
+                    routine.isCurrent
+                        ? ":/icons/star-filled.svg"
+                        : ":/icons/star-outline.svg"
+                    )
+                );
+
+            favoriteButton->setToolTip(
+                routine.isCurrent
+                    ? "Ausgewählte Routine"
+                    : "Als Routine für das Dashboard auswählen"
+                );
+
+            connect(
+                favoriteButton,
+                &QToolButton::clicked,
+                this,
+                [this, routineId = routine.id]() {
+
+                    Routine routine;
+
+                    if (!RoutineRepository::getById(
+                            routineId,
+                            routine
+                            )) {
+                        return;
+                    }
+
+                    const bool newCurrentState =
+                        !routine.isCurrent;
+
+                    if (!RoutineRepository::setCurrent(
+                            routineId,
+                            newCurrentState
+                            )) {
+
+                        if (newCurrentState) {
+                            QMessageBox::information(
+                                this,
+                                "Routinen auswählen",
+                                "Du kannst maximal 3 Routinen pro Hobby auswählen."
+                                );
+                        }
+
+                        return;
+                    }
+
+                    loadRoutineCards();
+                }
+                );
+
+            topRow->addWidget(
+                favoriteButton,
+                0,
+                Qt::AlignTop | Qt::AlignRight
+                );
+        }
 
         cardLayout->addLayout(
             topRow
@@ -3603,6 +3811,10 @@ void MainWindow::loadRoutineCards()
                 card
                 );
 
+        executeButton->setEnabled(
+            !routine.archived
+            );
+
         executeButton->setObjectName(
             "routineCardRunButton"
             );
@@ -3625,7 +3837,21 @@ void MainWindow::loadRoutineCards()
             &QPushButton::clicked,
             this,
             [this, routine]() {
-                Q_UNUSED(routine);
+
+                // Der gleiche Dialog wird im Bearbeitungsmodus geöffnet.
+                // Die Routine-ID sorgt dafür, dass Name, Beschreibung
+                // und Übungen aus der Datenbank geladen werden.
+                RoutineDialog dialog(
+                    routine.hobbyId,
+                    routine.id,
+                    this
+                    );
+
+                // Nach erfolgreichem Speichern wird die Routinenliste
+                // neu aufgebaut, damit die Änderungen sofort sichtbar sind.
+                if (dialog.exec() == QDialog::Accepted) {
+                    loadRoutineCards();
+                }
             }
             );
 
@@ -3688,7 +3914,15 @@ void MainWindow::loadRoutineCards()
     // ─────────────────────────────────────────────────────────────
     // Archiv-Ansicht
     // ─────────────────────────────────────────────────────────────
+    // Die Archivseite zeigt entweder den Empty-State
+    // oder die vorhandenen archivierten Routinen.
+    ui->routinesArchiveEmptyLabel->setVisible(
+        archiveCount == 0
+        );
 
+    ui->routinesArchiveScrollArea->setVisible(
+        archiveCount > 0
+        );
 
     // Stretch hält die Cards am oberen Rand.
     const int activeRowCount =

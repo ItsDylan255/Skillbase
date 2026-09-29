@@ -1,6 +1,7 @@
 #include "routinedialog.h"
 #include "ui_routine_dialog.h"
 #include "ui_selected_exercise_row.h"
+#include "routinestep.h"
 
 #include "exerciserepository.h"
 #include "categoryrepository.h"
@@ -21,15 +22,51 @@
 #include <QStyle>
 #include <QTimer>
 
+
 RoutineDialog::RoutineDialog(
     int hobbyId,
     QWidget *parent
     )
+    : RoutineDialog(hobbyId, 0, parent)
+{
+}
+
+RoutineDialog::RoutineDialog(
+    int hobbyId,
+    int routineId,
+    QWidget *parent
+    )
     : QDialog(parent),
     ui(new Ui::routineDialog),
-    hobbyId(hobbyId)
+    hobbyId(hobbyId),
+    routineId(routineId)
 {
+
     ui->setupUi(this);
+
+    if (routineId > 0) {
+        setWindowTitle("Routine bearbeiten");
+        ui->routineDeleteButton->setVisible(true);
+        ui->routineArchiveButton->setVisible(true);
+
+        // Der Button zeigt immer die Aktion an, die als Nächstes
+        // mit der aktuell bearbeiteten Routine ausgeführt werden kann.
+        Routine routine;
+
+        if (RoutineRepository::getById(routineId, routine)) {
+            ui->routineArchiveButton->setText(
+                routine.archived
+                    ? "Wiederherstellen"
+                    : "Archivieren"
+                );
+        }
+    }
+    else {
+        // Beim Erstellen werden Löschen und Archivieren nicht benötigt.
+        setWindowTitle("Routine erstellen");
+        ui->routineDeleteButton->setVisible(false);
+        ui->routineArchiveButton->setVisible(false);
+    }
 
     // Der Completer übernimmt die Textsuche. Das Suchfeld bleibt ein
     // normales QLineEdit und behält deshalb immer den Fokus. Das Popup
@@ -51,6 +88,14 @@ RoutineDialog::RoutineDialog(
     // weil die Namensliste auf die ausgewählte Kategorie zugreift.
     loadCategories();
     loadAvailableExercises();
+
+    // Nur beim Bearbeiten gibt es eine bestehende Routine,
+    // deren Daten aus der Datenbank geladen werden müssen.
+    // Beim Erstellen bleibt routineId = 0 und der Dialog startet leer.
+    if (routineId > 0) {
+        loadRoutineForEditing();
+    }
+
 
     // Ein Kategorienwechsel baut nur die Namensliste des Completers neu auf.
     // Der Suchtext im Feld bleibt dabei unberührt.
@@ -116,6 +161,114 @@ RoutineDialog::RoutineDialog(
             saveRoutine();
         }
         );
+    connect(
+        ui->routineDeleteButton,
+        &QPushButton::clicked,
+        this,
+        [this, routineId]() {
+
+            const QMessageBox::StandardButton answer =
+                QMessageBox::question(
+                    this,
+                    "Routine löschen",
+                    "Möchtest du diese Routine wirklich löschen?",
+                    QMessageBox::Yes | QMessageBox::No,
+                    QMessageBox::No
+                    );
+
+            // Bei "Nein" bleibt der Dialog geöffnet.
+            if (answer != QMessageBox::Yes)
+                return;
+
+            if (!RoutineRepository::remove(routineId)) {
+                QMessageBox::critical(
+                    this,
+                    "Routine löschen",
+                    "Die Routine konnte nicht gelöscht werden."
+                    );
+
+                return;
+            }
+
+            // Die Routine wurde erfolgreich gelöscht.
+            // Der aufrufende MainWindow-Code kann dadurch die
+            // Routinenliste anschließend neu laden.
+            accept();
+        }
+        );
+
+    connect(
+        ui->routineArchiveButton,
+        &QPushButton::clicked,
+        this,
+        [this, routineId]() {
+
+            Routine routine;
+
+            if (!RoutineRepository::getById(
+                    routineId,
+                    routine
+                    )) {
+                QMessageBox::critical(
+                    this,
+                    "Routine",
+                    "Die Routine konnte nicht geladen werden."
+                    );
+
+                return;
+            }
+
+            // Der aktuelle Archivstatus bestimmt,
+            // ob die Routine archiviert oder wiederhergestellt wird.
+            const bool newArchivedState =
+                !routine.archived;
+
+            const QString title =
+                newArchivedState
+                    ? "Routine archivieren"
+                    : "Routine wiederherstellen";
+
+            const QString message =
+                newArchivedState
+                    ? "Möchtest du diese Routine wirklich archivieren?"
+                    : "Möchtest du diese Routine wirklich wiederherstellen?";
+
+            const QMessageBox::StandardButton answer =
+                QMessageBox::question(
+                    this,
+                    title,
+                    message,
+                    QMessageBox::Yes | QMessageBox::No,
+                    QMessageBox::No
+                    );
+
+            // Bei "Nein" bleibt der Dialog geöffnet.
+            if (answer != QMessageBox::Yes)
+                return;
+
+            if (!RoutineRepository::setArchived(
+                    routineId,
+                    newArchivedState
+                    )) {
+
+                QMessageBox::critical(
+                    this,
+                    title,
+                    newArchivedState
+                        ? "Die Routine konnte nicht archiviert werden."
+                        : "Die Routine konnte nicht wiederhergestellt werden."
+                    );
+
+                return;
+            }
+
+            // Die Änderung wurde gespeichert.
+            // MainWindow lädt danach die Routinen neu.
+            accept();
+        }
+        );
+
+
 
     // Abbrechen schließt den Dialog ohne zu speichern.
     connect(
@@ -241,7 +394,10 @@ void RoutineDialog::addSelectedExercise(int exerciseId)
         );
 }
 
-void RoutineDialog::createSelectedExerciseRow(int exerciseId)
+void RoutineDialog::createSelectedExerciseRow(
+    int exerciseId,
+    int durationMinutes
+    )
 {
     for (const Exercise &exercise : availableExercises) {
 
@@ -261,9 +417,7 @@ void RoutineDialog::createSelectedExerciseRow(int exerciseId)
 
         // Jede Übung startet mit der voreingestellten Dauer von 5 Minuten.
         // Der Nutzer kann die Dauer anschließend pro Übung ändern.
-        rowUi.selectedExerciseDurationSpinBox->setValue(5);
-
-        // Die Übungs-ID wird an der Zeile gespeichert,
+        rowUi.selectedExerciseDurationSpinBox->setValue(durationMinutes);        // Die Übungs-ID wird an der Zeile gespeichert,
         // damit wir sie später beim Speichern wiederfinden.
         selectedExerciseIds.insert(row, exercise.id);
 
@@ -415,6 +569,65 @@ void RoutineDialog::updateSelectedExerciseIds()
     selectedExerciseIds = updatedIds;
 }
 
+void RoutineDialog::loadRoutineForEditing()
+{
+    Routine routine;
+
+    // Zuerst laden wir die Grunddaten der bestehenden Routine.
+    if (!RoutineRepository::getById(routineId, routine)) {
+        QMessageBox::critical(
+            this,
+            "Routine bearbeiten",
+            "Die Routine konnte nicht geladen werden."
+            );
+
+        reject();
+        return;
+    }
+
+    ui->routineNameLineEdit->setText(
+        routine.name
+        );
+
+    ui->routineDescriptionTextEdit->setPlainText(
+        routine.description
+        );
+
+    // Die gespeicherten Übungen werden in ihrer gespeicherten
+    // Reihenfolge geladen.
+    const QList<RoutineStep> steps =
+        RoutineRepository::getSteps(routineId);
+
+    for (const RoutineStep &step : steps) {
+
+        // Die Datenbank speichert die Dauer in Sekunden,
+        // das Dialogfeld arbeitet dagegen mit Minuten.
+        const int durationMinutes =
+            qMax(1, step.durationSeconds / 60);
+
+        createSelectedExerciseRow(
+            step.exerciseId,
+            durationMinutes
+            );
+    }
+
+    // Nach dem Laden muss die Liste sichtbar sein.
+    // Die leere Ansicht darf nur angezeigt werden,
+    // wenn tatsächlich keine Übungen vorhanden sind.
+    if (!steps.isEmpty()) {
+
+        ui->selectedExercisesStack->setCurrentWidget(
+            ui->selectedExercisesList
+            );
+
+    } else {
+
+        ui->selectedExercisesStack->setCurrentWidget(
+            ui->selectedExercisesEmptyPage
+            );
+    }
+}
+
 void RoutineDialog::saveRoutine()
 {
     const QString name =
@@ -447,23 +660,57 @@ void RoutineDialog::saveRoutine()
     const QString description =
         ui->routineDescriptionTextEdit->toPlainText().trimmed();
 
-    int routineId = 0;
+    // Beim Erstellen gibt es noch keine Routine-ID.
+    // Beim Bearbeiten ist routineId bereits die ID der bestehenden Routine.
+    if (routineId == 0) {
 
-    // Zuerst wird der Kopf der Routine gespeichert.
-    if (!RoutineRepository::add(
-            hobbyId,
-            name,
-            description,
-            routineId
-            )) {
+        // Neue Routine anlegen.
+        if (!RoutineRepository::add(
+                hobbyId,
+                name,
+                description,
+                routineId
+                )) {
 
-        QMessageBox::critical(
-            this,
-            "Routine speichern",
-            "Die Routine konnte nicht gespeichert werden."
-            );
+            QMessageBox::critical(
+                this,
+                "Routine speichern",
+                "Die Routine konnte nicht gespeichert werden."
+                );
 
-        return;
+            return;
+        }
+    }
+    else {
+
+        // Bestehende Routine aktualisieren.
+        if (!RoutineRepository::update(
+                routineId,
+                name,
+                description
+                )) {
+
+            QMessageBox::critical(
+                this,
+                "Routine speichern",
+                "Die Routine konnte nicht aktualisiert werden."
+                );
+
+            return;
+        }
+
+        // Die alten Schritte werden anschließend durch
+        // die aktuelle Reihenfolge aus dem Dialog ersetzt.
+        if (!RoutineRepository::removeSteps(routineId)) {
+
+            QMessageBox::critical(
+                this,
+                "Routine speichern",
+                "Die alten Routine-Schritte konnten nicht aktualisiert werden."
+                );
+
+            return;
+        }
     }
 
     // Danach speichern wir jeden ausgewählten Eintrag einzeln.

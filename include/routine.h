@@ -13,6 +13,10 @@ struct Routine
     // Gibt an, ob die Routine archiviert wurde.
     // false = aktiv, true = archiviert.
     bool archived = false;
+
+    // Gibt an, ob die Routine als eine der maximal drei
+    // ausgewählten Routinen des Hobbys markiert ist.
+    bool isCurrent = false;
 };
 
 #endif

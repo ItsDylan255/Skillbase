@@ -127,6 +127,7 @@ bool Database::createTables()
             "name TEXT NOT NULL,"
             "description TEXT,"
             "archived INTEGER NOT NULL DEFAULT 0,"
+            "is_current INTEGER NOT NULL DEFAULT 0,"
             "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE"
             ")"
             )) {

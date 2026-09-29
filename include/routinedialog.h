@@ -19,20 +19,27 @@ class RoutineDialog : public QDialog
     Q_OBJECT
 
 public:
+    // Erstellt eine neue Routine.
     explicit RoutineDialog(
         int hobbyId,
         QWidget *parent = nullptr
         );
 
+    // Öffnet eine bestehende Routine zum Bearbeiten.
+    explicit RoutineDialog(
+        int hobbyId,
+        int routineId,
+        QWidget *parent = nullptr
+        );
+
+
     ~RoutineDialog();
 
 private:
-    // Lädt alle nicht archivierten Übungen des aktuellen Hobbys
-    // in die Liste zur Auswahl.
+    // Lädt alle nicht archivierten Übungen des aktuellen Hobbys.
     void loadAvailableExercises();
 
-    // Aktualisiert die Liste der verfügbaren Übungen anhand
-    // des aktuellen Suchtexts und der ausgewählten Kategorie.
+    // Aktualisiert die Übungsauswahl anhand von Suchtext und Kategorie.
     void updateAvailableExercisesList();
 
     // Lädt die Kategorien des aktuellen Hobbys in den Filter.
@@ -41,32 +48,44 @@ private:
     // Fügt die ausgewählte Übung zur Routine hinzu.
     void addSelectedExercise(int exerciseId);
 
-    // Erstellt eine sichtbare Zeile für eine ausgewählte Übung.
-    void createSelectedExerciseRow(int exerciseId);
+    // Erstellt die sichtbare Zeile einer ausgewählten Übung.
+    void createSelectedExerciseRow(
+        int exerciseId,
+        int durationMinutes = 5
+        );
 
-    // Entfernt eine ausgewählte Übung aus der Liste.
+    // Entfernt eine ausgewählte Übung aus der Routine.
     void removeSelectedExerciseRow(QWidget *row);
 
-    // Aktualisiert die Verknüpfung zwischen Listeneinträgen und Übungen,
-    // nachdem die Reihenfolge per Drag & Drop geändert wurde.
+    // Aktualisiert die Zuordnung zwischen sichtbaren Zeilen und Übungs-IDs.
     void updateSelectedExerciseIds();
 
-    // Prüft die Eingaben und speichert die komplette Routine
-    // inklusive Übungen, Reihenfolge und Dauer.
+    // Verschiebt eine ausgewählte Übung innerhalb der Liste.
+    void moveSelectedExerciseRow(QWidget *row, int delta);
+
+    // Prüft die Eingaben und speichert die komplette Routine.
     void saveRoutine();
+
+    // Verarbeitet spezielle Maus-/Tastaturereignisse des Dialogs.
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+    // Lädt eine bestehende Routine inklusive ihrer Übungen
+    // und deren gespeicherten Reihenfolge und Dauer.
+    void loadRoutineForEditing();
 
     Ui::routineDialog *ui;
 
     // Das Hobby, zu dem die neue Routine gehört.
     int hobbyId = 0;
 
-    void moveSelectedExerciseRow(QWidget *row, int delta);
+    // 0 bedeutet: neue Routine erstellen.
+    // Eine andere ID bedeutet: bestehende Routine bearbeiten.
+    int routineId = 0;
 
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
+    // Alle nicht archivierten Übungen des aktuellen Hobbys.
     QList<Exercise> availableExercises;
 
-    // Verknüpft jede sichtbare Zeile mit ihrer Übungs-ID.
+    // Verknüpft jede sichtbare Übungszeile mit ihrer Übungs-ID.
     QMap<QWidget*, int> selectedExerciseIds;
 
     QCompleter *exerciseCompleter = nullptr;
