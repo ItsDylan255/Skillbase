@@ -525,14 +525,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->hobbyPageStack->setCurrentWidget(ui->routinesPage);
     });
 
-    // Der Empty-State im Dashboard verweist direkt auf den Routinen-Tab -
-    // solange es dort noch keine eigene "+ Routine hinzufügen"-Wirkung auf
-    // Datenebene gibt (kein Routine-Modell/-Repository, siehe CLAUDE.md),
-    // öffnet er nur die Seite, auf der Routinen später angelegt werden.
-    connect(ui->hobbyRoutinesAddButton, &QPushButton::clicked, this, [this]() {
-        ui->routinesTab->setChecked(true);
-        ui->hobbyPageStack->setCurrentWidget(ui->routinesPage);
-    });
 
     connect(ui->exercisesTab, &QToolButton::clicked, this, [this]() {
         ui->exercisesTab->setChecked(true);
@@ -780,7 +772,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->goalsFilterOpenButton->setChecked(true);
         ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
         loadGoalCards();
-        loadRoutineCards();
+        loadDashboardRoutineCards();
 
 
         ui->dashboardTab->setChecked(true);
@@ -1117,6 +1109,33 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             }
         }
     }
+
+    // ── Dashboard-Routine-Card: Klick öffnet die Routinen-Seite ─────────────
+    // Die Dashboard-Card dient als Einstieg in die vollständige
+    // Routinen-Ansicht. Die eigentliche Routine-Ausführung kommt später.
+    if (event->type() == QEvent::MouseButtonRelease) {
+
+        auto *card =
+            qobject_cast<QFrame *>(watched);
+
+        if (card &&
+            card->objectName() == "dashboardRoutineCard") {
+
+            auto *mouseEvent =
+                static_cast<QMouseEvent *>(event);
+
+            if (mouseEvent->button() == Qt::LeftButton) {
+
+                ui->routinesTab->setChecked(true);
+                ui->hobbyPageStack->setCurrentWidget(
+                    ui->routinesPage
+                    );
+
+                return true;
+            }
+        }
+    }
+
     // ── Übungskarten: Klick öffnet die Detail-/Fortschrittsansicht ──────────
     if (event->type() == QEvent::MouseButtonRelease) {
 
@@ -1133,6 +1152,34 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             }
         }
     }
+
+    // ── Dashboard-Routine-Card: Klick öffnet die Routinen-Seite ─────────────
+    // Die Dashboard-Card dient als Einstieg in die vollständige
+    // Routinen-Ansicht. Die eigentliche Routine-Ausführung kommt später.
+
+    if (event->type() == QEvent::MouseButtonRelease) {
+
+        auto *card =
+            qobject_cast<QFrame *>(watched);
+
+        if (card &&
+            card->objectName() == "dashboardRoutineCard") {
+
+            auto *mouseEvent =
+                static_cast<QMouseEvent *>(event);
+
+            if (mouseEvent->button() == Qt::LeftButton) {
+
+                ui->routinesTab->setChecked(true);
+                ui->hobbyPageStack->setCurrentWidget(
+                    ui->routinesPage
+                    );
+
+                return true;
+            }
+        }
+    }
+
     // ── Routine-Cards: Hover für den Auswahl-Stern ───────────────────────────
     //
     // Ausgewählte Routinen zeigen ihren Stern dauerhaft.
@@ -3314,28 +3361,6 @@ void MainWindow::loadRoutineCards()
             QFrame::StyledPanel
             );
 
-        // Die ID und der Auswahlstatus werden an der Card gespeichert,
-        // damit der EventFilter später weiß, zu welcher Routine sie gehört
-        // und ob der Stern dauerhaft sichtbar sein soll.
-        card->setProperty(
-            "routineId",
-            routine.id
-            );
-
-        card->setProperty(
-            "routineIsCurrent",
-            routine.isCurrent
-            );
-
-        // Die Card erhält Enter-/Leave-Events für die Hover-Anzeige
-        // des Auswahl-Sterns.
-        card->installEventFilter(this);
-
-        card->setAttribute(
-            Qt::WA_Hover,
-            true
-            );
-
         // Zwei normale Card-Höhen + ein normaler Card-Abstand.
         card->setFixedHeight(364);
 
@@ -3471,6 +3496,7 @@ void MainWindow::loadRoutineCards()
                     }
 
                     loadRoutineCards();
+                    loadDashboardRoutineCards();
                 }
                 );
 
@@ -3943,6 +3969,503 @@ void MainWindow::loadRoutineCards()
         1
         );
 }
+
+void MainWindow::loadDashboardRoutineCards()
+{
+    // Der Container wird bei jedem Laden komplett neu aufgebaut.
+    // Dadurch stimmt der Inhalt immer mit dem aktuell ausgewählten Hobby überein.
+    while (ui->hobbyCurrentRoutinesLayout->count() > 0) {
+
+        QLayoutItem *item =
+            ui->hobbyCurrentRoutinesLayout->takeAt(0);
+
+        if (item->widget())
+            item->widget()->deleteLater();
+
+        delete item;
+    }
+
+    if (currentHobbyId == 0)
+        return;
+
+    const QList<Routine> routines =
+        RoutineRepository::getForHobby(
+            currentHobbyId
+            );
+
+    // Zunächst werden nur nicht archivierte und ausgewählte Routinen benötigt.
+    QList<Routine> currentRoutines;
+
+    for (const Routine &routine : routines) {
+
+        if (routine.archived)
+            continue;
+
+        if (!routine.isCurrent)
+            continue;
+
+        currentRoutines.append(routine);
+    }
+
+    // Erstellt eine kompakte Version der normalen Routine-Card.
+    // Die Struktur bleibt gleich, aber Letzte Ausführung,
+    // Trennlinie sowie Bearbeiten/Ausführen werden auf dem Dashboard nicht benötigt.
+    auto buildDashboardCard =
+        [this](const Routine &routine) -> QFrame * {
+
+        auto *card =
+            new QFrame();
+
+        card->setObjectName(
+            "dashboardRoutineCard"
+            );
+
+        card->setProperty(
+            "routineId",
+            routine.id
+            );
+
+        card->setProperty(
+            "routineIsCurrent",
+            routine.isCurrent
+            );
+
+        card->installEventFilter(this);
+
+        card->setAttribute(
+            Qt::WA_Hover,
+            true
+            );
+
+        card->setFrameShape(
+            QFrame::StyledPanel
+            );
+
+        // Die Dashboard-Card hat dieselbe Höhe wie eine Exercise-Card.
+        card->setFixedHeight(176);
+
+        // Die Grid-Spalte bestimmt die Breite der Card.
+        // Dadurch füllt die Card genau ihren vorgesehenen Drittel-Bereich aus.
+        card->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Fixed
+            );
+
+        card->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        auto *cardLayout =
+            new QVBoxLayout(card);
+
+        cardLayout->setContentsMargins(
+            12,
+            12,
+            12,
+            12
+            );
+
+        cardLayout->setSpacing(4);
+
+        // ─────────────────────────────────────────────────────────
+        // Kopf: Name + Stern
+        // ─────────────────────────────────────────────────────────
+
+        auto *topRow =
+            new QHBoxLayout();
+
+        topRow->setContentsMargins(
+            0,
+            0,
+            0,
+            0
+            );
+
+        topRow->setSpacing(8);
+
+        auto *nameLabel =
+            new QLabel(
+                routine.name,
+                card
+                );
+
+        nameLabel->setObjectName(
+            "routineCardNameLabel"
+            );
+
+        nameLabel->setWordWrap(true);
+
+        // Der Name soll den Klick auf die Card nicht abfangen.
+        nameLabel->setAttribute(
+            Qt::WA_TransparentForMouseEvents,
+            true
+            );
+
+        topRow->addWidget(
+            nameLabel,
+            1
+            );
+
+        // ── Ausgewählte Routine ───────────────────────────────────
+
+        auto *favoriteButton =
+            new QToolButton(card);
+
+        favoriteButton->setObjectName(
+            "routineFavoriteButton"
+            );
+
+        favoriteButton->setFixedSize(
+            24,
+            24
+            );
+
+        favoriteButton->setIconSize(
+            QSize(16, 16)
+            );
+
+        favoriteButton->setAutoRaise(true);
+
+        favoriteButton->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        favoriteButton->setIcon(
+            QIcon(
+                ":/icons/star-filled.svg"
+                )
+            );
+
+        favoriteButton->setToolTip(
+            "Ausgewählte Routine"
+            );
+
+        connect(
+            favoriteButton,
+            &QToolButton::clicked,
+            this,
+            [this, routineId = routine.id]() {
+
+                if (!RoutineRepository::setCurrent(
+                        routineId,
+                        false
+                        )) {
+                    return;
+                }
+
+                // Beide Ansichten werden aktualisiert, damit der
+                // neue Auswahlstatus sofort überall sichtbar ist.
+                loadRoutineCards();
+                loadDashboardRoutineCards();
+
+                refreshHobbyDashboardOverview(
+                    ui,
+                    currentHobbyId
+                    );
+            }
+            );
+
+        topRow->addWidget(
+            favoriteButton,
+            0,
+            Qt::AlignTop | Qt::AlignRight
+            );
+
+        cardLayout->addLayout(
+            topRow
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Beschreibung
+        // ─────────────────────────────────────────────────────────
+
+        auto *descriptionLabel =
+            new QLabel(
+                routine.description,
+                card
+                );
+
+        descriptionLabel->setObjectName(
+            "routineCardDescriptionLabel"
+            );
+
+        descriptionLabel->setProperty(
+            "role",
+            "secondary"
+            );
+
+        descriptionLabel->setWordWrap(true);
+
+        descriptionLabel->setMaximumHeight(
+            42
+            );
+
+        cardLayout->addWidget(
+            descriptionLabel
+            );
+
+        // ─────────────────────────────────────────────────────────
+        // Übungen
+        // ─────────────────────────────────────────────────────────
+
+        auto *exercisesHeader =
+            new QLabel(
+                "Übungen",
+                card
+                );
+
+        exercisesHeader->setObjectName(
+            "routineCardMetaHeaderLabel"
+            );
+
+        exercisesHeader->setProperty(
+            "role",
+            "muted"
+            );
+
+        cardLayout->addWidget(
+            exercisesHeader
+            );
+
+        const QList<RoutineStep> steps =
+            RoutineRepository::getSteps(
+                routine.id
+                );
+
+        const QList<Exercise> exercises =
+            ExerciseRepository::getForHobby(
+                currentHobbyId,
+                true
+                );
+
+        QHash<int, QString> exerciseNames;
+
+        for (const Exercise &exercise : exercises) {
+
+            exerciseNames.insert(
+                exercise.id,
+                exercise.name
+                );
+        }
+
+        // Die kleinere Dashboard-Card zeigt maximal zwei Übungen.
+        constexpr int visibleExerciseCount = 2;
+
+        int shownCount = 0;
+
+        int totalDurationSeconds = 0;
+
+        for (const RoutineStep &step : steps) {
+
+            totalDurationSeconds +=
+                step.durationSeconds;
+
+            if (shownCount >= visibleExerciseCount)
+                continue;
+
+            auto *exerciseRow =
+                new QHBoxLayout();
+
+            exerciseRow->setSpacing(
+                8
+                );
+
+            auto *exerciseLabel =
+                new QLabel(
+                    exerciseNames.value(
+                        step.exerciseId,
+                        "Unbekannte Übung"
+                        ),
+                    card
+                    );
+
+            exerciseLabel->setObjectName(
+                "routineCardExerciseLabel"
+                );
+
+            exerciseRow->addWidget(
+                exerciseLabel
+                );
+
+            exerciseRow->addStretch();
+
+            const int minutes =
+                step.durationSeconds / 60;
+
+            auto *durationLabel =
+                new QLabel(
+                    QString("%1 min")
+                        .arg(minutes),
+                    card
+                    );
+
+            durationLabel->setObjectName(
+                "routineCardDurationLabel"
+                );
+
+            durationLabel->setProperty(
+                "role",
+                "secondary"
+                );
+
+            exerciseRow->addWidget(
+                durationLabel
+                );
+
+            cardLayout->addLayout(
+                exerciseRow
+                );
+
+            ++shownCount;
+        }
+
+        if (steps.size() > visibleExerciseCount) {
+
+            const int remaining =
+                steps.size() -
+                visibleExerciseCount;
+
+            auto *moreLabel =
+                new QLabel(
+                    QString("+ %1 weitere")
+                        .arg(remaining),
+                    card
+                    );
+
+            moreLabel->setObjectName(
+                "routineCardMoreLabel"
+                );
+
+            moreLabel->setProperty(
+                "role",
+                "secondary"
+                );
+
+            cardLayout->addWidget(
+                moreLabel
+                );
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // Gesamtdauer
+        // ─────────────────────────────────────────────────────────
+
+        const int totalMinutes =
+            totalDurationSeconds / 60;
+
+        auto *totalDurationRow =
+            new QHBoxLayout();
+
+        auto *totalDurationLabel =
+            new QLabel(
+                "Gesamtdauer",
+                card
+                );
+
+        totalDurationLabel->setObjectName(
+            "routineCardMetaHeaderLabel"
+            );
+
+        totalDurationLabel->setProperty(
+            "role",
+            "muted"
+            );
+
+        totalDurationRow->addWidget(
+            totalDurationLabel
+            );
+
+        totalDurationRow->addStretch();
+
+        auto *totalDurationValue =
+            new QLabel(
+                QString("%1 min")
+                    .arg(totalMinutes),
+                card
+                );
+
+        totalDurationValue->setObjectName(
+            "routineCardDurationLabel"
+            );
+
+        totalDurationRow->addWidget(
+            totalDurationValue
+            );
+
+        cardLayout->addLayout(
+            totalDurationRow
+            );
+
+        return card;
+    };
+
+    // Alle aktuell markierten Routinen in die drei festen Grid-Spalten
+    // einfügen. Dadurch bleiben die Cards unabhängig von ihrer Anzahl gleich breit.
+    for (int i = 0; i < currentRoutines.size(); ++i) {
+
+        QFrame *card =
+            buildDashboardCard(
+                currentRoutines.at(i)
+                );
+
+        ui->hobbyCurrentRoutinesLayout->addWidget(
+            card,
+            0,
+            i
+            );
+    }
+
+    // Solange weniger als drei Routinen markiert sind,
+    // wird der freie Platz für den Hinzufügen-Button verwendet.
+    if (currentRoutines.size() < 3) {
+
+        auto *addButton =
+            new QPushButton(
+                "+ Routine hinzufügen"
+                );
+
+        addButton->setObjectName(
+            "dashboardRoutineAddButton"
+            );
+
+        // Der Button hat exakt dieselbe Höhe wie eine Routine-Card.
+        addButton->setFixedHeight(
+            176
+            );
+
+        // Die Grid-Spalte bestimmt auch hier die Breite.
+        addButton->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Fixed
+            );
+
+        // Der Button wird direkt in die nächste freie der drei
+        // Card-Spalten gesetzt.
+        ui->hobbyCurrentRoutinesLayout->addWidget(
+            addButton,
+            0,
+            currentRoutines.size()
+            );
+
+        connect(
+            addButton,
+            &QPushButton::clicked,
+            this,
+            [this]() {
+
+                // Der Button führt zur vollständigen Routinen-Ansicht.
+                // Dort kann die Routine über den normalen "Hinzufügen"-Ablauf
+                // erstellt werden.
+                ui->routinesTab->setChecked(true);
+
+                ui->hobbyPageStack->setCurrentWidget(
+                    ui->routinesPage
+                    );
+            }
+            );
+    }
+}
+
 
 MainWindow::~MainWindow()
 {

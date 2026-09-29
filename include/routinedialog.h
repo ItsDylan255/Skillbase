@@ -73,6 +73,9 @@ private:
     // und deren gespeicherten Reihenfolge und Dauer.
     void loadRoutineForEditing();
 
+    void showSelectedExerciseChip(const QString &exerciseName);
+    void resetExerciseInput();
+
     Ui::routineDialog *ui;
 
     // Das Hobby, zu dem die neue Routine gehört.

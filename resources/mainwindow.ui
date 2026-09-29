@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1110</width>
-    <height>697</height>
+    <height>701</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -331,31 +331,71 @@
             <number>16</number>
            </property>
            <property name="leftMargin">
-            <number>24</number>
+            <number>0</number>
            </property>
            <property name="topMargin">
             <number>24</number>
            </property>
            <property name="rightMargin">
-            <number>24</number>
+            <number>0</number>
            </property>
            <property name="bottomMargin">
             <number>24</number>
            </property>
            <item>
-            <widget class="QLabel" name="hobbyLabel">
-             <property name="text">
-              <string>Hobby</string>
+            <layout class="QVBoxLayout" name="hobbyLabelLayout">
+             <property name="spacing">
+              <number>0</number>
              </property>
-            </widget>
+             <property name="leftMargin">
+              <number>24</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>24</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="hobbyLabel">
+               <property name="text">
+                <string>Hobby</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <layout class="QHBoxLayout" name="hobbyNavigation">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <property name="sizeConstraint">
               <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
              </property>
              <item>
               <widget class="QToolButton" name="dashboardTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Dashboard</string>
                </property>
@@ -372,6 +412,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="routinesTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Routinen</string>
                </property>
@@ -385,6 +431,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="exercisesTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Übungen</string>
                </property>
@@ -398,6 +450,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="goalsTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Ziele</string>
                </property>
@@ -411,6 +469,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="roadmapTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Roadmap</string>
                </property>
@@ -424,6 +488,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="historyTab">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Verlauf</string>
                </property>
@@ -438,681 +508,57 @@
             </layout>
            </item>
            <item>
-            <widget class="QStackedWidget" name="hobbyPageStack">
-             <property name="currentIndex">
-              <number>3</number>
+            <layout class="QVBoxLayout" name="hobbyPageStackLayout">
+             <property name="spacing">
+              <number>0</number>
              </property>
-             <widget class="QWidget" name="dashboardHobbyPage">
-              <layout class="QVBoxLayout" name="hobbyDashboardLayout">
-               <property name="spacing">
-                <number>4</number>
+             <property name="leftMargin">
+              <number>24</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>24</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QStackedWidget" name="hobbyPageStack">
+               <property name="currentIndex">
+                <number>0</number>
                </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item>
-                <layout class="QHBoxLayout" name="hobbyDashboardHeaderLayout">
-                 <item>
-                  <widget class="QLabel" name="hobbyDashboardHeaderLabel">
-                   <property name="text">
-                    <string>Dashboard</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="hobbyDashboardHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QFrame" name="hobbyDashboardDivider1">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::HLine</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Plain</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="hobbyStatusRowLayout">
+               <widget class="QWidget" name="dashboardHobbyPage">
+                <layout class="QVBoxLayout" name="hobbyDashboardLayout">
                  <property name="spacing">
+                  <number>4</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
                   <number>12</number>
                  </property>
                  <item>
-                  <widget class="QFrame" name="hobbyPhaseSection">
-                   <property name="cursor">
-                    <cursorShape>PointingHandCursor</cursorShape>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::Shape::StyledPanel</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Shadow::Plain</enum>
-                   </property>
-                   <layout class="QVBoxLayout" name="hobbyPhaseColumnLayout">
-                    <property name="spacing">
-                     <number>4</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>16</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="hobbyPhaseSectionLabel">
-                      <property name="text">
-                       <string>AKTUELLE PHASE</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="hobbyPhaseNameLabel">
-                      <property name="text">
-                       <string>Keine aktive Phase</string>
-                      </property>
-                      <property name="wordWrap">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="hobbyPhaseCountdownLabel">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QProgressBar" name="hobbyPhaseProgressBar">
-                      <property name="value">
-                       <number>0</number>
-                      </property>
-                      <property name="textVisible">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QFrame" name="hobbyGoalSection">
-                   <property name="cursor">
-                    <cursorShape>PointingHandCursor</cursorShape>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::Shape::StyledPanel</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Shadow::Plain</enum>
-                   </property>
-                   <layout class="QVBoxLayout" name="hobbyGoalColumnLayout">
-                    <property name="spacing">
-                     <number>4</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>16</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>16</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="hobbyGoalSectionLabel">
-                      <property name="text">
-                       <string>AKTUELLES ZIEL</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="hobbyGoalNameLabel">
-                      <property name="text">
-                       <string>Keine aktiven Ziele</string>
-                      </property>
-                      <property name="wordWrap">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="hobbyGoalDeadlineLabel">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QFrame" name="hobbyDashboardDivider2">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::HLine</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Plain</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="hobbyRoutinesSectionLabel">
-                 <property name="text">
-                  <string>DEINE ROUTINEN</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="hobbyRoutinesContainer" native="true">
-                 <layout class="QHBoxLayout" name="hobbyRoutinesContainerLayout">
-                  <property name="spacing">
-                   <number>12</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="hobbyRoutinesEmptyLabel">
-                 <property name="text">
-                  <string>Noch keine Routinen angelegt. Lege deine erste Routine an, um sie hier auszuführen.</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="hobbyRoutinesAddButton">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>+ Routine hinzufügen</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="hobbyCurrentRoutinesContainer" native="true">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <layout class="QHBoxLayout" name="hobbyCurrentRoutinesLayout">
-                  <property name="spacing">
-                   <number>12</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QFrame" name="hobbyDashboardDivider3">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::HLine</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Plain</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="hobbyNoteSectionLabel">
-                 <property name="text">
-                  <string>NOTIZ</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPlainTextEdit" name="hobbyNotesTextEdit">
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>72</height>
-                  </size>
-                 </property>
-                 <property name="placeholderText">
-                  <string>Notizen zu diesem Hobby...</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QFrame" name="hobbyDashboardDivider4">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::HLine</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Shadow::Plain</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="hobbyStatsSectionLabel">
-                 <property name="text">
-                  <string>ÜBERSICHT</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="hobbyStatsRowLayout">
-                 <property name="spacing">
-                  <number>40</number>
-                 </property>
-                 <item>
-                  <layout class="QVBoxLayout" name="hobbyStatExercisesLayout">
-                   <property name="spacing">
-                    <number>4</number>
-                   </property>
+                  <layout class="QHBoxLayout" name="hobbyDashboardHeaderLayout">
                    <item>
-                    <widget class="QLabel" name="hobbyStatExercisesValueLabel">
+                    <widget class="QLabel" name="hobbyDashboardHeaderLabel">
                      <property name="text">
-                      <string>0</string>
+                      <string>Dashboard</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="hobbyStatExercisesCaptionLabel">
-                     <property name="text">
-                      <string>Übungen</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="hobbyStatTimeLayout">
-                   <property name="spacing">
-                    <number>4</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatTimeValueLabel">
-                     <property name="text">
-                      <string>0 min</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatTimeCaptionLabel">
-                     <property name="text">
-                      <string>Übungszeit</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="hobbyStatSessionsLayout">
-                   <property name="spacing">
-                    <number>4</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatSessionsValueLabel">
-                     <property name="text">
-                      <string>0</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatSessionsCaptionLabel">
-                     <property name="text">
-                      <string>Sessions</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="hobbyStatGoalsLayout">
-                   <property name="spacing">
-                    <number>4</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatGoalsValueLabel">
-                     <property name="text">
-                      <string>0</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="hobbyStatGoalsCaptionLabel">
-                     <property name="text">
-                      <string>Ziele</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <spacer name="hobbyStatsRowSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="roadmapPage">
-              <layout class="QVBoxLayout" name="roadmapPageLayout">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item>
-                <layout class="QHBoxLayout" name="roadmapHeaderLayout">
-                 <item>
-                  <widget class="QLabel" name="roadmapHeaderLabel">
-                   <property name="text">
-                    <string>Roadmap</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="roadmapHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="addRoadmapGoalButton">
-                   <property name="text">
-                    <string>+ Neues Ziel</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
-                 <item>
-                  <spacer name="roadmapViewToggleSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="roadmapTreeViewButton">
-                   <property name="text">
-                    <string>Tree</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="roadmapDiagramViewButton">
-                   <property name="text">
-                    <string>Diagram</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QSplitter" name="roadmapSplitter">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="childrenCollapsible">
-                  <bool>false</bool>
-                 </property>
-                 <widget class="QStackedWidget" name="roadmapViewStack">
-                  <property name="currentIndex">
-                   <number>0</number>
-                  </property>
-                  <widget class="QWidget" name="roadmapTreePage">
-                   <layout class="QVBoxLayout" name="roadmapTreePageLayout">
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QTreeWidget" name="roadmapTreeWidget">
-                      <property name="contextMenuPolicy">
-                       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-                      </property>
-                      <property name="headerHidden">
-                       <bool>true</bool>
-                      </property>
-                      <column>
-                       <property name="text">
-                        <string>Ziel</string>
-                       </property>
-                      </column>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                  <widget class="QWidget" name="roadmapDiagramPage">
-                   <layout class="QVBoxLayout" name="roadmapDiagramPageLayout">
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QWidget" name="roadmapDiagramWidget" native="true">
-                      <property name="toolTip">
-                       <string>Hierarchie-Diagramm – wird per C++ gezeichnet</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </widget>
-                 <widget class="QWidget" name="roadmapInfoPanel" native="true">
-                  <property name="minimumSize">
-                   <size>
-                    <width>200</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>260</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <layout class="QVBoxLayout" name="roadmapInfoLayout">
-                   <property name="spacing">
-                    <number>8</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoTitle">
-                     <property name="text">
-                      <string>Informationen</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QFrame" name="roadmapInfoSeparator">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::HLine</enum>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoNameLabel">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoStatusHeader">
-                     <property name="text">
-                      <string>Status</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoStatusLabel">
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoDescriptionHeader">
-                     <property name="text">
-                      <string>Beschreibung</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoDescriptionLabel">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoParentHeader">
-                     <property name="text">
-                      <string>Übergeordnetes Ziel</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="roadmapInfoParentLabel">
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="roadmapInfoSpacer">
+                    <spacer name="hobbyDashboardHeaderSpacer">
                      <property name="orientation">
-                      <enum>Qt::Orientation::Vertical</enum>
+                      <enum>Qt::Orientation::Horizontal</enum>
                      </property>
                      <property name="sizeHint" stdset="0">
                       <size>
@@ -1123,455 +569,596 @@
                     </spacer>
                    </item>
                   </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="timelinePage">
-              <layout class="QVBoxLayout" name="timelinePageLayout">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item alignment="Qt::AlignmentFlag::AlignLeft">
-                <widget class="QPushButton" name="timelineBackButton">
-                 <property name="toolTip">
-                  <string>Zurück zur Hobby-Übersicht</string>
-                 </property>
-                 <property name="text">
-                  <string>←  Zurück</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="timelineHeaderLayout">
-                 <property name="spacing">
-                  <number>12</number>
-                 </property>
+                 </item>
                  <item>
-                  <layout class="QVBoxLayout" name="timelineHeaderTextLayout">
+                  <widget class="QFrame" name="hobbyDashboardDivider1">
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::HLine</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Shadow::Plain</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="hobbyStatusRowLayout">
                    <property name="spacing">
-                    <number>4</number>
+                    <number>12</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="timelineHeaderLabel">
-                     <property name="text">
-                      <string>Timeline</string>
+                    <widget class="QFrame" name="hobbyPhaseSection">
+                     <property name="cursor">
+                      <cursorShape>PointingHandCursor</cursorShape>
                      </property>
+                     <property name="frameShape">
+                      <enum>QFrame::Shape::StyledPanel</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Shadow::Plain</enum>
+                     </property>
+                     <layout class="QVBoxLayout" name="hobbyPhaseColumnLayout">
+                      <property name="spacing">
+                       <number>4</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>16</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="hobbyPhaseSectionLabel">
+                        <property name="text">
+                         <string>AKTUELLE PHASE</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="hobbyPhaseNameLabel">
+                        <property name="text">
+                         <string>Keine aktive Phase</string>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="hobbyPhaseCountdownLabel">
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QProgressBar" name="hobbyPhaseProgressBar">
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="textVisible">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="timelineSubtitleLabel">
-                     <property name="text">
-                      <string>Plane und verfolge deine Lernphasen über die Zeit.</string>
+                    <widget class="QFrame" name="hobbyGoalSection">
+                     <property name="cursor">
+                      <cursorShape>PointingHandCursor</cursorShape>
                      </property>
+                     <property name="frameShape">
+                      <enum>QFrame::Shape::StyledPanel</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Shadow::Plain</enum>
+                     </property>
+                     <layout class="QVBoxLayout" name="hobbyGoalColumnLayout">
+                      <property name="spacing">
+                       <number>4</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>16</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>16</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="hobbyGoalSectionLabel">
+                        <property name="text">
+                         <string>AKTUELLES ZIEL</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="hobbyGoalNameLabel">
+                        <property name="text">
+                         <string>Keine aktiven Ziele</string>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="hobbyGoalDeadlineLabel">
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
                     </widget>
                    </item>
                   </layout>
                  </item>
                  <item>
-                  <spacer name="timelineHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
+                  <widget class="QFrame" name="hobbyDashboardDivider2">
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::HLine</enum>
                    </property>
-                   <property name="sizeHint" stdset="0">
+                   <property name="frameShadow">
+                    <enum>QFrame::Shadow::Plain</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="hobbyRoutinesSectionLabel">
+                   <property name="text">
+                    <string>DEINE ROUTINEN</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="hobbyCurrentRoutinesContainer" native="true">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <layout class="QGridLayout" name="hobbyCurrentRoutinesLayout" columnstretch="1,1,1">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="horizontalSpacing">
+                     <number>12</number>
+                    </property>
+                    <property name="verticalSpacing">
+                     <number>12</number>
+                    </property>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="hobbyDashboardDivider3">
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::HLine</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Shadow::Plain</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="hobbyNoteSectionLabel">
+                   <property name="text">
+                    <string>NOTIZ</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPlainTextEdit" name="hobbyNotesTextEdit">
+                   <property name="maximumSize">
                     <size>
-                     <width>0</width>
-                     <height>0</height>
+                     <width>16777215</width>
+                     <height>72</height>
                     </size>
                    </property>
-                  </spacer>
-                 </item>
-                 <item alignment="Qt::AlignmentFlag::AlignVCenter">
-                  <widget class="QPushButton" name="addTimelinePhaseButton">
-                   <property name="text">
-                    <string>+ Phase hinzufügen</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QScrollArea" name="timelineBarScrollArea">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>96</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>96</height>
-                  </size>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::NoFrame</enum>
-                 </property>
-                 <property name="verticalScrollBarPolicy">
-                  <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-                 </property>
-                 <property name="horizontalScrollBarPolicy">
-                  <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
-                 </property>
-                 <property name="widgetResizable">
-                  <bool>false</bool>
-                 </property>
-                 <widget class="TimelineBarWidget" name="timelineBarWidget">
-                  <property name="geometry">
-                   <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>0</width>
-                    <height>0</height>
-                   </rect>
-                  </property>
-                  <property name="toolTip">
-                   <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
-                  </property>
-                 </widget>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="timelineEmptyLabel">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Noch keine Lernphasen geplant.</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="timelinePageSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="routinesPage">
-              <layout class="QVBoxLayout" name="routinesPageLayout">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item>
-                <layout class="QHBoxLayout" name="routinesHeaderLayout">
-                 <item>
-                  <widget class="QLabel" name="routinesHeaderLabel">
-                   <property name="text">
-                    <string>Routinen</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="routinesHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="addRoutineButton">
-                   <property name="text">
-                    <string>+ Routine hinzufügen</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="routinesFilterLayout">
-                 <item>
-                  <widget class="QLineEdit" name="routineSearchLineEdit">
                    <property name="placeholderText">
-                    <string>Routinen durchsuchen...</string>
+                    <string>Notizen zu diesem Hobby...</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="routinesFilterActiveButton">
-                   <property name="text">
-                    <string>Aktiv</string>
+                  <widget class="QFrame" name="hobbyDashboardDivider4">
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::HLine</enum>
                    </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
+                   <property name="frameShadow">
+                    <enum>QFrame::Shadow::Plain</enum>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="routinesFilterArchiveButton">
+                  <widget class="QLabel" name="hobbyStatsSectionLabel">
                    <property name="text">
-                    <string>Archiv</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
+                    <string>ÜBERSICHT</string>
                    </property>
                   </widget>
                  </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QStackedWidget" name="routinesViewStack">
-                 <property name="currentIndex">
-                  <number>0</number>
-                 </property>
-                 <widget class="QWidget" name="routinesActivePage">
-                  <layout class="QVBoxLayout" name="routinesActivePageLayout">
+                 <item>
+                  <layout class="QHBoxLayout" name="hobbyStatsRowLayout">
                    <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
+                    <number>40</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="routinesActiveEmptyLabel">
-                     <property name="text">
-                      <string>Noch keine aktiven Routinen
-
-Leg mit &quot;+ Routine hinzufügen&quot; deine erste Routine für dieses Hobby an.</string>
+                    <layout class="QVBoxLayout" name="hobbyStatExercisesLayout">
+                     <property name="spacing">
+                      <number>4</number>
                      </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QScrollArea" name="routinesActiveScrollArea">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::NoFrame</enum>
-                     </property>
-                     <property name="widgetResizable">
-                      <bool>true</bool>
-                     </property>
-                     <widget class="QWidget" name="routineActiveCardsWidget">
-                      <property name="geometry">
-                       <rect>
-                        <x>0</x>
-                        <y>0</y>
-                        <width>835</width>
-                        <height>394</height>
-                       </rect>
-                      </property>
-                      <layout class="QGridLayout" name="routineActiveCardsLayout">
-                       <property name="leftMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="spacing">
-                        <number>12</number>
-                       </property>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="routinesArchivePage">
-                  <layout class="QVBoxLayout" name="routinesArchivePageLayout">
-                   <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="routinesArchiveEmptyLabel">
-                     <property name="text">
-                      <string>Noch keine archivierten Routinen
-
-Sobald du eine Routine archivierst, landet sie hier.</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QScrollArea" name="routinesArchiveScrollArea">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::NoFrame</enum>
-                     </property>
-                     <property name="widgetResizable">
-                      <bool>true</bool>
-                     </property>
-                     <widget class="QWidget" name="routineArchiveCardsWidget">
-                      <property name="geometry">
-                       <rect>
-                        <x>0</x>
-                        <y>0</y>
-                        <width>86</width>
-                        <height>16</height>
-                       </rect>
-                      </property>
-                      <layout class="QGridLayout" name="routineArchiveCardsLayout">
-                       <property name="leftMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="spacing">
-                        <number>12</number>
-                       </property>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="exercisesPage">
-              <layout class="QVBoxLayout" name="exercisesPageLayout">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QStackedWidget" name="exerciseViewStack">
-                 <property name="currentIndex">
-                  <number>1</number>
-                 </property>
-                 <widget class="QWidget" name="exerciseOverviewPage">
-                  <layout class="QVBoxLayout" name="exerciseOverviewPageLayout">
-                   <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>12</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>12</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>12</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>12</number>
-                   </property>
-                   <item>
-                    <layout class="QHBoxLayout" name="exercisesHeaderLayout">
                      <item>
-                      <widget class="QLabel" name="exercisesHeaderLabel">
+                      <widget class="QLabel" name="hobbyStatExercisesValueLabel">
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatExercisesCaptionLabel">
                        <property name="text">
                         <string>Übungen</string>
                        </property>
                       </widget>
                      </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="hobbyStatTimeLayout">
+                     <property name="spacing">
+                      <number>4</number>
+                     </property>
                      <item>
-                      <spacer name="exercisesHeaderSpacer">
+                      <widget class="QLabel" name="hobbyStatTimeValueLabel">
+                       <property name="text">
+                        <string>0 min</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatTimeCaptionLabel">
+                       <property name="text">
+                        <string>Übungszeit</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="hobbyStatSessionsLayout">
+                     <property name="spacing">
+                      <number>4</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatSessionsValueLabel">
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatSessionsCaptionLabel">
+                       <property name="text">
+                        <string>Sessions</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="hobbyStatGoalsLayout">
+                     <property name="spacing">
+                      <number>4</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatGoalsValueLabel">
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="hobbyStatGoalsCaptionLabel">
+                       <property name="text">
+                        <string>Ziele</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <spacer name="hobbyStatsRowSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="roadmapPage">
+                <layout class="QVBoxLayout" name="roadmapPageLayout">
+                 <property name="spacing">
+                  <number>12</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="roadmapHeaderLayout">
+                   <item>
+                    <widget class="QLabel" name="roadmapHeaderLabel">
+                     <property name="text">
+                      <string>Roadmap</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="roadmapHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="addRoadmapGoalButton">
+                     <property name="text">
+                      <string>+ Neues Ziel</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
+                   <item>
+                    <spacer name="roadmapViewToggleSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="roadmapTreeViewButton">
+                     <property name="text">
+                      <string>Tree</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="roadmapDiagramViewButton">
+                     <property name="text">
+                      <string>Diagram</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QSplitter" name="roadmapSplitter">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="childrenCollapsible">
+                    <bool>false</bool>
+                   </property>
+                   <widget class="QStackedWidget" name="roadmapViewStack">
+                    <property name="currentIndex">
+                     <number>0</number>
+                    </property>
+                    <widget class="QWidget" name="roadmapTreePage">
+                     <layout class="QVBoxLayout" name="roadmapTreePageLayout">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QTreeWidget" name="roadmapTreeWidget">
+                        <property name="contextMenuPolicy">
+                         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+                        </property>
+                        <property name="headerHidden">
+                         <bool>true</bool>
+                        </property>
+                        <column>
+                         <property name="text">
+                          <string>Ziel</string>
+                         </property>
+                        </column>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                    <widget class="QWidget" name="roadmapDiagramPage">
+                     <layout class="QVBoxLayout" name="roadmapDiagramPageLayout">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QWidget" name="roadmapDiagramWidget" native="true">
+                        <property name="toolTip">
+                         <string>Hierarchie-Diagramm – wird per C++ gezeichnet</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </widget>
+                   <widget class="QWidget" name="roadmapInfoPanel" native="true">
+                    <property name="minimumSize">
+                     <size>
+                      <width>200</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>260</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <layout class="QVBoxLayout" name="roadmapInfoLayout">
+                     <property name="spacing">
+                      <number>8</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoTitle">
+                       <property name="text">
+                        <string>Informationen</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QFrame" name="roadmapInfoSeparator">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::HLine</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoNameLabel">
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoStatusHeader">
+                       <property name="text">
+                        <string>Status</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoStatusLabel">
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoDescriptionHeader">
+                       <property name="text">
+                        <string>Beschreibung</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoDescriptionLabel">
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+                       </property>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoParentHeader">
+                       <property name="text">
+                        <string>Übergeordnetes Ziel</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapInfoParentLabel">
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="roadmapInfoSpacer">
                        <property name="orientation">
-                        <enum>Qt::Orientation::Horizontal</enum>
+                        <enum>Qt::Orientation::Vertical</enum>
                        </property>
                        <property name="sizeHint" stdset="0">
                         <size>
@@ -1581,117 +1168,284 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                        </property>
                       </spacer>
                      </item>
-                     <item>
-                      <widget class="QPushButton" name="addExerciseButton">
-                       <property name="text">
-                        <string>+ Übung</string>
-                       </property>
-                      </widget>
-                     </item>
                     </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="exercisesFilterLayout">
-                     <item>
-                      <widget class="QLineEdit" name="exerciseSearchLineEdit">
-                       <property name="placeholderText">
-                        <string>Übungen suchen...</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="exerciseCategoryComboBox">
-                       <item>
-                        <property name="text">
-                         <string>Alle Kategorien</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="manageCategoriesButton">
-                       <property name="text">
-                        <string>Kategorien verwalten</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <widget class="QScrollArea" name="exerciseScrollArea">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::NoFrame</enum>
-                     </property>
-                     <property name="widgetResizable">
-                      <bool>true</bool>
-                     </property>
-                     <widget class="QWidget" name="exerciseCardsWidget">
-                      <property name="geometry">
-                       <rect>
-                        <x>0</x>
-                        <y>0</y>
-                        <width>62</width>
-                        <height>16</height>
-                       </rect>
-                      </property>
-                      <layout class="QGridLayout" name="exerciseCardsLayout">
-                       <property name="leftMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="spacing">
-                        <number>12</number>
-                       </property>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="exerciseDetailPage">
-                  <layout class="QVBoxLayout" name="exerciseDetailPageLayout" stretch="0,0,0,1">
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="timelinePage">
+                <layout class="QVBoxLayout" name="timelinePageLayout">
+                 <property name="spacing">
+                  <number>12</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item alignment="Qt::AlignmentFlag::AlignLeft">
+                  <widget class="QPushButton" name="timelineBackButton">
+                   <property name="toolTip">
+                    <string>Zurück zur Hobby-Übersicht</string>
+                   </property>
+                   <property name="text">
+                    <string>←  Zurück</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="timelineHeaderLayout">
                    <property name="spacing">
-                    <number>16</number>
+                    <number>12</number>
                    </property>
-                   <property name="leftMargin">
-                    <number>16</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>16</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>16</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>16</number>
-                   </property>
-                   <item alignment="Qt::AlignmentFlag::AlignLeft">
-                    <widget class="QPushButton" name="progressBackButton">
-                     <property name="toolTip">
-                      <string>Zurück zur Hobby-Übersicht</string>
-                     </property>
-                     <property name="text">
-                      <string>←  Zurück</string>
-                     </property>
-                    </widget>
-                   </item>
                    <item>
-                    <layout class="QVBoxLayout" name="exerciseDetailHeaderLayout">
+                    <layout class="QVBoxLayout" name="timelineHeaderTextLayout">
                      <property name="spacing">
                       <number>4</number>
                      </property>
                      <item>
-                      <widget class="QLabel" name="exerciseDetailNameLabel">
+                      <widget class="QLabel" name="timelineHeaderLabel">
                        <property name="text">
-                        <string>Übungsname</string>
+                        <string>Timeline</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="timelineSubtitleLabel">
+                       <property name="text">
+                        <string>Plane und verfolge deine Lernphasen über die Zeit.</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <spacer name="timelineHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item alignment="Qt::AlignmentFlag::AlignVCenter">
+                    <widget class="QPushButton" name="addTimelinePhaseButton">
+                     <property name="text">
+                      <string>+ Phase hinzufügen</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QScrollArea" name="timelineBarScrollArea">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>96</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>96</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::NoFrame</enum>
+                   </property>
+                   <property name="verticalScrollBarPolicy">
+                    <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                   </property>
+                   <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+                   </property>
+                   <property name="widgetResizable">
+                    <bool>false</bool>
+                   </property>
+                   <widget class="TimelineBarWidget" name="timelineBarWidget">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>0</width>
+                      <height>0</height>
+                     </rect>
+                    </property>
+                    <property name="toolTip">
+                     <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
+                    </property>
+                   </widget>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="timelineEmptyLabel">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Noch keine Lernphasen geplant.</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="timelinePageSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="routinesPage">
+                <layout class="QVBoxLayout" name="routinesPageLayout">
+                 <property name="spacing">
+                  <number>12</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="routinesHeaderLayout">
+                   <item>
+                    <widget class="QLabel" name="routinesHeaderLabel">
+                     <property name="text">
+                      <string>Routinen</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="routinesHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="addRoutineButton">
+                     <property name="text">
+                      <string>+ Routine hinzufügen</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="routinesFilterLayout">
+                   <item>
+                    <widget class="QLineEdit" name="routineSearchLineEdit">
+                     <property name="placeholderText">
+                      <string>Routinen durchsuchen...</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="routinesFilterActiveButton">
+                     <property name="text">
+                      <string>Aktiv</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="routinesFilterArchiveButton">
+                     <property name="text">
+                      <string>Archiv</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QStackedWidget" name="routinesViewStack">
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <widget class="QWidget" name="routinesActivePage">
+                    <layout class="QVBoxLayout" name="routinesActivePageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="routinesActiveEmptyLabel">
+                       <property name="text">
+                        <string>Noch keine aktiven Routinen
+
+Leg mit "+ Routine hinzufügen" deine erste Routine für dieses Hobby an.</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
                        </property>
                        <property name="wordWrap">
                         <bool>true</bool>
@@ -1699,9 +1453,70 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLabel" name="exerciseDetailDescriptionLabel">
+                      <widget class="QScrollArea" name="routinesActiveScrollArea">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::NoFrame</enum>
+                       </property>
+                       <property name="widgetResizable">
+                        <bool>true</bool>
+                       </property>
+                       <widget class="QWidget" name="routineActiveCardsWidget">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>835</width>
+                          <height>398</height>
+                         </rect>
+                        </property>
+                        <layout class="QGridLayout" name="routineActiveCardsLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="routinesArchivePage">
+                    <layout class="QVBoxLayout" name="routinesArchivePageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="routinesArchiveEmptyLabel">
                        <property name="text">
-                        <string>Beschreibung</string>
+                        <string>Noch keine archivierten Routinen
+
+Sobald du eine Routine archivierst, landet sie hier.</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
                        </property>
                        <property name="wordWrap">
                         <bool>true</bool>
@@ -1709,16 +1524,98 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                       </widget>
                      </item>
                      <item>
-                      <layout class="QHBoxLayout" name="exerciseDetailCategoryRow">
+                      <widget class="QScrollArea" name="routinesArchiveScrollArea">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::NoFrame</enum>
+                       </property>
+                       <property name="widgetResizable">
+                        <bool>true</bool>
+                       </property>
+                       <widget class="QWidget" name="routineArchiveCardsWidget">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>86</width>
+                          <height>16</height>
+                         </rect>
+                        </property>
+                        <layout class="QGridLayout" name="routineArchiveCardsLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="exercisesPage">
+                <layout class="QVBoxLayout" name="exercisesPageLayout">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QStackedWidget" name="exerciseViewStack">
+                   <property name="currentIndex">
+                    <number>1</number>
+                   </property>
+                   <widget class="QWidget" name="exerciseOverviewPage">
+                    <layout class="QVBoxLayout" name="exerciseOverviewPageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>12</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="exercisesHeaderLayout">
                        <item>
-                        <widget class="QLabel" name="exerciseDetailCategoryTagLabel">
+                        <widget class="QLabel" name="exercisesHeaderLabel">
                          <property name="text">
-                          <string>Kategorie</string>
+                          <string>Übungen</string>
                          </property>
                         </widget>
                        </item>
                        <item>
-                        <spacer name="exerciseDetailCategorySpacer">
+                        <spacer name="exercisesHeaderSpacer">
                          <property name="orientation">
                           <enum>Qt::Orientation::Horizontal</enum>
                          </property>
@@ -1730,590 +1627,741 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                          </property>
                         </spacer>
                        </item>
+                       <item>
+                        <widget class="QPushButton" name="addExerciseButton">
+                         <property name="text">
+                          <string>+ Übung</string>
+                         </property>
+                        </widget>
+                       </item>
                       </layout>
                      </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="exerciseDetailProgressCard">
-                     <property name="title">
-                      <string>Fortschritt</string>
-                     </property>
-                     <layout class="QVBoxLayout" name="exerciseDetailProgressCardLayout">
-                      <item>
-                       <layout class="QHBoxLayout" name="exerciseDetailValuesRow">
-                        <item>
-                         <layout class="QVBoxLayout" name="exerciseDetailStartValueColumn">
-                          <property name="spacing">
-                           <number>4</number>
+                     <item>
+                      <layout class="QHBoxLayout" name="exercisesFilterLayout">
+                       <item>
+                        <widget class="QLineEdit" name="exerciseSearchLineEdit">
+                         <property name="placeholderText">
+                          <string>Übungen suchen...</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QComboBox" name="exerciseCategoryComboBox">
+                         <item>
+                          <property name="text">
+                           <string>Alle Kategorien</string>
                           </property>
+                         </item>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="manageCategoriesButton">
+                         <property name="text">
+                          <string>Kategorien verwalten</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QScrollArea" name="exerciseScrollArea">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::NoFrame</enum>
+                       </property>
+                       <property name="widgetResizable">
+                        <bool>true</bool>
+                       </property>
+                       <widget class="QWidget" name="exerciseCardsWidget">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>62</width>
+                          <height>16</height>
+                         </rect>
+                        </property>
+                        <layout class="QGridLayout" name="exerciseCardsLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="exerciseDetailPage">
+                    <layout class="QVBoxLayout" name="exerciseDetailPageLayout" stretch="0,0,0,1">
+                     <property name="spacing">
+                      <number>16</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>16</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>16</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>16</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>16</number>
+                     </property>
+                     <item alignment="Qt::AlignmentFlag::AlignLeft">
+                      <widget class="QPushButton" name="progressBackButton">
+                       <property name="toolTip">
+                        <string>Zurück zur Hobby-Übersicht</string>
+                       </property>
+                       <property name="text">
+                        <string>←  Zurück</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <layout class="QVBoxLayout" name="exerciseDetailHeaderLayout">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="exerciseDetailNameLabel">
+                         <property name="text">
+                          <string>Übungsname</string>
+                         </property>
+                         <property name="wordWrap">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="exerciseDetailDescriptionLabel">
+                         <property name="text">
+                          <string>Beschreibung</string>
+                         </property>
+                         <property name="wordWrap">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <layout class="QHBoxLayout" name="exerciseDetailCategoryRow">
+                         <item>
+                          <widget class="QLabel" name="exerciseDetailCategoryTagLabel">
+                           <property name="text">
+                            <string>Kategorie</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <spacer name="exerciseDetailCategorySpacer">
+                           <property name="orientation">
+                            <enum>Qt::Orientation::Horizontal</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QGroupBox" name="exerciseDetailProgressCard">
+                       <property name="title">
+                        <string>Fortschritt</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="exerciseDetailProgressCardLayout">
+                        <item>
+                         <layout class="QHBoxLayout" name="exerciseDetailValuesRow">
                           <item>
-                           <widget class="QLabel" name="exerciseDetailStartHeaderLabel">
-                            <property name="text">
-                             <string>Startwert</string>
+                           <layout class="QVBoxLayout" name="exerciseDetailStartValueColumn">
+                            <property name="spacing">
+                             <number>4</number>
                             </property>
-                           </widget>
+                            <item>
+                             <widget class="QLabel" name="exerciseDetailStartHeaderLabel">
+                              <property name="text">
+                               <string>Startwert</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <layout class="QHBoxLayout" name="exerciseDetailStartValueRow">
+                              <item>
+                               <widget class="QLabel" name="exerciseDetailStartValueLabel">
+                                <property name="text">
+                                 <string>–</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QPushButton" name="exerciseDetailEditStartValueButton">
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>16777215</width>
+                                  <height>24</height>
+                                 </size>
+                                </property>
+                                <property name="text">
+                                 <string>Bearbeiten</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </item>
+                           </layout>
                           </item>
                           <item>
-                           <layout class="QHBoxLayout" name="exerciseDetailStartValueRow">
+                           <layout class="QVBoxLayout" name="exerciseDetailCurrentValueColumn">
+                            <property name="spacing">
+                             <number>4</number>
+                            </property>
                             <item>
-                             <widget class="QLabel" name="exerciseDetailStartValueLabel">
+                             <widget class="QLabel" name="exerciseDetailCurrentHeaderLabel">
+                              <property name="text">
+                               <string>Aktueller Wert</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLabel" name="exerciseDetailCurrentValueLabel">
                               <property name="text">
                                <string>–</string>
                               </property>
                              </widget>
                             </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="exerciseDetailGoalValueColumn">
+                            <property name="spacing">
+                             <number>4</number>
+                            </property>
                             <item>
-                             <widget class="QPushButton" name="exerciseDetailEditStartValueButton">
-                              <property name="maximumSize">
-                               <size>
-                                <width>16777215</width>
-                                <height>24</height>
-                               </size>
-                              </property>
+                             <widget class="QLabel" name="exerciseDetailGoalHeaderLabel">
                               <property name="text">
-                               <string>Bearbeiten</string>
+                               <string>Ziel</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLabel" name="exerciseDetailGoalValueLabel">
+                              <property name="text">
+                               <string>–</string>
                               </property>
                              </widget>
                             </item>
                            </layout>
                           </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <layout class="QVBoxLayout" name="exerciseDetailCurrentValueColumn">
-                          <property name="spacing">
-                           <number>4</number>
-                          </property>
                           <item>
-                           <widget class="QLabel" name="exerciseDetailCurrentHeaderLabel">
-                            <property name="text">
-                             <string>Aktueller Wert</string>
+                           <spacer name="exerciseDetailValuesSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QLabel" name="exerciseDetailCurrentValueLabel">
-                            <property name="text">
-                             <string>–</string>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
                             </property>
-                           </widget>
+                           </spacer>
                           </item>
                          </layout>
                         </item>
                         <item>
-                         <layout class="QVBoxLayout" name="exerciseDetailGoalValueColumn">
-                          <property name="spacing">
-                           <number>4</number>
+                         <widget class="QProgressBar" name="exerciseDetailProgressBar">
+                          <property name="value">
+                           <number>0</number>
                           </property>
-                          <item>
-                           <widget class="QLabel" name="exerciseDetailGoalHeaderLabel">
-                            <property name="text">
-                             <string>Ziel</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QLabel" name="exerciseDetailGoalValueLabel">
-                            <property name="text">
-                             <string>–</string>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
+                          <property name="textVisible">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
                         </item>
                         <item>
-                         <spacer name="exerciseDetailValuesSpacer">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
+                         <widget class="QLabel" name="exerciseDetailPercentLabel">
+                          <property name="text">
+                           <string>0 %</string>
                           </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                           </property>
-                         </spacer>
+                         </widget>
                         </item>
                        </layout>
-                      </item>
-                      <item>
-                       <widget class="QProgressBar" name="exerciseDetailProgressBar">
-                        <property name="value">
-                         <number>0</number>
-                        </property>
-                        <property name="textVisible">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="exerciseDetailPercentLabel">
-                        <property name="text">
-                         <string>0 %</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="exerciseDetailBottomRow" stretch="3,1">
+                       <property name="spacing">
+                        <number>16</number>
+                       </property>
+                       <item>
+                        <widget class="QGroupBox" name="exerciseDetailDevelopmentCard">
+                         <property name="title">
+                          <string>Entwicklung</string>
+                         </property>
+                         <layout class="QVBoxLayout" name="exerciseDetailDevelopmentCardLayout">
+                          <item>
+                           <widget class="ExerciseProgressChartWidget" name="exerciseProgressChartWidget" native="true">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QGroupBox" name="exerciseDetailStatisticsCard">
+                         <property name="title">
+                          <string>Statistik</string>
+                         </property>
+                         <layout class="QFormLayout" name="exerciseDetailStatisticsCardLayout">
+                          <item row="0" column="0">
+                           <widget class="QLabel" name="exerciseDetailLastPerformedHeaderLabel">
+                            <property name="text">
+                             <string>Letzte Ausführung</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="0" column="1">
+                           <widget class="QLabel" name="exerciseDetailLastPerformedLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="1" column="0">
+                           <widget class="QLabel" name="exerciseDetailExecutionCountHeaderLabel">
+                            <property name="text">
+                             <string>Ausführungen</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="1" column="1">
+                           <widget class="QLabel" name="exerciseDetailExecutionCountLabel">
+                            <property name="text">
+                             <string>0</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="0">
+                           <widget class="QLabel" name="exerciseDetailTotalTimeHeaderLabel">
+                            <property name="text">
+                             <string>Übungszeit</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="1">
+                           <widget class="QLabel" name="exerciseDetailTotalTimeLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="historyPage">
+                <layout class="QVBoxLayout" name="historyPageLayout">
+                 <property name="spacing">
+                  <number>16</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="historyHeaderLayout">
+                   <item>
+                    <widget class="QLabel" name="historyHeaderLabel">
+                     <property name="text">
+                      <string>Verlauf</string>
+                     </property>
                     </widget>
                    </item>
                    <item>
-                    <layout class="QHBoxLayout" name="exerciseDetailBottomRow" stretch="3,1">
+                    <spacer name="historyHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="historyToolbarLayout">
+                   <item>
+                    <widget class="QLineEdit" name="historySearchLineEdit">
+                     <property name="placeholderText">
+                      <string>Verlauf durchsuchen...</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QDateEdit" name="historyDateFilterEdit">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>130</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Nach Datum filtern</string>
+                     </property>
+                     <property name="displayFormat">
+                      <string>dd.MM.yyyy</string>
+                     </property>
+                     <property name="calendarPopup">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QScrollArea" name="historyScrollArea">
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::NoFrame</enum>
+                   </property>
+                   <property name="widgetResizable">
+                    <bool>true</bool>
+                   </property>
+                   <widget class="QWidget" name="historyEntriesWidget">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>62</width>
+                      <height>160</height>
+                     </rect>
+                    </property>
+                    <layout class="QVBoxLayout" name="historyEntriesLayout">
                      <property name="spacing">
                       <number>16</number>
                      </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
                      <item>
-                      <widget class="QGroupBox" name="exerciseDetailDevelopmentCard">
-                       <property name="title">
-                        <string>Entwicklung</string>
+                      <widget class="QLabel" name="historyEmptyStateLabel">
+                       <property name="text">
+                        <string>Noch keine Aktivitäten
+
+Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
                        </property>
-                       <layout class="QVBoxLayout" name="exerciseDetailDevelopmentCardLayout">
-                        <item>
-                         <widget class="ExerciseProgressChartWidget" name="exerciseProgressChartWidget" native="true">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QGroupBox" name="exerciseDetailStatisticsCard">
-                       <property name="title">
-                        <string>Statistik</string>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
                        </property>
-                       <layout class="QFormLayout" name="exerciseDetailStatisticsCardLayout">
-                        <item row="0" column="0">
-                         <widget class="QLabel" name="exerciseDetailLastPerformedHeaderLabel">
-                          <property name="text">
-                           <string>Letzte Ausführung</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="0" column="1">
-                         <widget class="QLabel" name="exerciseDetailLastPerformedLabel">
-                          <property name="text">
-                           <string>–</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="0">
-                         <widget class="QLabel" name="exerciseDetailExecutionCountHeaderLabel">
-                          <property name="text">
-                           <string>Ausführungen</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="1">
-                         <widget class="QLabel" name="exerciseDetailExecutionCountLabel">
-                          <property name="text">
-                           <string>0</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="0">
-                         <widget class="QLabel" name="exerciseDetailTotalTimeHeaderLabel">
-                          <property name="text">
-                           <string>Übungszeit</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="1">
-                         <widget class="QLabel" name="exerciseDetailTotalTimeLabel">
-                          <property name="text">
-                           <string>–</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
                       </widget>
                      </item>
                     </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="goalsPage">
+                <layout class="QVBoxLayout" name="goalsPageLayout">
+                 <property name="spacing">
+                  <number>12</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="goalsHeaderLayout">
+                   <item>
+                    <widget class="QLabel" name="goalsHeaderLabel">
+                     <property name="text">
+                      <string>Ziele</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="goalsHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="addGoalButton">
+                     <property name="text">
+                      <string>+ Ziel hinzufügen</string>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="historyPage">
-              <layout class="QVBoxLayout" name="historyPageLayout">
-               <property name="spacing">
-                <number>16</number>
-               </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item>
-                <layout class="QHBoxLayout" name="historyHeaderLayout">
-                 <item>
-                  <widget class="QLabel" name="historyHeaderLabel">
-                   <property name="text">
-                    <string>Verlauf</string>
-                   </property>
-                  </widget>
                  </item>
                  <item>
-                  <spacer name="historyHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="historyToolbarLayout">
-                 <item>
-                  <widget class="QLineEdit" name="historySearchLineEdit">
-                   <property name="placeholderText">
-                    <string>Verlauf durchsuchen...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDateEdit" name="historyDateFilterEdit">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>130</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>Nach Datum filtern</string>
-                   </property>
-                   <property name="displayFormat">
-                    <string>dd.MM.yyyy</string>
-                   </property>
-                   <property name="calendarPopup">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QScrollArea" name="historyScrollArea">
-                 <property name="frameShape">
-                  <enum>QFrame::Shape::NoFrame</enum>
-                 </property>
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
-                 <widget class="QWidget" name="historyEntriesWidget">
-                  <property name="geometry">
-                   <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>62</width>
-                    <height>160</height>
-                   </rect>
-                  </property>
-                  <layout class="QVBoxLayout" name="historyEntriesLayout">
-                   <property name="spacing">
-                    <number>16</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
+                  <layout class="QHBoxLayout" name="goalsFilterLayout">
                    <item>
-                    <widget class="QLabel" name="historyEmptyStateLabel">
+                    <widget class="QLineEdit" name="goalSearchLineEdit">
+                     <property name="placeholderText">
+                      <string>Ziele durchsuchen...</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="goalsFilterOpenButton">
                      <property name="text">
-                      <string>Noch keine Aktivitäten
+                      <string>Offen</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QToolButton" name="goalsFilterDoneButton">
+                     <property name="text">
+                      <string>Geschafft</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <property name="autoExclusive">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QStackedWidget" name="goalsViewStack">
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <widget class="QWidget" name="goalsOpenPage">
+                    <layout class="QVBoxLayout" name="goalsOpenPageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="goalsOpenEmptyLabel">
+                       <property name="text">
+                        <string>Noch keine offenen Ziele
 
-Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="goalsPage">
-              <layout class="QVBoxLayout" name="goalsPageLayout">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <property name="leftMargin">
-                <number>12</number>
-               </property>
-               <property name="topMargin">
-                <number>12</number>
-               </property>
-               <property name="rightMargin">
-                <number>12</number>
-               </property>
-               <property name="bottomMargin">
-                <number>12</number>
-               </property>
-               <item>
-                <layout class="QHBoxLayout" name="goalsHeaderLayout">
-                 <item>
-                  <widget class="QLabel" name="goalsHeaderLabel">
-                   <property name="text">
-                    <string>Ziele</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="goalsHeaderSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="addGoalButton">
-                   <property name="text">
-                    <string>+ Ziel hinzufügen</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="goalsFilterLayout">
-                 <item>
-                  <widget class="QLineEdit" name="goalSearchLineEdit">
-                   <property name="placeholderText">
-                    <string>Ziele durchsuchen...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="goalsFilterOpenButton">
-                   <property name="text">
-                    <string>Offen</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="goalsFilterDoneButton">
-                   <property name="text">
-                    <string>Geschafft</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="autoExclusive">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QStackedWidget" name="goalsViewStack">
-                 <property name="currentIndex">
-                  <number>0</number>
-                 </property>
-                 <widget class="QWidget" name="goalsOpenPage">
-                  <layout class="QVBoxLayout" name="goalsOpenPageLayout">
-                   <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="goalsOpenEmptyLabel">
-                     <property name="text">
-                      <string>Noch keine offenen Ziele
-
-Leg mit &quot;+ Ziel hinzufügen&quot; dein erstes Ziel für dieses Hobby an.</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QScrollArea" name="goalsOpenScrollArea">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::NoFrame</enum>
-                     </property>
-                     <property name="widgetResizable">
-                      <bool>true</bool>
-                     </property>
-                     <widget class="QWidget" name="goalOpenCardsWidget">
-                      <property name="geometry">
-                       <rect>
-                        <x>0</x>
-                        <y>0</y>
-                        <width>62</width>
-                        <height>16</height>
-                       </rect>
-                      </property>
-                      <layout class="QGridLayout" name="goalOpenCardsLayout">
-                       <property name="leftMargin">
-                        <number>0</number>
+Leg mit "+ Ziel hinzufügen" dein erstes Ziel für dieses Hobby an.</string>
                        </property>
-                       <property name="topMargin">
-                        <number>0</number>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
                        </property>
-                       <property name="rightMargin">
-                        <number>0</number>
+                       <property name="wordWrap">
+                        <bool>true</bool>
                        </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QScrollArea" name="goalsOpenScrollArea">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::NoFrame</enum>
                        </property>
-                       <property name="spacing">
-                        <number>12</number>
+                       <property name="widgetResizable">
+                        <bool>true</bool>
                        </property>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="goalsDonePage">
-                  <layout class="QVBoxLayout" name="goalsDonePageLayout">
-                   <property name="spacing">
-                    <number>12</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="goalsDoneEmptyLabel">
-                     <property name="text">
-                      <string>Noch keine geschafften Ziele
+                       <widget class="QWidget" name="goalOpenCardsWidget">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>62</width>
+                          <height>16</height>
+                         </rect>
+                        </property>
+                        <layout class="QGridLayout" name="goalOpenCardsLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="goalsDonePage">
+                    <layout class="QVBoxLayout" name="goalsDonePageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="goalsDoneEmptyLabel">
+                       <property name="text">
+                        <string>Noch keine geschafften Ziele
 
 Sobald du ein Ziel als geschafft markierst, landet es hier im Archiv.</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QScrollArea" name="goalsDoneScrollArea">
-                     <property name="frameShape">
-                      <enum>QFrame::Shape::NoFrame</enum>
-                     </property>
-                     <property name="widgetResizable">
-                      <bool>true</bool>
-                     </property>
-                     <widget class="QWidget" name="goalDoneCardsWidget">
-                      <property name="geometry">
-                       <rect>
-                        <x>0</x>
-                        <y>0</y>
-                        <width>86</width>
-                        <height>16</height>
-                       </rect>
-                      </property>
-                      <layout class="QGridLayout" name="goalDoneCardsLayout">
-                       <property name="leftMargin">
-                        <number>0</number>
                        </property>
-                       <property name="topMargin">
-                        <number>0</number>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
                        </property>
-                       <property name="rightMargin">
-                        <number>0</number>
+                       <property name="wordWrap">
+                        <bool>true</bool>
                        </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QScrollArea" name="goalsDoneScrollArea">
+                       <property name="frameShape">
+                        <enum>QFrame::Shape::NoFrame</enum>
                        </property>
-                       <property name="spacing">
-                        <number>12</number>
+                       <property name="widgetResizable">
+                        <bool>true</bool>
                        </property>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </widget>
+                       <widget class="QWidget" name="goalDoneCardsWidget">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>86</width>
+                          <height>16</height>
+                         </rect>
+                        </property>
+                        <layout class="QGridLayout" name="goalDoneCardsLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>

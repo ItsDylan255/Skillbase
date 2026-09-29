@@ -425,6 +425,29 @@ QToolButton:checked {
     border-bottom: 2px solid #ff6f61;
 }
 
+/* Hobby-Navigation: durchgehende Trennlinie unter allen Tabs.
+   Jeder Tab zeichnet unten immer 2px - grau, wenn inaktiv, Accent, wenn
+   aktiv. Da das Layout (hobbyNavigation) spacing 0 hat und ohne seitliche
+   Margins über die volle Breite läuft, ergibt das eine einzige Linie, bei
+   der die rote Markierung exakt auf gleicher Höhe und Dicke sitzt. */
+QToolButton#dashboardTab,
+QToolButton#routinesTab,
+QToolButton#exercisesTab,
+QToolButton#goalsTab,
+QToolButton#roadmapTab,
+QToolButton#historyTab {
+    border-bottom: 2px solid #29292d;
+}
+
+QToolButton#dashboardTab:checked,
+QToolButton#routinesTab:checked,
+QToolButton#exercisesTab:checked,
+QToolButton#goalsTab:checked,
+QToolButton#roadmapTab:checked,
+QToolButton#historyTab:checked {
+    border-bottom: 2px solid #ff6f61;
+}
+
 /* ---------- Buttons ---------- */
 QPushButton {
     background-color: #19191c;
@@ -611,52 +634,22 @@ QLineEdit:disabled, QPlainTextEdit:disabled {
     color: #55555a;
 }
 
-/* ---------- Routine-Dialog: ausgewählte Übung (Chip) ----------
-   Ersetzt das Suchfeld (routineExerciseInputStack) und hat dieselbe Höhe
-   (34px: 13px Schrift + 2x7px Padding + 2x1px Border). Gleiche Surface,
-   Border und Radius wie QLineEdit - kein Accent, da nicht interaktiv. */
-QFrame#routineSelectedChip {
-    background-color: #19191c;
-    border: 1px solid #29292d;
-    border-radius: 6px;
-}
-
-QFrame#routineSelectedChip:hover {
-    border-color: #333338;
+/* ---------- Routine-Dialog: ausgewählte Übung (Tag im Suchfeld) ----------
+   Das Tag ist ein Label, das im Code (RoutineDialog) als Kind über das
+   Suchfeld gelegt wird. Solange es sichtbar ist, bekommt das Suchfeld die
+   Property tagged="true" und macht seinen Text unsichtbar, damit er nicht
+   unter dem Tag durchscheint. Das ✕ ist der normale Clear-Button des Felds. */
+QLineEdit#routineExerciseSearchLineEdit[tagged="true"] {
+    color: transparent;
 }
 
 QLabel#routineSelectedChipLabel {
-    background-color: transparent;
-    color: #eaeaec;
-}
-
-/* Überschreibt das Tab-Styling des generischen QToolButton
-   (Padding, Unterstrich) für den kompakten Entfernen-Button. */
-QToolButton#routineSelectedChipRemoveButton {
-    background-color: transparent;
-    border: none;
-    border-radius: 4px;
-    padding: 0;
-    min-width: 22px;
-    max-width: 22px;
-    min-height: 22px;
-    max-height: 22px;
-    color: #9a9aa0;
-    font-size: 12px;
-}
-
-QToolButton#routineSelectedChipRemoveButton:hover {
-    background-color: #212124;
-    color: #eaeaec;
-}
-
-QToolButton#routineSelectedChipRemoveButton:pressed {
     background-color: #29292d;
     color: #eaeaec;
-}
-
-QToolButton#routineSelectedChipRemoveButton:focus {
-    border: 1px solid #ff6f61;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0px 10px;
+    border-radius: 4px;
 }
 
 QComboBox {

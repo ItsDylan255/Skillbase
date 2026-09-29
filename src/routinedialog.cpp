@@ -14,6 +14,7 @@
 #include <QEvent>
 #include <QFocusEvent>
 #include <QFrame>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -21,6 +22,107 @@
 #include <QStringListModel>
 #include <QStyle>
 #include <QTimer>
+
+namespace {
+
+// Gibt den Namen der Übung zurück, die genau (ohne Beachtung der Groß-/
+// Kleinschreibung) zum Text passt und in der gewählten Kategorie liegt.
+// Leer, wenn es keine solche Übung gibt.
+template <typename ExerciseList>
+QString findExerciseName(
+    const Ui::routineDialog *ui,
+    const ExerciseList &exercises,
+    const QString &text
+    )
+{
+    const QString typed = text.trimmed();
+
+    if (typed.isEmpty())
+        return QString();
+
+    const int categoryId =
+        ui->routineCategoryComboBox->currentData().toInt();
+
+    for (const auto &exercise : exercises) {
+
+        if (categoryId != 0 && exercise.categoryId != categoryId)
+            continue;
+
+        if (exercise.name.compare(typed, Qt::CaseInsensitive) == 0)
+            return exercise.name;
+    }
+
+    return QString();
+}
+
+// Legt das Tag links im Suchfeld an die richtige Stelle. Rechts bleibt
+// Platz für den Clear-Button (✕) des Felds.
+void positionExerciseTag(QLineEdit *edit)
+{
+    QLabel *tag =
+        edit->findChild<QLabel *>("routineSelectedChipLabel");
+
+    if (!tag)
+        return;
+
+    const int tagHeight = 24;
+    const int leftInset = 5;
+    const int rightReserved = 30;
+
+    tag->ensurePolished();
+
+    const int maxWidth =
+        qMax(0, edit->width() - leftInset - rightReserved);
+    const int width =
+        qMin(tag->sizeHint().width(), maxWidth);
+
+    tag->setGeometry(
+        leftInset,
+        (edit->height() - tagHeight) / 2,
+        width,
+        tagHeight
+        );
+}
+
+// Zeigt oder versteckt das Tag über dem Suchfeld.
+void setExerciseTagVisible(
+    Ui::routineDialog *ui,
+    bool visible,
+    const QString &text = QString()
+    )
+{
+    QLineEdit *edit = ui->routineExerciseSearchLineEdit;
+
+    QLabel *tag =
+        edit->findChild<QLabel *>("routineSelectedChipLabel");
+
+    if (!tag) {
+        tag = new QLabel(edit);
+        tag->setObjectName("routineSelectedChipLabel");
+        // Klicks gehen an das Suchfeld durch (Cursor setzen, editieren).
+        tag->setAttribute(Qt::WA_TransparentForMouseEvents);
+        tag->hide();
+    }
+
+    // Die Property blendet über theme.qss den Text im Feld aus.
+    if (edit->property("tagged").toBool() != visible) {
+        edit->setProperty("tagged", visible);
+        edit->style()->unpolish(edit);
+        edit->style()->polish(edit);
+    }
+
+    if (visible) {
+        tag->setText(text);
+        positionExerciseTag(edit);
+        tag->show();
+        tag->raise();
+    }
+    else {
+        tag->hide();
+    }
+}
+
+} // namespace
 
 
 RoutineDialog::RoutineDialog(
@@ -84,6 +186,40 @@ RoutineDialog::RoutineDialog(
     // (siehe eventFilter()).
     ui->routineExerciseSearchLineEdit->installEventFilter(this);
 
+    // Wird im Popup eine Übung gewählt (Klick oder Enter), erscheint das
+    // Tag. Der Fokus wandert danach zu "Hinzufügen"; das Tag bleibt sichtbar,
+    // weil das Suchfeld den Fokus verliert (siehe eventFilter()).
+    connect(
+        exerciseCompleter,
+        QOverload<const QString &>::of(&QCompleter::activated),
+        this,
+        [this](const QString &exerciseName) {
+            showSelectedExerciseChip(exerciseName);
+
+            QTimer::singleShot(0, this, [this]() {
+                ui->routineAddExerciseButton->setFocus();
+            });
+        }
+        );
+
+    // "Hinzufügen" ist aktiv, sobald der Text genau zu einer Übung passt.
+    // Jede Textänderung (Tippen, Löschen, Clear-Button) entfernt das Tag.
+    connect(
+        ui->routineExerciseSearchLineEdit,
+        &QLineEdit::textChanged,
+        this,
+        [this](const QString &text) {
+            ui->routineAddExerciseButton->setEnabled(
+                !findExerciseName(ui, availableExercises, text).isEmpty()
+                );
+
+            if (ui->routineExerciseSearchLineEdit
+                    ->property("tagged").toBool()) {
+                setExerciseTagVisible(ui, false);
+            }
+        }
+        );
+
     // Kategorien müssen vor den Übungen geladen werden,
     // weil die Namensliste auf die ausgewählte Kategorie zugreift.
     loadCategories();
@@ -105,6 +241,22 @@ RoutineDialog::RoutineDialog(
         this,
         [this](int) {
             updateAvailableExercisesList();
+
+            // Der Text im Feld passt evtl. nicht mehr zur neuen Kategorie.
+            const QString name = findExerciseName(
+                ui,
+                availableExercises,
+                ui->routineExerciseSearchLineEdit->text()
+                );
+
+            ui->routineAddExerciseButton->setEnabled(!name.isEmpty());
+
+            if (name.isEmpty()) {
+                setExerciseTagVisible(ui, false);
+            }
+            else if (!ui->routineExerciseSearchLineEdit->hasFocus()) {
+                setExerciseTagVisible(ui, true, name);
+            }
         }
         );
 
@@ -147,7 +299,7 @@ RoutineDialog::RoutineDialog(
             if (exerciseId <= 0)
                 return;
 
-            ui->routineExerciseSearchLineEdit->clear();
+            resetExerciseInput();
             addSelectedExercise(exerciseId);
         }
         );
@@ -288,17 +440,75 @@ bool RoutineDialog::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == ui->routineExerciseSearchLineEdit) {
 
+        // Das Tag folgt der Größe des Suchfelds.
+        if (event->type() == QEvent::Resize) {
+            positionExerciseTag(ui->routineExerciseSearchLineEdit);
+        }
+
+        // Enter bei einem vollständig und richtig geschriebenen Namen
+        // (Popup geschlossen): Tag anzeigen und den Enter-Druck verbrauchen,
+        // damit nicht der Standard-Button "Speichern" ausgelöst wird.
+        if (event->type() == QEvent::KeyPress) {
+
+            const int key = static_cast<QKeyEvent *>(event)->key();
+
+            if ((key == Qt::Key_Return || key == Qt::Key_Enter) &&
+                !exerciseCompleter->popup()->isVisible()) {
+
+                const QString name = findExerciseName(
+                    ui,
+                    availableExercises,
+                    ui->routineExerciseSearchLineEdit->text()
+                    );
+
+                if (!name.isEmpty()) {
+                    showSelectedExerciseChip(name);
+                    ui->routineAddExerciseButton->setFocus();
+                    return true;
+                }
+            }
+        }
+
+        // Verlässt man das Suchfeld (Klick woanders, Tab), wird ein
+        // vollständig und richtig geschriebener Name zum Tag. Das Öffnen
+        // des Popups und das Wechseln des Fensters zählen nicht.
+        if (event->type() == QEvent::FocusOut) {
+
+            const Qt::FocusReason reason =
+                static_cast<QFocusEvent *>(event)->reason();
+
+            if (reason != Qt::PopupFocusReason &&
+                reason != Qt::ActiveWindowFocusReason) {
+
+                const QString name = findExerciseName(
+                    ui,
+                    availableExercises,
+                    ui->routineExerciseSearchLineEdit->text()
+                    );
+
+                if (!name.isEmpty())
+                    setExerciseTagVisible(ui, true, name);
+            }
+        }
+
         bool shouldOpen = false;
 
         if (event->type() == QEvent::MouseButtonPress) {
             shouldOpen = true;
         }
         else if (event->type() == QEvent::FocusIn) {
-            // Nur bei Tab-Navigation öffnen. Andere Gründe (z. B. Rückkehr
-            // vom geschlossenen Popup) würden das Popup sofort wieder öffnen.
+
             const Qt::FocusReason reason =
                 static_cast<QFocusEvent *>(event)->reason();
 
+            // Zum Bearbeiten wird der normale Text wieder sichtbar.
+            if (reason != Qt::PopupFocusReason &&
+                reason != Qt::ActiveWindowFocusReason) {
+                setExerciseTagVisible(ui, false);
+            }
+
+            // Nur bei Tab-Navigation öffnen. Andere Gründe (z. B. Rückkehr
+            // vom geschlossenen Popup) würden das Popup sofort wieder öffnen.
             shouldOpen =
                 reason == Qt::TabFocusReason ||
                 reason == Qt::BacktabFocusReason;
@@ -322,6 +532,23 @@ bool RoutineDialog::eventFilter(QObject *watched, QEvent *event)
     }
 
     return QDialog::eventFilter(watched, event);
+}
+
+void RoutineDialog::showSelectedExerciseChip(const QString &exerciseName)
+{
+    // Der Text im Suchfeld bleibt erhalten (unsichtbar unter dem Tag),
+    // damit der "Hinzufügen"-Handler den Namen daraus lesen kann.
+    setExerciseTagVisible(ui, true, exerciseName);
+    ui->routineAddExerciseButton->setEnabled(true);
+}
+
+void RoutineDialog::resetExerciseInput()
+{
+    // Zurück zur leeren Suche: Tag weg, Text leeren, "Hinzufügen" sperren.
+    setExerciseTagVisible(ui, false);
+    ui->routineExerciseSearchLineEdit->clear();
+    ui->routineAddExerciseButton->setEnabled(false);
+    ui->routineExerciseSearchLineEdit->setFocus();
 }
 
 void RoutineDialog::loadAvailableExercises()

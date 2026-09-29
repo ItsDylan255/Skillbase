@@ -70,6 +70,7 @@ private:
     // Lädt die Routinen des aktuellen Hobbys und verteilt
     // aktive und archivierte Routinen auf die jeweiligen Ansichten.
     void loadRoutineCards();
+    void loadDashboardRoutineCards();
 
     // ── Zustand ──────────────────────────────────────────────────────────
     Ui::MainWindow *ui;
