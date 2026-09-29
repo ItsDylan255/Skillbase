@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1110</width>
-    <height>671</height>
+    <height>697</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -440,7 +440,7 @@
            <item>
             <widget class="QStackedWidget" name="hobbyPageStack">
              <property name="currentIndex">
-              <number>3</number>
+              <number>5</number>
              </property>
              <widget class="QWidget" name="dashboardHobbyPage">
               <layout class="QVBoxLayout" name="hobbyDashboardLayout">
@@ -448,17 +448,41 @@
                 <number>4</number>
                </property>
                <property name="leftMargin">
-                <number>4</number>
+                <number>12</number>
                </property>
                <property name="topMargin">
-                <number>8</number>
+                <number>12</number>
                </property>
                <property name="rightMargin">
-                <number>4</number>
+                <number>12</number>
                </property>
                <property name="bottomMargin">
                 <number>12</number>
                </property>
+               <item>
+                <layout class="QHBoxLayout" name="hobbyDashboardHeaderLayout">
+                 <item>
+                  <widget class="QLabel" name="hobbyDashboardHeaderLabel">
+                   <property name="text">
+                    <string>Dashboard</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="hobbyDashboardHeaderSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
                <item>
                 <widget class="QFrame" name="hobbyDashboardDivider1">
                  <property name="frameShape">
@@ -859,6 +883,19 @@
                <item>
                 <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
                  <item>
+                  <spacer name="roadmapViewToggleSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
                   <widget class="QToolButton" name="roadmapTreeViewButton">
                    <property name="text">
                     <string>Tree</string>
@@ -886,19 +923,6 @@
                     <bool>true</bool>
                    </property>
                   </widget>
-                 </item>
-                 <item>
-                  <spacer name="roadmapViewToggleSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
                  </item>
                 </layout>
                </item>
@@ -1369,7 +1393,7 @@ Leg mit &quot;+ Routine hinzufügen&quot; deine erste Routine für dieses Hobby 
                         <x>0</x>
                         <y>0</y>
                         <width>835</width>
-                        <height>368</height>
+                        <height>394</height>
                        </rect>
                       </property>
                       <layout class="QGridLayout" name="routineActiveCardsLayout">
@@ -1937,29 +1961,35 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                 <layout class="QHBoxLayout" name="historyToolbarLayout">
                  <item>
                   <widget class="QLineEdit" name="historySearchLineEdit">
-                   <property name="maximumSize">
-                    <size>
-                     <width>240</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
                    <property name="placeholderText">
                     <string>Verlauf durchsuchen...</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="historyToolbarSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
+                  <widget class="QDateEdit" name="historyDateFilterEdit">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
-                   <property name="sizeHint" stdset="0">
+                   <property name="minimumSize">
                     <size>
-                     <width>0</width>
+                     <width>130</width>
                      <height>0</height>
                     </size>
                    </property>
-                  </spacer>
+                   <property name="toolTip">
+                    <string>Nach Datum filtern</string>
+                   </property>
+                   <property name="displayFormat">
+                    <string>dd.MM.yyyy</string>
+                   </property>
+                   <property name="calendarPopup">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -1976,8 +2006,8 @@ Sobald du eine Routine archivierst, landet sie hier.</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>62</width>
-                    <height>160</height>
+                    <width>835</width>
+                    <height>453</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="historyEntriesLayout">

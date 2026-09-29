@@ -1,53 +1,63 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QInputDialog>
-#include <QMessageBox>
-#include "hobbyrepository.h"
-#include "exerciserepository.h"
-#include <QDebug>
-#include "hobbynoterepository.h"
-#include <QSignalBlocker>
-#include "ui_exercise_dialog.h"
 #include "ui_category_management_dialog.h"
+#include "ui_exercise_dialog.h"
+#include "ui_goal_dialog.h"
+
 #include "categoryrepository.h"
-#include <QGroupBox>
-#include <QFrame>
-#include <QLabel>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include "exerciselogrepository.h"
-#include <QDateTime>
-#include "exerciseexecutiondialog.h"
-#include "historyentrywidget.h"
-#include "historydateheaderwidget.h"
-#include <algorithm>
-#include "timelinephaserepository.h"
-#include "timelinebarwidget.h"
-#include "timelinephasedialog.h"
-#include <QMessageBox>
-#include <QEvent>
-#include "exerciseprogresschartwidget.h"
-#include <QLocale>
-#include <cmath>
+#include "exerciserepository.h"
 #include "goal.h"
 #include "goalrepository.h"
-#include "ui_goal_dialog.h"
+#include "hobbynoterepository.h"
+#include "hobbyrepository.h"
+#include "routine.h"
+#include "routinerepository.h"
+#include "timelinephaserepository.h"
+
+#include "exerciseexecutiondialog.h"
+#include "exerciseprogresschartwidget.h"
+#include "routinedialog.h"
+#include "timelinebarwidget.h"
+#include "timelinephasedialog.h"
+
+#include <QApplication>
+#include <QCheckBox>
+#include <QColor>
+#include <QComboBox>
 #include <QDate>
-#include <QMouseEvent>
+#include <QDateTime>
+#include <QDebug>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDrag>
-#include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
-#include <QDialogButtonBox>
-#include <QApplication>
-#include <QLineEdit>
+#include <QEvent>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QHash>
 #include <QIcon>
+#include <QInputDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QLocale>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QMouseEvent>
+#include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSet>
-#include "routinedialog.h"
-#include "routinerepository.h"
-#include "routine.h"
+#include <QSignalBlocker>
+#include <QSpacerItem>
+#include <QToolButton>
+#include <QUrl>
+#include <QVBoxLayout>
+
+#include <algorithm>
+#include <cmath>
 
 namespace {
 
@@ -228,6 +238,23 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // Datumsfilter: Standardmäßig heute. Das Datum wird gesetzt, BEVOR
+    // das Signal verbunden wird, damit beim Start kein unnötiges
+    // zusätzliches Laden ausgelöst wird.
+    ui->historyDateFilterEdit->setDisplayFormat("dd.MM.yyyy");
+    ui->historyDateFilterEdit->setCalendarPopup(true);
+    ui->historyDateFilterEdit->setDate(QDate::currentDate());
+
+    connect(
+        ui->historyDateFilterEdit,
+        &QDateEdit::dateChanged,
+        this,
+        [this](const QDate &) {
+
+            loadHistory();
+        }
+        );
 
     goalCompletedSound = new QSoundEffect(this);
     goalCompletedSound->setSource(
@@ -502,6 +529,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->goalsTab, &QToolButton::clicked, this, [this]() {
         ui->goalsTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->goalsPage);
+
+        // Den "Offen"-Button wirklich auslösen, damit nicht nur
+        // der visuelle Zustand gesetzt wird, sondern auch der Filter
+        // tatsächlich angewendet wird.
+        ui->goalsFilterOpenButton->click();
     });
 
 
@@ -1053,9 +1085,9 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
                 ui->goalsTab->setChecked(true);
                 ui->hobbyPageStack->setCurrentWidget(ui->goalsPage);
 
-                // Beim Öffnen über das Dashboard immer mit den offenen
-                // Zielen starten – unabhängig davon, welcher Filter vorher aktiv war.
-                ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
+                // Den "Offen"-Button wirklich auslösen, damit der Filter
+                // genauso angewendet wird wie bei einem normalen Benutzerklick.
+                ui->goalsFilterOpenButton->click();
 
                 return true;
             }
@@ -1420,6 +1452,31 @@ void MainWindow::loadExerciseCards()
         cardLayout->addLayout(goalRow);
 
         // ── Letzte Ausführung ───────────────────────────────────────────────
+        // ── Kategorie-Tag ───────────────────────────────────────────────────
+        // Die Kategorie wird bewusst vor "Letzte Ausführung" angezeigt,
+        // damit die Informationen in der gewünschten Reihenfolge stehen.
+        if (exercise.categoryId > 0 &&
+            categoryNames.contains(exercise.categoryId)) {
+
+            auto *tagRow = new QHBoxLayout();
+
+            auto *tag =
+                new QLabel(
+                    categoryNames.value(exercise.categoryId),
+                    card
+                    );
+
+            tag->setObjectName(
+                "exerciseCardCategoryTagLabel"
+                );
+
+            tagRow->addWidget(tag);
+            tagRow->addStretch();
+
+            cardLayout->addLayout(tagRow);
+        }
+
+        // ── Letzte Ausführung ───────────────────────────────────────────────
         auto *lastHeader =
             new QLabel("Letzte Ausführung", card);
 
@@ -1460,28 +1517,6 @@ void MainWindow::loadExerciseCards()
         }
 
         cardLayout->addLayout(lastRow);
-
-        // ── Kategorie-Tag ───────────────────────────────────────────────────
-        if (exercise.categoryId > 0 &&
-            categoryNames.contains(exercise.categoryId)) {
-
-            auto *tagRow = new QHBoxLayout();
-
-            auto *tag =
-                new QLabel(
-                    categoryNames.value(exercise.categoryId),
-                    card
-                    );
-
-            tag->setObjectName(
-                "exerciseCardCategoryTagLabel"
-                );
-
-            tagRow->addWidget(tag);
-            tagRow->addStretch();
-
-            cardLayout->addLayout(tagRow);
-        }
 
         // ── Trennlinie ──────────────────────────────────────────────────────
         auto *separator = new QFrame(card);
@@ -1542,6 +1577,7 @@ void MainWindow::loadExerciseCards()
 
                     loadExerciseCards();
                     loadHistory();
+                    loadTimeline();
                     loadRoutineCards();
                 }
             }
@@ -2031,33 +2067,60 @@ void MainWindow::loadExerciseDetail(int exerciseId)
 
 void MainWindow::loadHistory()
 {
-    // Nur dynamisch erzeugte Verlaufselemente entfernen.
-    // Die festen UI-Elemente (Empty-State und Spacer) bleiben bestehen.
+    // ── Alte dynamische Inhalte entfernen ───────────────────────────────────
+    //
+    // Wir löschen bewusst NICHT alles im Layout, sondern nur das eine
+    // Layout, das diese Methode selbst erzeugt hat. Dadurch bleiben
+    // historyEmptyStateLabel und alle anderen Elemente aus der .ui unberührt.
+    const QString dynamicLayoutName =
+        QStringLiteral("historyDynamicContent");
+
+    // Rekursiv, weil das dynamische Layout weitere Layouts (die Grids)
+    // enthält. Ein Grid ist kein Widget, deshalb reicht item->widget() nicht.
+    std::function<void(QLayout *)> clearLayout =
+        [&clearLayout](QLayout *layout) {
+
+            while (QLayoutItem *item = layout->takeAt(0)) {
+
+                if (QWidget *widget = item->widget()) {
+
+                    // hide(), damit das Widget bis zum Löschen
+                    // (deleteLater) nicht mehr sichtbar ist.
+                    widget->hide();
+                    widget->deleteLater();
+
+                } else if (QLayout *childLayout = item->layout()) {
+
+                    clearLayout(childLayout);
+                }
+
+                // Spacer-Items und Layout-Items gehören uns nach takeAt().
+                delete item;
+            }
+        };
+
     for (int i = ui->historyEntriesLayout->count() - 1; i >= 0; --i) {
 
         QLayoutItem *item =
             ui->historyEntriesLayout->itemAt(i);
 
-        QWidget *widget = item->widget();
+        QLayout *layout =
+            item ? item->layout() : nullptr;
 
-        if (auto *entry =
-            qobject_cast<HistoryEntryWidget *>(widget)) {
+        if (layout && layout->objectName() == dynamicLayoutName) {
 
-            ui->historyEntriesLayout->removeWidget(entry);
-            entry->deleteLater();
-        }
-
-        if (auto *header =
-            qobject_cast<HistoryDateHeaderWidget *>(widget)) {
-
-            ui->historyEntriesLayout->removeWidget(header);
-            header->deleteLater();
+            ui->historyEntriesLayout->takeAt(i);
+            clearLayout(layout);
+            delete layout;
         }
     }
 
-    // Alle Verlaufseinträge zunächst gemeinsam sammeln.
-    // So können wir später alle Übungen unabhängig voneinander
-    // nach dem tatsächlichen Ausführungszeitpunkt sortieren.
+    if (currentHobbyId == 0) {
+        ui->historyEmptyStateLabel->setVisible(true);
+        return;
+    }
+
+    // ── Verlaufseinträge sammeln ────────────────────────────────────────────
     struct HistoryItem
     {
         Exercise exercise;
@@ -2066,15 +2129,18 @@ void MainWindow::loadHistory()
     };
 
     QList<HistoryItem> historyItems;
+
     const QString searchText =
         ui->historySearchLineEdit->text().trimmed();
 
-    // Alle vorhandenen Übungen laden.
+    // Das Datum ist die obere Grenze ("bis einschließlich").
+    // Verglichen wird nur das Datum, die Uhrzeit spielt keine Rolle.
+    const QDate maxHistoryDate =
+        ui->historyDateFilterEdit->date();
+
     const QList<Exercise> exercises =
         ExerciseRepository::getForHobby(currentHobbyId);
 
-    // Übungen werden verarbeitet, wenn "Alle" oder "Übungen"
-    // ausgewählt wurde. Bei "Routinen" werden sie übersprungen.
     const bool showExercises =
         historyFilter == HistoryFilter::All ||
         historyFilter == HistoryFilter::Exercises;
@@ -2082,16 +2148,21 @@ void MainWindow::loadHistory()
     if (showExercises) {
 
         for (const Exercise &exercise : exercises) {
-            // Wenn eine Suche aktiv ist, nur Übungen mit passendem Namen übernehmen.
+
+            // Suche vor dem Laden der Logs prüfen, spart Datenbankzugriffe.
             if (!searchText.isEmpty() &&
-                !exercise.name.contains(searchText, Qt::CaseInsensitive)) {
+                !exercise.name.contains(
+                    searchText,
+                    Qt::CaseInsensitive
+                    )) {
 
                 continue;
             }
 
-            // Alle Ausführungen dieser Übung laden.
             const QList<ExerciseLog> logs =
-                ExerciseLogRepository::getForExercise(exercise.id);
+                ExerciseLogRepository::getForExercise(
+                    exercise.id
+                    );
 
             for (const ExerciseLog &log : logs) {
 
@@ -2100,6 +2171,9 @@ void MainWindow::loadHistory()
                         log.performedAt,
                         "yyyy-MM-dd HH:mm:ss"
                         ).toLocalTime();
+
+                if (performedAt.date() > maxHistoryDate)
+                    continue;
 
                 historyItems.append({
                     exercise,
@@ -2110,17 +2184,38 @@ void MainWindow::loadHistory()
         }
     }
 
-    // Alle Einträge gemeinsam vom neuesten zum ältesten sortieren.
+    // Neueste Ausführungen zuerst.
     std::sort(
         historyItems.begin(),
         historyItems.end(),
         [](const HistoryItem &a, const HistoryItem &b) {
+
             return a.performedAt > b.performedAt;
         }
         );
 
-    // Merkt sich den Tag des zuletzt eingefügten Eintrags.
-    QDate lastDate;
+    // ── Dynamisches Layout anlegen ──────────────────────────────────────────
+    //
+    // Es wird sofort ins äußere Layout eingefügt, damit alle Widgets darin
+    // von Anfang an den richtigen Parent haben. Kein QWidget als Container,
+    // deshalb gibt es keine zusätzliche vertikale Layout-Ebene für die Karten.
+    auto *content = new QVBoxLayout();
+
+    content->setObjectName(dynamicLayoutName);
+    content->setContentsMargins(0, 0, 0, 0);
+    content->setSpacing(12);
+
+    ui->historyEntriesLayout->addLayout(content);
+
+    // ── Verlauf nach Datum gruppieren ───────────────────────────────────────
+    //
+    // Jeder Tag bekommt ein eigenes Grid. Karten verschiedener Tage
+    // können dadurch nie dieselbe Reihe teilen.
+    QDate currentDate;
+    QGridLayout *currentGrid = nullptr;
+    int cardsInCurrentGroup = 0;
+
+    constexpr int columnCount = 3;
 
     for (const HistoryItem &item : historyItems) {
 
@@ -2128,44 +2223,56 @@ void MainWindow::loadHistory()
         const ExerciseLog &log = item.log;
         const QDateTime &performedAt = item.performedAt;
 
-        const QDate currentDate =
-            performedAt.date();
+        const QDate entryDate = performedAt.date();
 
-        // Neuer Tag -> neuen Datums-Header einfügen.
-        if (currentDate != lastDate) {
+        // ── Neue Datum-Gruppe ───────────────────────────────────────────────
+        if (entryDate != currentDate) {
 
             auto *header =
-                new HistoryDateHeaderWidget(
-                    ui->historyEntriesWidget
-                    );
+                new QLabel(ui->historyEntriesWidget);
 
-            QString dateText;
+            header->setObjectName("historyDateHeaderLabel");
 
-            const QDate today =
-                QDate::currentDate();
+            // Fixe Höhe, damit das Label nie überschüssigen Platz bekommt.
+            header->setSizePolicy(
+                QSizePolicy::Preferred,
+                QSizePolicy::Fixed
+                );
 
-            if (currentDate == today) {
-                dateText = "HEUTE";
+            const QDate today = QDate::currentDate();
+
+            if (entryDate == today) {
+                header->setText("HEUTE");
+            } else if (entryDate == today.addDays(-1)) {
+                header->setText("GESTERN");
+            } else {
+                header->setText(entryDate.toString("dd.MM.yyyy"));
             }
-            else if (currentDate == today.addDays(-1)) {
-                dateText = "GESTERN";
-            }
-            else {
-                dateText =
-                    currentDate.toString("dd.MM.yyyy");
-            }
 
-            header->setDateText(dateText);
+            content->addWidget(header);
 
-            ui->historyEntriesLayout->addWidget(header);
+            currentGrid = new QGridLayout();
 
-            lastDate = currentDate;
+            currentGrid->setContentsMargins(0, 0, 0, 0);
+            currentGrid->setHorizontalSpacing(12);
+            currentGrid->setVerticalSpacing(12);
+
+            // Gleiche Spaltenstretches, damit auch eine Reihe mit nur
+            // 1-2 Karten dieselbe Kartenbreite hat wie eine volle Reihe.
+            for (int c = 0; c < columnCount; ++c)
+                currentGrid->setColumnStretch(c, 1);
+
+            content->addLayout(currentGrid);
+
+            currentDate = entryDate;
+            cardsInCurrentGroup = 0;
         }
 
-        // Wert mit der im Log gespeicherten Einheit anzeigen.
-        QString valueText;
+        // ── Texte vorbereiten ───────────────────────────────────────────────
+        QString valueText = "–";
 
         if (log.value != 0.0) {
+
             valueText =
                 QString("%1%2")
                     .arg(log.value, 0, 'g', 15)
@@ -2176,94 +2283,115 @@ void MainWindow::loadHistory()
                         );
         }
 
-        // Dauer in Minuten und Sekunden umwandeln.
-        QString durationText;
+        // Nur ganze Minuten, Sekunden werden bewusst nicht angezeigt.
+        QString durationText = "–";
 
         if (log.durationSeconds > 0) {
 
-            const int minutes =
-                log.durationSeconds / 60;
-
-            const int seconds =
-                log.durationSeconds % 60;
-
             durationText =
-                QString("%1:%2 min")
-                    .arg(minutes)
-                    .arg(
-                        seconds,
-                        2,
-                        10,
-                        QChar('0')
-                        );
+                QString("%1 min")
+                    .arg(log.durationSeconds / 60);
         }
 
-        auto *entry =
-            new HistoryEntryWidget(
-                ui->historyEntriesWidget
-                );
+        // ── History-Karte ───────────────────────────────────────────────────
+        // 82 + 12 + 82 = 176 = Höhe einer normalen Exercise-Karte.
+        auto *card = new QFrame(ui->historyEntriesWidget);
 
-        entry->setData(
-            false,
-            exercise.name,
-            valueText,
-            durationText,
-            performedAt.toString("HH:mm")
+        card->setObjectName("historyCard");
+        card->setFrameShape(QFrame::StyledPanel);
+        card->setFixedHeight(82);
+
+        card->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Fixed
             );
 
-        connect(
-            entry,
-            &HistoryEntryWidget::clicked,
-            this,
-            [this, exercise]() {
+        card->setCursor(Qt::PointingHandCursor);
 
-                ExerciseExecutionDialog dialog(
-                    exercise,
-                    this
-                    );
+        auto *cardLayout = new QVBoxLayout(card);
 
-                // Wenn eine neue Ausführung gespeichert wurde,
-                // müssen Verlauf und Übungsdaten direkt aktualisiert werden.
-                if (dialog.exec() == QDialog::Accepted) {
-                    loadExerciseCards();
-                    loadHistory();
-                    loadTimeline();
-                    loadRoutineCards();
-                }
-            }
+        cardLayout->setContentsMargins(12, 8, 12, 8);
+        cardLayout->setSpacing(2);
+
+        // Obere Zeile: Übungsname + Uhrzeit
+        auto *topRow = new QHBoxLayout();
+        topRow->setSpacing(8);
+
+        auto *nameLabel = new QLabel(exercise.name, card);
+        nameLabel->setObjectName("historyCardNameLabel");
+        nameLabel->setWordWrap(false);
+
+        topRow->addWidget(nameLabel, 1);
+
+        auto *timeLabel =
+            new QLabel(performedAt.toString("HH:mm"), card);
+
+        timeLabel->setObjectName("historyCardTimeLabel");
+        timeLabel->setProperty("role", "secondary");
+
+        topRow->addWidget(
+            timeLabel,
+            0,
+            Qt::AlignTop | Qt::AlignRight
             );
 
-        ui->historyEntriesLayout->addWidget(entry);
+        cardLayout->addLayout(topRow);
 
+        // Wert
+        auto *valueRow = new QHBoxLayout();
+
+        auto *valueHeader = new QLabel("Wert", card);
+        valueHeader->setProperty("role", "muted");
+
+        valueRow->addWidget(valueHeader);
+        valueRow->addStretch();
+        valueRow->addWidget(new QLabel(valueText, card));
+
+        cardLayout->addLayout(valueRow);
+
+        // Dauer
+        auto *durationRow = new QHBoxLayout();
+
+        auto *durationHeader = new QLabel("Dauer", card);
+        durationHeader->setProperty("role", "muted");
+
+        durationRow->addWidget(durationHeader);
+        durationRow->addStretch();
+        durationRow->addWidget(new QLabel(durationText, card));
+
+        cardLayout->addLayout(durationRow);
+
+        // Klick auf die Karte wird im eventFilter() behandelt.
+        card->installEventFilter(this);
+        card->setProperty("exerciseId", exercise.id);
+
+        // ── Karte ins Grid des aktuellen Tages einfügen ─────────────────────
+        currentGrid->addWidget(
+            card,
+            cardsInCurrentGroup / columnCount,
+            cardsInCurrentGroup % columnCount
+            );
+
+        ++cardsInCurrentGroup;
     }
 
-    // Prüfen, ob mindestens ein echter Verlaufseintrag vorhanden ist.
-    bool hasEntries = false;
-
-    for (int i = 0; i < ui->historyEntriesLayout->count(); ++i) {
-
-        QLayoutItem *item =
-            ui->historyEntriesLayout->itemAt(i);
-
-        if (qobject_cast<HistoryEntryWidget *>(item->widget())) {
-            hasEntries = true;
-            break;
-        }
-    }
-
-    // Empty-State nur anzeigen, wenn keine Einträge vorhanden sind.
-    ui->historyEmptyStateLabel->setVisible(!hasEntries);
-
-    // Spacer am Ende der Liste hält die Verlaufseinträge oben.
-    // So wächst die Liste nach unten statt von unten nach oben.
-    auto *spacer = new QSpacerItem(
-        0,
-        0,
-        QSizePolicy::Minimum,
-        QSizePolicy::Expanding
+    // Der Spacer liegt am Ende des dynamischen Layouts. Er ist das einzige
+    // Element, das vertikal wachsen darf, daher bleibt alles oben.
+    // Beim nächsten Aufruf wird er mit dem Layout zusammen entfernt,
+    // es kann sich also kein zweiter Spacer ansammeln.
+    content->addSpacerItem(
+        new QSpacerItem(
+            0,
+            0,
+            QSizePolicy::Minimum,
+            QSizePolicy::Expanding
+            )
         );
 
-    ui->historyEntriesLayout->addItem(spacer);
+    // ── Empty-State ────────────────────────────────────────────────────────
+    ui->historyEmptyStateLabel->setVisible(
+        historyItems.isEmpty()
+        );
 }
 
 // ── Timeline laden ───────────────────────────────────────────────────────────
@@ -2311,7 +2439,6 @@ void MainWindow::loadTimeline()
 }
 
 // ── Ziele: Cards laden ───────────────────────────────────────────────────────
-
 void MainWindow::loadGoalCards()
 {
     // Entfernt alle bisher erzeugten Cards aus einem Layout.
@@ -2363,6 +2490,7 @@ void MainWindow::loadGoalCards()
         if (!searchText.isEmpty() &&
             !goal.title.contains(searchText, Qt::CaseInsensitive) &&
             !goal.description.contains(searchText, Qt::CaseInsensitive)) {
+
             continue;
         }
 
@@ -2385,11 +2513,13 @@ void MainWindow::loadGoalCards()
     auto buildCard = [this](const Goal &goal, bool draggable) -> QFrame * {
 
         auto *card = new QFrame();
+
         card->setObjectName("goalCard");
         card->setFrameShape(QFrame::StyledPanel);
-        // Die Höhe entspricht ungefähr der Höhe der Übungskarten.
-        // Die Breite darf sich weiterhin an das Grid anpassen.
+
+        // Die Goal-Cards haben dieselbe feste Höhe wie die Exercise-Cards.
         card->setFixedHeight(176);
+
         card->setSizePolicy(
             QSizePolicy::Expanding,
             QSizePolicy::Fixed
@@ -2399,9 +2529,13 @@ void MainWindow::loadGoalCards()
         // für Klick und Drag & Drop verwendet.
         card->setProperty("goalId", goal.id);
         card->setProperty("goalDraggable", draggable);
+
         // Speichert, ob der Stern dauerhaft sichtbar sein soll.
         // Nur das aktuelle Hauptziel behält seinen Stern außerhalb des Hovers.
-        card->setProperty("goalIsCurrent", goal.isCurrent);
+        card->setProperty(
+            "goalIsCurrent",
+            goal.isCurrent
+            );
 
         card->setCursor(
             draggable
@@ -2410,190 +2544,121 @@ void MainWindow::loadGoalCards()
             );
 
         card->installEventFilter(this);
-        // Wir benötigen Enter/Leave, damit der Stern bei normalen
-        // Zielen nur während des Hoverns eingeblendet wird.
-        card->setAttribute(Qt::WA_Hover, true);
 
-        auto *cardLayout = new QVBoxLayout(card);
+        // Enter/Leave werden benötigt, damit der Stern bei normalen
+        // Zielen nur während des Hovers eingeblendet wird.
+        card->setAttribute(
+            Qt::WA_Hover,
+            true
+            );
+
+        auto *cardLayout =
+            new QVBoxLayout(card);
 
         // Gleiche Innenabstände wie bei den Exercise-Cards.
-        cardLayout->setContentsMargins(12, 12, 12, 12);
+        cardLayout->setContentsMargins(
+            12,
+            12,
+            12,
+            12
+            );
+
         cardLayout->setSpacing(4);
 
-        // ── Titel + Deadline ─────────────────────────────────────────────
+        // ── Titel + Stern ────────────────────────────────────────────────
 
-        auto *topRow = new QHBoxLayout();
+        auto *topRow =
+            new QHBoxLayout();
+
         topRow->setSpacing(8);
 
-        auto *titleLabel = new QLabel(goal.title, card);
-        titleLabel->setObjectName("goalCardTitleLabel");
+        auto *titleLabel =
+            new QLabel(
+                goal.title,
+                card
+                );
+
+        titleLabel->setObjectName(
+            "goalCardTitleLabel"
+            );
+
         titleLabel->setWordWrap(true);
 
         // Geschaffte Ziele werden wie bisher nur über eine gedämpfte
         // Textfarbe unterschieden und nicht durch eine zusätzliche
         // farbige Card.
         if (goal.isDone())
-            titleLabel->setProperty("role", "muted");
-
-        topRow->addWidget(titleLabel, 1);
-
-        if (!goal.deadline.isEmpty()) {
-
-            const QDate deadlineDate =
-                QDate::fromString(goal.deadline, "yyyy-MM-dd");
-
-            auto *deadlineLabel =
-                new QLabel(
-                    deadlineDate.toString("dd.MM.yyyy"),
-                    card
-                    );
-
-            deadlineLabel->setObjectName(
-                "goalCardDeadlineLabel"
-                );
-
-            deadlineLabel->setProperty(
+            titleLabel->setProperty(
                 "role",
-                "secondary"
+                "muted"
                 );
 
-            topRow->addWidget(
-                deadlineLabel,
-                0,
-                Qt::AlignTop
-                );
-        }
-
-        cardLayout->addLayout(topRow);
-
-        // ── Beschreibung ─────────────────────────────────────────────────
-
-        QString description = goal.description;
-
-        // Die Beschreibung darf die feste Kartenhöhe nicht sprengen.
-        // Deshalb wird nur die Darstellung auf der Card gekürzt;
-        // der eigentliche Datenbanktext bleibt unverändert.
-        constexpr int maxDescriptionChars = 90;
-
-        if (description.length() > maxDescriptionChars) {
-            description =
-                description
-                    .left(maxDescriptionChars)
-                    .trimmed()
-                + "…";
-        }
-
-        auto *descriptionLabel =
-            new QLabel(description, card);
-
-        descriptionLabel->setObjectName(
-            "goalCardDescriptionLabel"
-            );
-
-        descriptionLabel->setProperty(
-            "role",
-            "secondary"
-            );
-
-        descriptionLabel->setWordWrap(true);
-        descriptionLabel->setAlignment(
-            Qt::AlignLeft | Qt::AlignTop
-            );
-
-        // Die Beschreibung nimmt weiterhin den verfügbaren Platz ein.
-        cardLayout->addWidget(
-            descriptionLabel,
+        topRow->addWidget(
+            titleLabel,
             1
             );
 
-        // ── Aktionen ─────────────────────────────────────────────────────
+        // ── Hauptziel-Stern ──────────────────────────────────────────────
         //
-        // Die Checkbox zeigt ausschließlich den Status des Ziels.
-        // Der Stern ist nur bei offenen Zielen sichtbar.
-
-        auto *bottomRow = new QHBoxLayout();
-        bottomRow->setContentsMargins(0, 0, 0, 0);
-        bottomRow->setSpacing(0);
-
-        // ── Zielstatus ────────────────────────────────────────────────────
-
-        auto *doneCheckBox = new QCheckBox(card);
-
-        doneCheckBox->setObjectName("goalDoneCheckBox");
-        doneCheckBox->setFixedSize(24, 24);
-        doneCheckBox->setCursor(Qt::PointingHandCursor);
-
-        // Geschaffte Ziele starten angehakt.
-        doneCheckBox->setChecked(goal.isDone());
-
-        connect(
-            doneCheckBox,
-            &QCheckBox::toggled,
-            this,
-            [this, goalId = goal.id](bool checked) {
-
-                if (GoalRepository::setStatus(
-                        goalId,
-                        checked ? QStringLiteral("done")
-                                : QStringLiteral("open"))) {
-
-                    // Der Sound soll nur beim Abschließen des Ziels ertönen,
-                    // nicht beim Zurücksetzen auf "offen".
-                    if (checked && goalCompletedSound) {
-                        goalCompletedSound->play();
-                    }
-
-                    loadGoalCards();
-                    refreshHobbyDashboardOverview(ui, currentHobbyId);
-                }
-            }
-            );
-
-        bottomRow->addWidget(
-            doneCheckBox,
-            0,
-            Qt::AlignLeft | Qt::AlignBottom
-            );
-
-        // Schiebt den Stern ganz nach rechts.
-        bottomRow->addStretch(1);
-
-        // ── Hauptziel-Stern ───────────────────────────────────────────────
+        // Der Stern sitzt oben rechts auf der Karte.
+        // Geschaffte Ziele können kein Hauptziel sein.
         //
-        // Geschaffte Ziele können kein Hauptziel mehr sein.
-        // Deshalb wird der Stern nur bei offenen Zielen angezeigt.
+        // Bei normalen offenen Zielen wird der Stern zunächst ausgeblendet
+        // und über das bestehende Hover-Verhalten eingeblendet.
+        // Das aktuelle Hauptziel bleibt dauerhaft sichtbar.
 
         if (!goal.isDone()) {
 
-            auto *currentButton = new QToolButton(card);
+            auto *currentButton =
+                new QToolButton(card);
 
-            currentButton->setObjectName("goalCurrentButton");
-            currentButton->setFixedSize(24, 24);
-            currentButton->setIconSize(QSize(16, 16));
+            currentButton->setObjectName(
+                "goalCurrentButton"
+                );
 
-            currentButton->setCursor(Qt::PointingHandCursor);
+            currentButton->setFixedSize(
+                24,
+                24
+                );
+
+            currentButton->setIconSize(
+                QSize(16, 16)
+                );
+
+            currentButton->setCursor(
+                Qt::PointingHandCursor
+                );
+
             currentButton->setAutoRaise(true);
-            // Bei normalen offenen Zielen wird der Stern erst beim
-            // Überfahren der Karte sichtbar. Das aktuelle Hauptziel
-            // bleibt dagegen dauerhaft sichtbar.
+
             if (!goal.isCurrent)
                 currentButton->setVisible(false);
 
             currentButton->setIcon(
                 QIcon(
                     goal.isCurrent
-                        ? QStringLiteral(":/icons/star-filled.svg")
-                        : QStringLiteral(":/icons/star-outline.svg")
+                        ? QStringLiteral(
+                              ":/icons/star-filled.svg"
+                              )
+                        : QStringLiteral(
+                              ":/icons/star-outline.svg"
+                              )
                     )
                 );
 
             currentButton->setToolTip(
                 goal.isCurrent
-                    ? QStringLiteral("Aktuelles Hauptziel")
-                    : QStringLiteral("Als Hauptziel festlegen")
+                    ? QStringLiteral(
+                          "Aktuelles Hauptziel"
+                          )
+                    : QStringLiteral(
+                          "Als Hauptziel festlegen"
+                          )
                 );
 
-            currentButton->installEventFilter(this);
+            currentButton->installEventFilter(
+                this
+                );
 
             connect(
                 currentButton,
@@ -2601,7 +2666,10 @@ void MainWindow::loadGoalCards()
                 this,
                 [this, goalId = goal.id]() {
 
-                    if (GoalRepository::setCurrent(goalId, true)) {
+                    if (GoalRepository::setCurrent(
+                            goalId,
+                            true
+                            )) {
 
                         loadGoalCards();
 
@@ -2613,53 +2681,257 @@ void MainWindow::loadGoalCards()
                 }
                 );
 
-            bottomRow->addWidget(
+            // Der Stern wird oben rechts in der Kopfzeile platziert.
+            topRow->addWidget(
                 currentButton,
                 0,
-                Qt::AlignRight | Qt::AlignBottom
+                Qt::AlignTop | Qt::AlignRight
                 );
         }
 
-        cardLayout->addLayout(bottomRow);
+        cardLayout->addLayout(
+            topRow
+            );
 
+        // ── Beschreibung ─────────────────────────────────────────────────
+
+        QString description =
+            goal.description;
+
+        // Die Beschreibung darf die feste Kartenhöhe nicht sprengen.
+        // Deshalb wird nur die Darstellung auf der Card gekürzt;
+        // der eigentliche Datenbanktext bleibt unverändert.
+        constexpr int maxDescriptionChars = 90;
+
+        if (description.length() > maxDescriptionChars) {
+
+            description =
+                description
+                    .left(maxDescriptionChars)
+                    .trimmed()
+                + "…";
+        }
+
+        auto *descriptionLabel =
+            new QLabel(
+                description,
+                card
+                );
+
+        descriptionLabel->setObjectName(
+            "goalCardDescriptionLabel"
+            );
+
+        descriptionLabel->setProperty(
+            "role",
+            "secondary"
+            );
+
+        descriptionLabel->setWordWrap(true);
+
+        descriptionLabel->setAlignment(
+            Qt::AlignLeft | Qt::AlignTop
+            );
+
+        // Die Beschreibung nimmt den verfügbaren Platz zwischen
+        // Kopfbereich und Deadline ein.
+        cardLayout->addWidget(
+            descriptionLabel,
+            1
+            );
+
+        // ── Deadline ─────────────────────────────────────────────────────
+        //
+        // Die Deadline wird an derselben Stelle dargestellt,
+        // an der bei den Exercise-Cards "Letzte Ausführung" steht:
+        //
+        // Deadline
+        // 27.09.2026
+        //
+        // Es gibt bewusst keine Trennlinie.
+
+        auto *deadlineHeader =
+            new QLabel(
+                "Deadline",
+                card
+                );
+
+        deadlineHeader->setObjectName(
+            "goalCardMetaHeaderLabel"
+            );
+
+        deadlineHeader->setProperty(
+            "role",
+            "muted"
+            );
+
+        cardLayout->addWidget(
+            deadlineHeader
+            );
+
+        QString deadlineText =
+            "–";
+
+        if (!goal.deadline.isEmpty()) {
+
+            const QDate deadlineDate =
+                QDate::fromString(
+                    goal.deadline,
+                    "yyyy-MM-dd"
+                    );
+
+            if (deadlineDate.isValid()) {
+
+                deadlineText =
+                    deadlineDate.toString(
+                        "dd.MM.yyyy"
+                        );
+            }
+        }
+
+        auto *deadlineValue =
+            new QLabel(
+                deadlineText,
+                card
+                );
+
+        deadlineValue->setObjectName(
+            "goalCardDeadlineLabel"
+            );
+
+        cardLayout->addWidget(
+            deadlineValue
+            );
+
+        // ── Aktionen ─────────────────────────────────────────────────────
+        //
+        // Unten links befindet sich ausschließlich die Checkbox.
+        // Der Stern befindet sich bereits oben rechts.
+
+        auto *bottomRow =
+            new QHBoxLayout();
+
+        bottomRow->setContentsMargins(
+            0,
+            0,
+            0,
+            0
+            );
+
+        bottomRow->setSpacing(0);
+
+        // ── Zielstatus ───────────────────────────────────────────────────
+
+        auto *doneCheckBox =
+            new QCheckBox(card);
+
+        doneCheckBox->setObjectName(
+            "goalDoneCheckBox"
+            );
+
+        doneCheckBox->setFixedSize(
+            24,
+            24
+            );
+
+        doneCheckBox->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        // Geschaffte Ziele starten angehakt.
+        doneCheckBox->setChecked(
+            goal.isDone()
+            );
+
+        connect(
+            doneCheckBox,
+            &QCheckBox::toggled,
+            this,
+            [this, goalId = goal.id](bool checked) {
+
+                if (GoalRepository::setStatus(
+                        goalId,
+                        checked
+                            ? QStringLiteral("done")
+                            : QStringLiteral("open")
+                        )) {
+
+                    // Der Sound ertönt nur beim Abschließen des Ziels,
+                    // nicht beim Zurücksetzen auf "offen".
+                    if (checked &&
+                        goalCompletedSound) {
+
+                        goalCompletedSound->play();
+                    }
+
+                    loadGoalCards();
+
+                    refreshHobbyDashboardOverview(
+                        ui,
+                        currentHobbyId
+                        );
+                }
+            }
+            );
+
+        bottomRow->addWidget(
+            doneCheckBox,
+            0,
+            Qt::AlignLeft | Qt::AlignBottom
+            );
+
+        cardLayout->addLayout(
+            bottomRow
+            );
 
         return card;
     };
 
-    // Wie bei den Exercise-Cards werden die Goals in einem Raster mit
-    // drei Cards pro Zeile dargestellt.
+    // Wie bei den Exercise-Cards werden die Goals in einem Raster
+    // mit drei Cards pro Zeile dargestellt.
     constexpr int columnCount = 3;
 
     // ── Offene Ziele ─────────────────────────────────────────────────────
 
-    for (int i = 0; i < openGoals.size(); ++i) {
+    for (int i = 0;
+         i < openGoals.size();
+         ++i) {
 
         QFrame *card =
-            buildCard(openGoals[i], true);
+            buildCard(
+                openGoals[i],
+                true
+                );
 
         ui->goalOpenCardsLayout->addWidget(
             card,
             i / columnCount,
             i % columnCount
             );
-
     }
-
-
 
     // Der Stretch nimmt den übrigen vertikalen Platz ein.
     // Dadurch bleiben die Goal-Cards am oberen Rand des Containers.
     const int openRowCount =
-        (openGoals.size() + columnCount - 1) / columnCount;
+        (openGoals.size() + columnCount - 1)
+        / columnCount;
 
-    ui->goalOpenCardsLayout->setRowStretch(openRowCount, 1);
+    ui->goalOpenCardsLayout->setRowStretch(
+        openRowCount,
+        1
+        );
 
     // ── Geschaffte Ziele ─────────────────────────────────────────────────
 
-    for (int i = 0; i < doneGoals.size(); ++i) {
+    for (int i = 0;
+         i < doneGoals.size();
+         ++i) {
 
         QFrame *card =
-            buildCard(doneGoals[i], false);
+            buildCard(
+                doneGoals[i],
+                false
+                );
 
         ui->goalDoneCardsLayout->addWidget(
             card,
@@ -2686,12 +2958,17 @@ void MainWindow::loadGoalCards()
         );
 
     const int doneRowCount =
-        (doneGoals.size() + columnCount - 1) / columnCount;
+        (doneGoals.size() + columnCount - 1)
+        / columnCount;
 
     // Der Stretch nimmt den übrigen vertikalen Platz ein.
     // Dadurch bleiben die Goal-Cards am oberen Rand des Containers.
-    ui->goalDoneCardsLayout->setRowStretch(doneRowCount, 1);
+    ui->goalDoneCardsLayout->setRowStretch(
+        doneRowCount,
+        1
+        );
 }
+
 
 
 

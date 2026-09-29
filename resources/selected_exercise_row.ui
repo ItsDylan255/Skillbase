@@ -14,17 +14,6 @@
    <property name="rightMargin"><number>8</number></property>
    <property name="bottomMargin"><number>4</number></property>
    <item>
-    <widget class="QLabel" name="selectedExerciseHandleLabel">
-     <property name="sizePolicy"><sizepolicy hsizetype="Fixed" vsizetype="Fixed"/></property>
-     <property name="minimumSize"><size><width>16</width><height>16</height></size></property>
-     <property name="maximumSize"><size><width>16</width><height>16</height></size></property>
-     <property name="toolTip"><string>Zum Sortieren ziehen</string></property>
-     <property name="cursor"><cursorShape>SizeAllCursor</cursorShape></property>
-     <property name="text"><string>☰</string></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
-    </widget>
-   </item>
-   <item>
     <widget class="QLabel" name="selectedExerciseNameLabel">
      <property name="sizePolicy"><sizepolicy hsizetype="Expanding" vsizetype="Preferred"/></property>
      <property name="text"><string>Übungsname</string></property>
@@ -35,6 +24,7 @@
      <property name="minimumSize"><size><width>64</width><height>0</height></size></property>
      <property name="maximumSize"><size><width>64</width><height>16777215</height></size></property>
      <property name="alignment"><set>Qt::AlignRight|Qt::AlignVCenter</set></property>
+     <property name="buttonSymbols"><enum>QAbstractSpinBox::NoButtons</enum></property>
      <property name="minimum"><number>1</number></property>
      <property name="maximum"><number>60</number></property>
      <property name="value"><number>5</number></property>
@@ -46,15 +36,44 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="selectedExerciseRemoveButton">
-     <property name="text"><string>Entfernen</string></property>
-     <property name="autoDefault"><bool>false</bool></property>
+    <widget class="QToolButton" name="selectedExerciseMoveUpButton">
+     <property name="sizePolicy"><sizepolicy hsizetype="Fixed" vsizetype="Fixed"/></property>
+     <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="toolTip"><string>Nach oben</string></property>
+     <property name="text"><string>↑</string></property>
+     <property name="toolButtonStyle"><enum>Qt::ToolButtonIconOnly</enum></property>
+     <property name="autoRaise"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="selectedExerciseMoveDownButton">
+     <property name="sizePolicy"><sizepolicy hsizetype="Fixed" vsizetype="Fixed"/></property>
+     <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="toolTip"><string>Nach unten</string></property>
+     <property name="text"><string>↓</string></property>
+     <property name="toolButtonStyle"><enum>Qt::ToolButtonIconOnly</enum></property>
+     <property name="autoRaise"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QToolButton" name="selectedExerciseRemoveButton">
+     <property name="sizePolicy"><sizepolicy hsizetype="Fixed" vsizetype="Fixed"/></property>
+     <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+     <property name="toolTip"><string>Entfernen</string></property>
+     <property name="text"><string>×</string></property>
+     <property name="toolButtonStyle"><enum>Qt::ToolButtonIconOnly</enum></property>
+     <property name="autoRaise"><bool>true</bool></property>
     </widget>
    </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>selectedExerciseDurationSpinBox</tabstop>
+  <tabstop>selectedExerciseMoveUpButton</tabstop>
+  <tabstop>selectedExerciseMoveDownButton</tabstop>
   <tabstop>selectedExerciseRemoveButton</tabstop>
  </tabstops>
  <resources>

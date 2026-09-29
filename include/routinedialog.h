@@ -7,6 +7,9 @@
 
 #include "exercise.h"
 
+class QCompleter;
+class QStringListModel;
+
 namespace Ui {
 class routineDialog;
 }
@@ -57,12 +60,17 @@ private:
     // Das Hobby, zu dem die neue Routine gehört.
     int hobbyId = 0;
 
+    void moveSelectedExerciseRow(QWidget *row, int delta);
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
     QList<Exercise> availableExercises;
 
     // Verknüpft jede sichtbare Zeile mit ihrer Übungs-ID.
     QMap<QWidget*, int> selectedExerciseIds;
+
+    QCompleter *exerciseCompleter = nullptr;
+    QStringListModel *exerciseNamesModel = nullptr;
 };
 
 #endif

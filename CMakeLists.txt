@@ -76,14 +76,6 @@ qt_add_executable(Skillbase
     include/exerciseexecutiondialog.h
     resources/exercise_execution_dialog.ui
 
-    src/historyentrywidget.cpp
-    include/historyentrywidget.h
-    resources/historyentrywidget.ui
-
-    src/historydateheaderwidget.cpp
-    include/historydateheaderwidget.h
-    resources/historydateheaderwidget.ui
-
     resources/exercise_dialog.ui
     resources/resources.qrc
     src/timelinephasedialog.cpp

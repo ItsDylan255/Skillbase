@@ -139,6 +139,7 @@ QLabel#statisticsTitleLabel {
    Timeline/Roadmap) - bewusst eine Stufe kleiner als die Seiten-Titel
    oben und einheitlich für alle Tabs, damit z. B. "Ziele" und "Verlauf"
    an derselben Stelle/Größe wie "Übungen" stehen. */
+QLabel#hobbyDashboardHeaderLabel,
 QLabel#exercisesHeaderLabel,
 QLabel#goalsHeaderLabel,
 QLabel#routinesHeaderLabel,
@@ -955,7 +956,9 @@ QListWidget#hobbyList::item:selected {
 QToolButton#goalsFilterOpenButton,
 QToolButton#goalsFilterDoneButton,
 QToolButton#routinesFilterActiveButton,
-QToolButton#routinesFilterArchiveButton {
+QToolButton#routinesFilterArchiveButton,
+QToolButton#roadmapTreeViewButton,
+QToolButton#roadmapDiagramViewButton {
     background-color: #19191c;
     color: #eaeaec;
     border: 1px solid #29292d;
@@ -969,7 +972,9 @@ QToolButton#routinesFilterArchiveButton {
 QToolButton#goalsFilterOpenButton:hover,
 QToolButton#goalsFilterDoneButton:hover,
 QToolButton#routinesFilterActiveButton:hover,
-QToolButton#routinesFilterArchiveButton:hover {
+QToolButton#routinesFilterArchiveButton:hover,
+QToolButton#roadmapTreeViewButton:hover,
+QToolButton#roadmapDiagramViewButton:hover {
     background-color: #212124;
     border-color: #333338;
 }
@@ -977,14 +982,18 @@ QToolButton#routinesFilterArchiveButton:hover {
 QToolButton#goalsFilterOpenButton:pressed,
 QToolButton#goalsFilterDoneButton:pressed,
 QToolButton#routinesFilterActiveButton:pressed,
-QToolButton#routinesFilterArchiveButton:pressed {
+QToolButton#routinesFilterArchiveButton:pressed,
+QToolButton#roadmapTreeViewButton:pressed,
+QToolButton#roadmapDiagramViewButton:pressed {
     background-color: #29292d;
 }
 
 QToolButton#goalsFilterOpenButton:checked,
 QToolButton#goalsFilterDoneButton:checked,
 QToolButton#routinesFilterActiveButton:checked,
-QToolButton#routinesFilterArchiveButton:checked {
+QToolButton#routinesFilterArchiveButton:checked,
+QToolButton#roadmapTreeViewButton:checked,
+QToolButton#roadmapDiagramViewButton:checked {
     background-color: #212124;
     color: #eaeaec;
     border: 1px solid #333338;
@@ -1009,12 +1018,21 @@ QLabel#selectedExercisesLabel {
     color: #eaeaec;
 }
 
-/* ---------- Suchfeld mit Icon (Icon ist Teil der SVG, 32px breit) ---------- */
-QLineEdit#routineSearchLineEdit {
+/* ---------- Übungs-Suche (editierbare ComboBox) mit Icon ----------
+   Das Icon (search.svg, 32px breit) liegt als Hintergrund auf der ComboBox.
+   Das interne QLineEdit wird transparent und ohne eigene Border/Padding
+   gezeichnet, damit keine doppelte Umrandung entsteht. */
+QComboBox#routineExerciseComboBox {
     padding-left: 32px;
     background-image: url(:/icons/search.svg);
     background-repeat: no-repeat;
     background-position: left center;
+}
+
+QComboBox#routineExerciseComboBox QLineEdit {
+    background-color: transparent;
+    border: none;
+    padding: 0;
 }
 
 /* ---------- Empty State (Ausgewählte Übungen) ---------- */
@@ -1056,17 +1074,6 @@ QFrame#selectedExerciseRow {
     border: none;
 }
 
-/* Drag-Handle: QLabel mit Text "☰" (Text steht in selected_exercise_row.ui) */
-QLabel#selectedExerciseHandleLabel {
-    background-color: transparent;
-    color: #6d6d73;
-    font-size: 14px;
-}
-
-QFrame#selectedExerciseRow:hover QLabel#selectedExerciseHandleLabel {
-    color: #9a9aa0;
-}
-
 QLabel#selectedExerciseNameLabel {
     font-size: 13px;
     font-weight: 500;
@@ -1078,24 +1085,54 @@ QLabel#selectedExerciseUnitLabel {
     color: #9a9aa0;
 }
 
-/* Ghost-Button, Destructive-Farbe nur bei Hover */
-QPushButton#selectedExerciseRemoveButton {
+/* Aktions-Buttons (↑ ↓ ×): kompakte Ghost-QToolButtons (24x24 aus der .ui).
+   Überschreiben die globale QToolButton-Tab-Optik (Padding, Unterkante). */
+QToolButton#selectedExerciseMoveUpButton,
+QToolButton#selectedExerciseMoveDownButton,
+QToolButton#selectedExerciseRemoveButton {
     background-color: transparent;
     border: 1px solid transparent;
-    color: #9a9aa0;
-    padding: 4px 10px;
-    font-size: 12px;
+    border-radius: 4px;
+    padding: 0;
 }
 
-QPushButton#selectedExerciseRemoveButton:hover {
+QToolButton#selectedExerciseMoveUpButton:hover,
+QToolButton#selectedExerciseMoveDownButton:hover {
+    background-color: #212124;
+}
+
+QToolButton#selectedExerciseMoveUpButton:pressed,
+QToolButton#selectedExerciseMoveDownButton:pressed {
+    background-color: #29292d;
+}
+
+/* Entfernen: destruktiv, dezent über rote Hover-Fläche (kein Mülltonnen-Icon) */
+QToolButton#selectedExerciseRemoveButton:hover {
     background-color: rgba(229, 72, 77, 0.12);
-    border-color: rgba(229, 72, 77, 0.35);
-    color: #e5484d;
 }
 
-QPushButton#selectedExerciseRemoveButton:pressed {
+QToolButton#selectedExerciseRemoveButton:pressed {
     background-color: rgba(229, 72, 77, 0.20);
-    border-color: rgba(229, 72, 77, 0.50);
+}
+
+QToolButton#selectedExerciseMoveUpButton:focus,
+QToolButton#selectedExerciseMoveDownButton:focus,
+QToolButton#selectedExerciseRemoveButton:focus {
+    border: 1px solid #ff6f61;
+}
+
+/* Listen-Items der Routine: kein eigenes Padding.
+   Die Row (setItemWidget) wird vom Delegate in das Item-Rechteck MINUS Item-Padding
+   gesetzt. Das globale "QListWidget::item { padding: 6px 8px }" verkleinert sie sonst
+   um 12px in der Höhe, die Row rutscht nach unten und wird abgeschnitten. */
+QListWidget#selectedExercisesList::item {
+    padding: 0;
+}
+
+/* Dauer-Feld in der Row: kompakter als das globale QSpinBox (6px 10px),
+   damit es in die 32px Nutzhöhe der Row passt und der Text nicht abgeschnitten wird. */
+QSpinBox#selectedExerciseDurationSpinBox {
+    padding: 3px 8px;
 }
 
 /* ---------- QSpinBox (fehlt bisher in theme.qss) ---------- */

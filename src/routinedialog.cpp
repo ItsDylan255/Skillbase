@@ -6,10 +6,20 @@
 #include "categoryrepository.h"
 #include "routinerepository.h"
 
-#include <QAbstractItemModel>
+#include <QAbstractButton>
+#include <QAbstractItemView>
+#include <QCompleter>
 #include <QDebug>
+#include <QEvent>
+#include <QFocusEvent>
 #include <QFrame>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QSpinBox>
+#include <QStringListModel>
+#include <QStyle>
+#include <QTimer>
 
 RoutineDialog::RoutineDialog(
     int hobbyId,
@@ -21,52 +31,79 @@ RoutineDialog::RoutineDialog(
 {
     ui->setupUi(this);
 
-    // Drag & Drop ist für später vorbereitet, wird aber momentan
-    // nicht weiter behandelt. Die Liste bleibt trotzdem für
-    // spätere Erweiterung als interne Drag-Liste konfiguriert.
-    ui->selectedExercisesList->setDragEnabled(true);
-    ui->selectedExercisesList->setAcceptDrops(true);
-    ui->selectedExercisesList->setDropIndicatorShown(true);
-    ui->selectedExercisesList->setDragDropMode(
-        QAbstractItemView::InternalMove
-        );
-    ui->selectedExercisesList->setDefaultDropAction(
-        Qt::MoveAction
-        );
+    // Der Completer übernimmt die Textsuche. Das Suchfeld bleibt ein
+    // normales QLineEdit und behält deshalb immer den Fokus. Das Popup
+    // verändert weder Text noch Auswahl im Suchfeld.
+    exerciseNamesModel = new QStringListModel(this);
 
-    loadAvailableExercises();
+    exerciseCompleter = new QCompleter(exerciseNamesModel, this);
+    exerciseCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    exerciseCompleter->setFilterMode(Qt::MatchContains);
+    exerciseCompleter->setCompletionMode(QCompleter::PopupCompletion);
+
+    ui->routineExerciseSearchLineEdit->setCompleter(exerciseCompleter);
+
+    // Der Event-Filter zeigt beim Klick ins leere Feld alle Übungen
+    // (siehe eventFilter()).
+    ui->routineExerciseSearchLineEdit->installEventFilter(this);
+
+    // Kategorien müssen vor den Übungen geladen werden,
+    // weil die Namensliste auf die ausgewählte Kategorie zugreift.
     loadCategories();
+    loadAvailableExercises();
 
-    // Ein Klick auf eine verfügbare Übung fügt sie zur Routine hinzu.
-    connect(
-        ui->availableExercisesList,
-        &QListWidget::itemClicked,
-        this,
-        [this](QListWidgetItem *item) {
-            const int exerciseId =
-                item->data(Qt::UserRole).toInt();
-
-            addSelectedExercise(exerciseId);
-        }
-        );
-
-    // Die Suche filtert die verfügbaren Übungen sofort.
-    connect(
-        ui->routineSearchLineEdit,
-        &QLineEdit::textChanged,
-        this,
-        [this]() {
-            updateAvailableExercisesList();
-        }
-        );
-
-    // Auch ein Kategorienwechsel aktualisiert die Übungsliste.
+    // Ein Kategorienwechsel baut nur die Namensliste des Completers neu auf.
+    // Der Suchtext im Feld bleibt dabei unberührt.
     connect(
         ui->routineCategoryComboBox,
         &QComboBox::currentIndexChanged,
         this,
-        [this]() {
+        [this](int) {
             updateAvailableExercisesList();
+        }
+        );
+
+    // Hinzugefügt wird erst über den Button. Ein Klick auf einen Eintrag
+    // im Popup schreibt nur den Namen ins Suchfeld.
+    connect(
+        ui->routineAddExerciseButton,
+        &QAbstractButton::clicked,
+        this,
+        [this]() {
+            const QString typedName =
+                ui->routineExerciseSearchLineEdit->text().trimmed();
+
+            // Ohne Text passiert bewusst nichts.
+            if (typedName.isEmpty())
+                return;
+
+            const int selectedCategoryId =
+                ui->routineCategoryComboBox->currentData().toInt();
+
+            // Der Name im Feld muss genau zu einer Übung der gewählten
+            // Kategorie passen. Sonst passiert ebenfalls nichts.
+            int exerciseId = 0;
+
+            for (const Exercise &exercise : availableExercises) {
+
+                if (selectedCategoryId != 0 &&
+                    exercise.categoryId != selectedCategoryId)
+                    continue;
+
+                if (exercise.name.compare(
+                        typedName,
+                        Qt::CaseInsensitive
+                        ) == 0) {
+                    exerciseId = exercise.id;
+                    break;
+                }
+            }
+
+            if (exerciseId <= 0)
+                return;
+
+            ui->routineExerciseSearchLineEdit->clear();
+            addSelectedExercise(exerciseId);
         }
         );
 
@@ -80,24 +117,12 @@ RoutineDialog::RoutineDialog(
         }
         );
 
-    // Abbrechen schließt den Dialog ohne Änderungen zu speichern.
+    // Abbrechen schließt den Dialog ohne zu speichern.
     connect(
         ui->routineCancelButton,
         &QPushButton::clicked,
         this,
         &QDialog::reject
-        );
-
-    // Die Reihenfolge der Listeneinträge kann später über Drag & Drop
-    // verändert werden. Die eigentliche Verarbeitung der neuen
-    // Reihenfolge erfolgt beim Speichern anhand der aktuellen Liste.
-    connect(
-        ui->selectedExercisesList->model(),
-        &QAbstractItemModel::rowsMoved,
-        this,
-        [this]() {
-            updateSelectedExerciseIds();
-        }
         );
 }
 
@@ -106,11 +131,51 @@ RoutineDialog::~RoutineDialog()
     delete ui;
 }
 
+bool RoutineDialog::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == ui->routineExerciseSearchLineEdit) {
+
+        bool shouldOpen = false;
+
+        if (event->type() == QEvent::MouseButtonPress) {
+            shouldOpen = true;
+        }
+        else if (event->type() == QEvent::FocusIn) {
+            // Nur bei Tab-Navigation öffnen. Andere Gründe (z. B. Rückkehr
+            // vom geschlossenen Popup) würden das Popup sofort wieder öffnen.
+            const Qt::FocusReason reason =
+                static_cast<QFocusEvent *>(event)->reason();
+
+            shouldOpen =
+                reason == Qt::TabFocusReason ||
+                reason == Qt::BacktabFocusReason;
+        }
+
+        if (shouldOpen) {
+            // Verzögert, damit das Popup nicht mit dem Klick-Event kollidiert.
+            QTimer::singleShot(0, this, [this]() {
+
+                if (exerciseCompleter->popup()->isVisible())
+                    return;
+
+                // Ein leerer Präfix zeigt alle Übungen der Kategorie,
+                // sonst die Treffer zum bereits getippten Text.
+                exerciseCompleter->setCompletionPrefix(
+                    ui->routineExerciseSearchLineEdit->text()
+                    );
+                exerciseCompleter->complete();
+            });
+        }
+    }
+
+    return QDialog::eventFilter(watched, event);
+}
+
 void RoutineDialog::loadAvailableExercises()
 {
     // Wir laden die Übungen einmal in den Speicher.
-    // Dadurch können Suche, Kategorie-Filter und Auswahl
-    // auf denselben Daten arbeiten.
+    // Dadurch arbeiten Kategorie-Filter, Suche und Hinzufügen
+    // auf denselben Daten.
     availableExercises =
         ExerciseRepository::getForHobby(hobbyId);
 
@@ -119,43 +184,23 @@ void RoutineDialog::loadAvailableExercises()
 
 void RoutineDialog::updateAvailableExercisesList()
 {
-    ui->availableExercisesList->clear();
-
-    const QString searchText =
-        ui->routineSearchLineEdit->text()
-            .trimmed()
-            .toLower();
-
     const int selectedCategoryId =
         ui->routineCategoryComboBox->currentData().toInt();
 
+    // Nur die Kategorie bestimmt, welche Namen der Completer kennt.
+    // Der Suchtext wird vom Completer selbst gefiltert.
+    QStringList names;
+
     for (const Exercise &exercise : availableExercises) {
 
-        // ID 0 steht für "Alle Kategorien".
-        const bool matchesCategory =
-            selectedCategoryId == 0 ||
-            exercise.categoryId == selectedCategoryId;
-
-        if (!matchesCategory)
+        if (selectedCategoryId != 0 &&
+            exercise.categoryId != selectedCategoryId)
             continue;
 
-        const bool matchesSearch =
-            searchText.isEmpty() ||
-            exercise.name.toLower().contains(searchText);
-
-        if (!matchesSearch)
-            continue;
-
-        QListWidgetItem *item =
-            new QListWidgetItem(exercise.name);
-
-        // Die ID wird unsichtbar am Listeneintrag gespeichert.
-        // Beim Anklicken können wir dadurch die genaue Übung
-        // wiederfinden.
-        item->setData(Qt::UserRole, exercise.id);
-
-        ui->availableExercisesList->addItem(item);
+        names.append(exercise.name);
     }
+
+    exerciseNamesModel->setStringList(names);
 }
 
 void RoutineDialog::loadCategories()
@@ -183,6 +228,8 @@ void RoutineDialog::loadCategories()
 
 void RoutineDialog::addSelectedExercise(int exerciseId)
 {
+    // Dieselbe Übung darf mehrfach hinzugefügt werden. Jede Zeile
+    // speichert ihre eigene Übungs-ID, deshalb gibt es keine Prüfung.
     // Die eigentliche Row wird in einer eigenen Methode aufgebaut,
     // damit die Darstellung der ausgewählten Übung getrennt bleibt.
     createSelectedExerciseRow(exerciseId);
@@ -220,13 +267,32 @@ void RoutineDialog::createSelectedExerciseRow(int exerciseId)
         // damit wir sie später beim Speichern wiederfinden.
         selectedExerciseIds.insert(row, exercise.id);
 
-        // Der Entfernen-Button gehört zu genau dieser Zeile.
+        // QAbstractButton::clicked funktioniert für QToolButton
+        // und QPushButton gleichermaßen.
         connect(
             rowUi.selectedExerciseRemoveButton,
-            &QPushButton::clicked,
+            &QAbstractButton::clicked,
             this,
             [this, row]() {
                 removeSelectedExerciseRow(row);
+            }
+            );
+
+        connect(
+            rowUi.selectedExerciseMoveUpButton,
+            &QAbstractButton::clicked,
+            this,
+            [this, row]() {
+                moveSelectedExerciseRow(row, -1);
+            }
+            );
+
+        connect(
+            rowUi.selectedExerciseMoveDownButton,
+            &QAbstractButton::clicked,
+            this,
+            [this, row]() {
+                moveSelectedExerciseRow(row, +1);
             }
             );
 
@@ -255,14 +321,12 @@ void RoutineDialog::removeSelectedExerciseRow(QWidget *row)
         if (ui->selectedExercisesList->itemWidget(item) != row)
             continue;
 
-        // Erst den Listeneintrag entfernen.
+        selectedExerciseIds.remove(row);
         delete ui->selectedExercisesList->takeItem(i);
 
-        // Danach unsere Zuordnung zwischen Zeile und Übungs-ID entfernen.
-        selectedExerciseIds.remove(row);
-
-        // Das Widget selbst wird nicht mehr benötigt.
-        delete row;
+        // Nicht direkt löschen: Diese Methode läuft im clicked-Signal
+        // eines Buttons, der selbst zu 'row' gehört.
+        row->deleteLater();
 
         break;
     }
@@ -274,6 +338,54 @@ void RoutineDialog::removeSelectedExerciseRow(QWidget *row)
             ui->selectedExercisesEmptyPage
             );
     }
+}
+
+void RoutineDialog::moveSelectedExerciseRow(QWidget *row, int delta)
+{
+    int from = -1;
+
+    for (int i = 0; i < ui->selectedExercisesList->count(); ++i) {
+        if (ui->selectedExercisesList->itemWidget(
+                ui->selectedExercisesList->item(i)) == row) {
+            from = i;
+            break;
+        }
+    }
+
+    const int to = from + delta;
+
+    if (from < 0 || to < 0 || to >= ui->selectedExercisesList->count())
+        return;
+
+    QWidget *other = ui->selectedExercisesList->itemWidget(
+        ui->selectedExercisesList->item(to));
+
+    if (!other)
+        return;
+
+    // Statt Items zu verschieben (das würde die Item-Widgets zerstören),
+    // tauschen wir nur die Inhalte der beiden Zeilen.
+    auto *labelA = row->findChild<QLabel*>("selectedExerciseNameLabel");
+    auto *labelB = other->findChild<QLabel*>("selectedExerciseNameLabel");
+    auto *spinA = row->findChild<QSpinBox*>("selectedExerciseDurationSpinBox");
+    auto *spinB = other->findChild<QSpinBox*>("selectedExerciseDurationSpinBox");
+
+    if (!labelA || !labelB || !spinA || !spinB)
+        return;
+
+    const QString textA = labelA->text();
+    labelA->setText(labelB->text());
+    labelB->setText(textA);
+
+    const int valueA = spinA->value();
+    spinA->setValue(spinB->value());
+    spinB->setValue(valueA);
+
+    const int idA = selectedExerciseIds.value(row);
+    selectedExerciseIds[row] = selectedExerciseIds.value(other);
+    selectedExerciseIds[other] = idA;
+
+    ui->selectedExercisesList->setCurrentRow(to);
 }
 
 void RoutineDialog::updateSelectedExerciseIds()
