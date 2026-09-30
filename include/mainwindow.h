@@ -162,5 +162,9 @@ private:
     int goalDragCandidateId = 0;
     QPoint goalDragStartPos;
     QSoundEffect *goalCompletedSound = nullptr;
+
+    // Merkt sich, von welchem Tab aus die Übungs-Detailansicht geöffnet wurde.
+    // Wird vom Back-Button benutzt, um dorthin zurückzukehren.
+    QWidget *exerciseDetailReturnPage = nullptr;
 };
 #endif // MAINWINDOW_H

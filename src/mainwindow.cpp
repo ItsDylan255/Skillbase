@@ -846,6 +846,7 @@ MainWindow::MainWindow(QWidget *parent)
             // müssen die Routinen neu aus der Datenbank geladen werden.
             if (dialog.exec() == QDialog::Accepted) {
                 loadRoutineCards();
+                loadDashboardRoutineCards();
             }
         }
         );
@@ -900,6 +901,11 @@ MainWindow::MainWindow(QWidget *parent)
 
         currentHobby   = item->text();
         currentHobbyId = item->data(Qt::UserRole).toInt();
+
+        // Beim Hobby-Wechsel einen evtl. gemerkten Rückkehrpunkt der
+        // Übungs-Detailansicht zurücksetzen, damit der Back-Button
+        // nicht ins vorherige Hobby zurückspringt.
+        exerciseDetailReturnPage = nullptr;
 
         ui->hobbyLabel->setText(currentHobby);
 
@@ -1131,9 +1137,34 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->progressBackButton, &QPushButton::clicked, this, [this]() {
+
         showExerciseOverview();
-        ui->hobbyPageStack->setCurrentWidget(ui->exercisesPage);
-        ui->exercisesTab->setChecked(true);
+
+        // Zurück zu der Seite, von der aus die Detailansicht geöffnet wurde.
+        // Fallback: Exercises-Seite, falls aus irgendeinem Grund nichts gemerkt wurde.
+        QWidget *targetPage =
+            exerciseDetailReturnPage
+                ? exerciseDetailReturnPage
+                : ui->exercisesPage;
+
+        ui->hobbyPageStack->setCurrentWidget(targetPage);
+
+        // Passenden Tab markieren.
+        if (targetPage == ui->historyPage) {
+            ui->historyTab->setChecked(true);
+        } else if (targetPage == ui->goalsPage) {
+            ui->goalsTab->setChecked(true);
+        } else if (targetPage == ui->routinesPage) {
+            ui->routinesTab->setChecked(true);
+        } else if (targetPage == ui->dashboardHobbyPage) {
+            ui->dashboardTab->setChecked(true);
+        } else {
+            ui->exercisesTab->setChecked(true);
+        }
+
+        // Nach dem Zurückkehren zurücksetzen, damit der nächste
+        // Öffnen-Vorgang wieder frisch merkt.
+        exerciseDetailReturnPage = nullptr;
     });
 
     connect(ui->timelineBackButton, &QPushButton::clicked, this, [this]() {
@@ -1282,9 +1313,9 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         }
     }
 
-    // ── Dashboard-Routine-Card: Klick öffnet die Routinen-Seite ─────────────
-    // Die Dashboard-Card dient als Einstieg in die vollständige
-    // Routinen-Ansicht. Die eigentliche Routine-Ausführung kommt später.
+
+
+    // ── Dashboard-Routine-Card: Klick startet die Routine-Ausführung ────────
     if (event->type() == QEvent::MouseButtonRelease) {
 
         auto *card =
@@ -1298,54 +1329,13 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 
             if (mouseEvent->button() == Qt::LeftButton) {
 
-                ui->routinesTab->setChecked(true);
-                ui->hobbyPageStack->setCurrentWidget(
-                    ui->routinesPage
-                    );
+                const int routineId =
+                    card->property("routineId").toInt();
 
-                return true;
-            }
-        }
-    }
-
-    // ── Übungskarten: Klick öffnet die Detail-/Fortschrittsansicht ──────────
-    if (event->type() == QEvent::MouseButtonRelease) {
-
-        auto *card = qobject_cast<QFrame *>(watched);
-
-        if (card) {
-            const int exerciseId =
-                card->property("exerciseId").toInt();
-
-            if (exerciseId > 0) {
-
-                showExerciseDetail(exerciseId);
-                return true;
-            }
-        }
-    }
-
-    // ── Dashboard-Routine-Card: Klick öffnet die Routinen-Seite ─────────────
-    // Die Dashboard-Card dient als Einstieg in die vollständige
-    // Routinen-Ansicht. Die eigentliche Routine-Ausführung kommt später.
-
-    if (event->type() == QEvent::MouseButtonRelease) {
-
-        auto *card =
-            qobject_cast<QFrame *>(watched);
-
-        if (card &&
-            card->objectName() == "dashboardRoutineCard") {
-
-            auto *mouseEvent =
-                static_cast<QMouseEvent *>(event);
-
-            if (mouseEvent->button() == Qt::LeftButton) {
-
-                ui->routinesTab->setChecked(true);
-                ui->hobbyPageStack->setCurrentWidget(
-                    ui->routinesPage
-                    );
+                if (routineId > 0) {
+                    ui->routinesTab->setChecked(true);
+                    showRoutineExecution(routineId);
+                }
 
                 return true;
             }
@@ -1702,7 +1692,6 @@ void MainWindow::loadExerciseCards()
 
         nameLabel->setObjectName("exerciseCardNameLabel");
         nameLabel->setWordWrap(true);
-
         cardLayout->addWidget(nameLabel);
 
         // ── Letzten Log laden ───────────────────────────────────────────────
@@ -1906,6 +1895,7 @@ void MainWindow::loadExerciseCards()
                     loadHistory();
                     loadTimeline();
                     loadRoutineCards();
+                    loadDashboardRoutineCards();
                 }
             }
             );
@@ -2195,6 +2185,7 @@ void MainWindow::editExercise(int exerciseId)
         loadHistory();
         loadTimeline();
         loadRoutineCards();
+        loadDashboardRoutineCards();
 
     } else {
 
@@ -2231,6 +2222,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         showExerciseOverview();
         loadExerciseCards();
         loadRoutineCards();
+        loadDashboardRoutineCards();
         return;
     }
 
@@ -2542,7 +2534,7 @@ void MainWindow::loadHistory()
     QGridLayout *currentGrid = nullptr;
     int cardsInCurrentGroup = 0;
 
-    constexpr int columnCount = 3;
+    constexpr int columnCount = 6;
 
     for (const HistoryItem &item : historyItems) {
 
@@ -2689,8 +2681,11 @@ void MainWindow::loadHistory()
         cardLayout->addLayout(durationRow);
 
         // Klick auf die Karte wird im eventFilter() behandelt.
+        // Die Property "exerciseId" wird bereits vom eventFilter()
+        // ausgewertet und öffnet die Übungs-Detailansicht.
         card->installEventFilter(this);
         card->setProperty("exerciseId", exercise.id);
+        card->setProperty("isHistoryCard", true);
 
         // ── Karte ins Grid des aktuellen Tages einfügen ─────────────────────
         currentGrid->addWidget(
@@ -4049,6 +4044,7 @@ void MainWindow::loadRoutineCards()
                 // neu aufgebaut, damit die Änderungen sofort sichtbar sind.
                 if (dialog.exec() == QDialog::Accepted) {
                     loadRoutineCards();
+                    loadDashboardRoutineCards();
                 }
             }
             );
@@ -4315,8 +4311,12 @@ void MainWindow::showRoutineExecution(int routineId)
     // Die Übungen dieser Routine dynamisch aus der Datenbank laden.
     loadRoutineExecution();
 
-    // Die Routinen-Seite bleibt dieselbe Seite. Wir wechseln lediglich
-    // vom Übersichts-Stack auf die Ausführungsansicht.
+    // Sicherstellen, dass wir auf der Routinen-Seite sind, bevor
+    // der innere Stack auf die Ausführungsansicht wechselt.
+    ui->hobbyPageStack->setCurrentWidget(
+        ui->routinesPage
+        );
+
     ui->routineViewStack->setCurrentWidget(
         ui->routineExecutionPage
         );
@@ -4747,56 +4747,10 @@ void MainWindow::loadDashboardRoutineCards()
             );
 
         // ─────────────────────────────────────────────────────────
-        // Beschreibung
-        // ─────────────────────────────────────────────────────────
-
-        auto *descriptionLabel =
-            new QLabel(
-                routine.description,
-                card
-                );
-
-        descriptionLabel->setObjectName(
-            "routineCardDescriptionLabel"
-            );
-
-        descriptionLabel->setProperty(
-            "role",
-            "secondary"
-            );
-
-        descriptionLabel->setWordWrap(true);
-
-        descriptionLabel->setMaximumHeight(
-            42
-            );
-
-        cardLayout->addWidget(
-            descriptionLabel
-            );
-
-        // ─────────────────────────────────────────────────────────
         // Übungen
         // ─────────────────────────────────────────────────────────
 
-        auto *exercisesHeader =
-            new QLabel(
-                "Übungen",
-                card
-                );
 
-        exercisesHeader->setObjectName(
-            "routineCardMetaHeaderLabel"
-            );
-
-        exercisesHeader->setProperty(
-            "role",
-            "muted"
-            );
-
-        cardLayout->addWidget(
-            exercisesHeader
-            );
 
         const QList<RoutineStep> steps =
             RoutineRepository::getSteps(
@@ -4819,8 +4773,8 @@ void MainWindow::loadDashboardRoutineCards()
                 );
         }
 
-        // Die kleinere Dashboard-Card zeigt maximal zwei Übungen.
-        constexpr int visibleExerciseCount = 2;
+
+        constexpr int visibleExerciseCount = 4;
 
         int shownCount = 0;
 

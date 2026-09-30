@@ -875,6 +875,10 @@ QFrame#goalCard {
     border: 1px solid #29292d;
     border-radius: 6px;
 }
+QLabel#routineCardNameLabel {
+    font-size: 13px;
+    font-weight: 700;
+}
 
 QFrame#exerciseCard:hover,
 QFrame#goalCard:hover {
@@ -882,13 +886,19 @@ QFrame#goalCard:hover {
 }
 
 QLabel#exerciseCardNameLabel,
-QLabel#goalCardTitleLabel {
+QLabel#goalCardTitleLabel,
+QLabel#routineCardNameLabel {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 QLabel#exerciseCardMetaHeaderLabel {
     font-size: 11px;
+}
+
+QLabel#historyCardNameLabel {
+    font-size: 13px;
+    font-weight: 700;
 }
 
 QLabel#exerciseCardCategoryTagLabel {

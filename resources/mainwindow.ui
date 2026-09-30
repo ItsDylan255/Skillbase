@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1110</width>
-    <height>701</height>
+    <height>782</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -373,6 +373,9 @@
              <property name="spacing">
               <number>0</number>
              </property>
+             <property name="sizeConstraint">
+              <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+             </property>
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -384,9 +387,6 @@
              </property>
              <property name="bottomMargin">
               <number>0</number>
-             </property>
-             <property name="sizeConstraint">
-              <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
              </property>
              <item>
               <widget class="QToolButton" name="dashboardTab">
@@ -743,10 +743,7 @@
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <property name="horizontalSpacing">
-                     <number>12</number>
-                    </property>
-                    <property name="verticalSpacing">
+                    <property name="spacing">
                      <number>12</number>
                     </property>
                    </layout>
@@ -1464,7 +1461,7 @@
                            <property name="text">
                             <string>Noch keine aktiven Routinen
     
-    Leg mit "+ Routine hinzufügen" deine erste Routine für dieses Hobby an.</string>
+    Leg mit &quot;+ Routine hinzufügen&quot; deine erste Routine für dieses Hobby an.</string>
                            </property>
                            <property name="alignment">
                             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1487,8 +1484,8 @@
                              <rect>
                               <x>0</x>
                               <y>0</y>
-                              <width>835</width>
-                              <height>398</height>
+                              <width>62</width>
+                              <height>16</height>
                              </rect>
                             </property>
                             <layout class="QGridLayout" name="routineActiveCardsLayout">
@@ -1685,17 +1682,20 @@
                           </property>
                           <item>
                            <widget class="QLabel" name="routineExecutionExerciseNameLabel">
+                            <property name="minimumSize">
+                             <size>
+                              <width>0</width>
+                              <height>40</height>
+                             </size>
+                            </property>
                             <property name="text">
                              <string/>
                             </property>
+                            <property name="alignment">
+                             <set>Qt::AlignmentFlag::AlignCenter</set>
+                            </property>
                             <property name="wordWrap">
                              <bool>true</bool>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimumSize">
-                             <size><width>0</width><height>40</height></size>
                             </property>
                            </widget>
                           </item>
@@ -1704,11 +1704,11 @@
                             <property name="text">
                              <string/>
                             </property>
-                            <property name="wordWrap">
-                             <bool>true</bool>
-                            </property>
                             <property name="alignment">
                              <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+                            </property>
+                            <property name="wordWrap">
+                             <bool>true</bool>
                             </property>
                            </widget>
                           </item>
@@ -1734,24 +1734,33 @@
                           </property>
                           <item>
                            <widget class="QLabel" name="routineExecutionTimerLabel">
+                            <property name="minimumSize">
+                             <size>
+                              <width>0</width>
+                              <height>112</height>
+                             </size>
+                            </property>
                             <property name="text">
                              <string/>
                             </property>
                             <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimumSize">
-                             <size><width>0</width><height>112</height></size>
+                             <set>Qt::AlignmentFlag::AlignCenter</set>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <widget class="QProgressBar" name="routineExecutionProgressBar">
                             <property name="minimumSize">
-                             <size><width>0</width><height>16</height></size>
+                             <size>
+                              <width>0</width>
+                              <height>16</height>
+                             </size>
                             </property>
                             <property name="maximumSize">
-                             <size><width>16777215</width><height>16</height></size>
+                             <size>
+                              <width>16777215</width>
+                              <height>16</height>
+                             </size>
                             </property>
                             <property name="minimum">
                              <number>0</number>
@@ -1787,27 +1796,33 @@
                             </item>
                             <item>
                              <widget class="QPushButton" name="routineExecutionStartPauseButton">
+                              <property name="minimumSize">
+                               <size>
+                                <width>88</width>
+                                <height>52</height>
+                               </size>
+                              </property>
                               <property name="toolTip">
                                <string>Start / Pause</string>
                               </property>
                               <property name="text">
                                <string>▶</string>
                               </property>
-                              <property name="minimumSize">
-                               <size><width>88</width><height>52</height></size>
-                              </property>
                              </widget>
                             </item>
                             <item>
                              <widget class="QPushButton" name="routineExecutionStopButton">
+                              <property name="minimumSize">
+                               <size>
+                                <width>88</width>
+                                <height>52</height>
+                               </size>
+                              </property>
                               <property name="toolTip">
                                <string>Stopp</string>
                               </property>
                               <property name="text">
                                <string>■</string>
-                              </property>
-                              <property name="minimumSize">
-                               <size><width>88</width><height>52</height></size>
                               </property>
                              </widget>
                             </item>
@@ -1844,20 +1859,23 @@
                                <string>Wert</string>
                               </property>
                               <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
                               </property>
                              </widget>
                             </item>
                             <item>
                              <widget class="QLabel" name="routineExecutionExerciseCurrentValueLabel">
+                              <property name="minimumSize">
+                               <size>
+                                <width>0</width>
+                                <height>36</height>
+                               </size>
+                              </property>
                               <property name="text">
                                <string/>
                               </property>
                               <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
-                              </property>
-                              <property name="minimumSize">
-                               <size><width>0</width><height>36</height></size>
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
                               </property>
                              </widget>
                             </item>
@@ -1874,7 +1892,7 @@
                                <string>Neu</string>
                               </property>
                               <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
                               </property>
                              </widget>
                             </item>
@@ -1899,10 +1917,16 @@
                               <item>
                                <widget class="QLineEdit" name="routineExecutionExerciseValueEdit">
                                 <property name="minimumSize">
-                                 <size><width>140</width><height>48</height></size>
+                                 <size>
+                                  <width>140</width>
+                                  <height>48</height>
+                                 </size>
                                 </property>
                                 <property name="maximumSize">
-                                 <size><width>240</width><height>48</height></size>
+                                 <size>
+                                  <width>240</width>
+                                  <height>48</height>
+                                 </size>
                                 </property>
                                 <property name="alignment">
                                  <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1947,20 +1971,23 @@
                                <string>Ziel</string>
                               </property>
                               <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
                               </property>
                              </widget>
                             </item>
                             <item>
                              <widget class="QLabel" name="routineExecutionExerciseTargetLabel">
+                              <property name="minimumSize">
+                               <size>
+                                <width>0</width>
+                                <height>36</height>
+                               </size>
+                              </property>
                               <property name="text">
                                <string/>
                               </property>
                               <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter</set>
-                              </property>
-                              <property name="minimumSize">
-                               <size><width>0</width><height>36</height></size>
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
                               </property>
                              </widget>
                             </item>
@@ -1987,10 +2014,16 @@
                      <item>
                       <widget class="QFrame" name="routineExecutionNavigationSeparator">
                        <property name="minimumSize">
-                        <size><width>0</width><height>1</height></size>
+                        <size>
+                         <width>0</width>
+                         <height>1</height>
+                        </size>
                        </property>
                        <property name="maximumSize">
-                        <size><width>16777215</width><height>1</height></size>
+                        <size>
+                         <width>16777215</width>
+                         <height>1</height>
+                        </size>
                        </property>
                        <property name="frameShape">
                         <enum>QFrame::Shape::HLine</enum>
@@ -2019,17 +2052,23 @@
                        </property>
                        <item>
                         <widget class="QPushButton" name="routineExecutionPreviousButton">
+                         <property name="minimumSize">
+                          <size>
+                           <width>56</width>
+                           <height>36</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>56</width>
+                           <height>36</height>
+                          </size>
+                         </property>
                          <property name="toolTip">
                           <string>Vorherige Übung</string>
                          </property>
                          <property name="text">
                           <string>←</string>
-                         </property>
-                         <property name="minimumSize">
-                          <size><width>56</width><height>36</height></size>
-                         </property>
-                         <property name="maximumSize">
-                          <size><width>56</width><height>36</height></size>
                          </property>
                         </widget>
                        </item>
@@ -2042,10 +2081,16 @@
                           </sizepolicy>
                          </property>
                          <property name="minimumSize">
-                          <size><width>0</width><height>36</height></size>
+                          <size>
+                           <width>0</width>
+                           <height>36</height>
+                          </size>
                          </property>
                          <property name="maximumSize">
-                          <size><width>16777215</width><height>36</height></size>
+                          <size>
+                           <width>16777215</width>
+                           <height>36</height>
+                          </size>
                          </property>
                          <property name="frameShape">
                           <enum>QFrame::Shape::NoFrame</enum>
@@ -2060,6 +2105,14 @@
                           <bool>true</bool>
                          </property>
                          <widget class="QWidget" name="routineExecutionExerciseListContainer">
+                          <property name="geometry">
+                           <rect>
+                            <x>0</x>
+                            <y>0</y>
+                            <width>16</width>
+                            <height>36</height>
+                           </rect>
+                          </property>
                           <layout class="QHBoxLayout" name="routineExecutionExerciseListLayout">
                            <property name="spacing">
                             <number>8</number>
@@ -2082,17 +2135,23 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="routineExecutionNextButton">
+                         <property name="minimumSize">
+                          <size>
+                           <width>56</width>
+                           <height>36</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>56</width>
+                           <height>36</height>
+                          </size>
+                         </property>
                          <property name="toolTip">
                           <string>Nächste Übung</string>
                          </property>
                          <property name="text">
                           <string>→</string>
-                         </property>
-                         <property name="minimumSize">
-                          <size><width>56</width><height>36</height></size>
-                         </property>
-                         <property name="maximumSize">
-                          <size><width>56</width><height>36</height></size>
                          </property>
                         </widget>
                        </item>
@@ -2100,6 +2159,440 @@
                      </item>
                     </layout>
                    </widget>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="exerciseExecutionPage">
+                <layout class="QVBoxLayout" name="exerciseExecutionPageLayout" stretch="0,1">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="exerciseExecutionHeaderLayout">
+                   <property name="leftMargin">
+                    <number>16</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>16</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>16</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="exerciseExecutionBackButton">
+                     <property name="toolTip">
+                      <string>Zurück zur Übungsübersicht</string>
+                     </property>
+                     <property name="text">
+                      <string>← Zurück</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="exerciseExecutionHeaderSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="exerciseExecutionFinishButton">
+                     <property name="text">
+                      <string>Übung beenden</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="exerciseExecutionExerciseDetail">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::Shape::NoFrame</enum>
+                   </property>
+                   <layout class="QVBoxLayout" name="exerciseExecutionExerciseDetailLayout" stretch="0,1,0,0,2">
+                    <property name="spacing">
+                     <number>32</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>16</number>
+                    </property>
+                    <item>
+                     <layout class="QVBoxLayout" name="exerciseExecutionExerciseTitleLayout">
+                      <property name="spacing">
+                       <number>8</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="exerciseExecutionExerciseNameLabel">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="exerciseExecutionExerciseDescriptionLabel">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <spacer name="exerciseExecutionDetailTopSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Orientation::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <layout class="QVBoxLayout" name="exerciseExecutionTimerLayout">
+                      <property name="spacing">
+                       <number>16</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="exerciseExecutionTimerLabel">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>112</height>
+                         </size>
+                        </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
+                        </property>
+                        <property name="toolTip">
+                         <string>Zeit antippen, um sie zu ändern</string>
+                        </property>
+                        <property name="text">
+                         <string>00:00</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QProgressBar" name="exerciseExecutionProgressBar">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>16</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>16777215</width>
+                          <height>16</height>
+                         </size>
+                        </property>
+                        <property name="minimum">
+                         <number>0</number>
+                        </property>
+                        <property name="maximum">
+                         <number>1000</number>
+                        </property>
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="textVisible">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="exerciseExecutionTimerControlsLayout">
+                        <property name="spacing">
+                         <number>8</number>
+                        </property>
+                        <item>
+                         <spacer name="exerciseExecutionTimerControlsLeftSpacer">
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>0</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="exerciseExecutionStartPauseButton">
+                          <property name="minimumSize">
+                           <size>
+                            <width>88</width>
+                            <height>52</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Start / Pause</string>
+                          </property>
+                          <property name="text">
+                           <string>▶</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="exerciseExecutionStopButton">
+                          <property name="minimumSize">
+                           <size>
+                            <width>88</width>
+                            <height>52</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Stopp</string>
+                          </property>
+                          <property name="text">
+                           <string>■</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="exerciseExecutionTimerControlsRightSpacer">
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>0</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="exerciseExecutionExerciseValuesRow" stretch="1,1,1">
+                      <property name="spacing">
+                       <number>24</number>
+                      </property>
+                      <item>
+                       <layout class="QVBoxLayout" name="exerciseExecutionExerciseCurrentValueColumn">
+                        <property name="spacing">
+                         <number>4</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="exerciseExecutionExerciseCurrentValueHeaderLabel">
+                          <property name="text">
+                           <string>Wert</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="exerciseExecutionExerciseCurrentValueLabel">
+                          <property name="minimumSize">
+                           <size>
+                            <width>0</width>
+                            <height>36</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QVBoxLayout" name="exerciseExecutionExerciseNewValueColumn">
+                        <property name="spacing">
+                         <number>4</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="exerciseExecutionExerciseNewValueHeaderLabel">
+                          <property name="text">
+                           <string>Neu</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <layout class="QHBoxLayout" name="exerciseExecutionExerciseValueRow">
+                          <property name="spacing">
+                           <number>8</number>
+                          </property>
+                          <item>
+                           <spacer name="exerciseExecutionExerciseValueRowLeftSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="exerciseExecutionExerciseValueEdit">
+                            <property name="minimumSize">
+                             <size>
+                              <width>140</width>
+                              <height>48</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>240</width>
+                              <height>48</height>
+                             </size>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignmentFlag::AlignCenter</set>
+                            </property>
+                            <property name="placeholderText">
+                             <string>Wert</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="exerciseExecutionExerciseUnitLabel">
+                            <property name="text">
+                             <string/>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer name="exerciseExecutionExerciseValueRowRightSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QVBoxLayout" name="exerciseExecutionExerciseTargetColumn">
+                        <property name="spacing">
+                         <number>4</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="exerciseExecutionExerciseTargetHeaderLabel">
+                          <property name="text">
+                           <string>Ziel</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="exerciseExecutionExerciseTargetLabel">
+                          <property name="minimumSize">
+                           <size>
+                            <width>0</width>
+                            <height>36</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <spacer name="exerciseExecutionDetailBottomSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Orientation::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                 </layout>
@@ -2400,7 +2893,7 @@
                             <item>
                              <widget class="QLabel" name="exerciseDetailGoalValueLabel">
                               <property name="text">
-                               <string>–</string>
+                               <string>-</string>
                               </property>
                              </widget>
                             </item>
@@ -2503,7 +2996,7 @@
                            </widget>
                           </item>
                           <item row="2" column="0">
-                           <widget class="QLabel" name="exerciseDetailTotalTimeHeaderLabel">
+                           <widget class="QLabel" name="exerciseExecutionTotalTimeHeaderLabel">
                             <property name="text">
                              <string>Übungszeit</string>
                             </property>
@@ -2773,7 +3266,7 @@ Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
                        <property name="text">
                         <string>Noch keine offenen Ziele
 
-Leg mit "+ Ziel hinzufügen" dein erstes Ziel für dieses Hobby an.</string>
+Leg mit &quot;+ Ziel hinzufügen&quot; dein erstes Ziel für dieses Hobby an.</string>
                        </property>
                        <property name="alignment">
                         <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2796,8 +3289,8 @@ Leg mit "+ Ziel hinzufügen" dein erstes Ziel für dieses Hobby an.</string>
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>62</width>
-                          <height>16</height>
+                          <width>835</width>
+                          <height>475</height>
                          </rect>
                         </property>
                         <layout class="QGridLayout" name="goalOpenCardsLayout">
