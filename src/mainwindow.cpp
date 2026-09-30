@@ -49,15 +49,19 @@
 #include <QMouseEvent>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <QSet>
 #include <QSignalBlocker>
 #include <QSpacerItem>
+#include <QTimer>
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace {
 
@@ -231,6 +235,30 @@ void refreshHobbyDashboardOverview(Ui::MainWindow *ui, int hobbyId)
         );
 }
 
+// Formatiert Sekunden als "MM:SS" für den Routine-Countdown.
+QString formatCountdown(int seconds)
+{
+    seconds = std::max(0, seconds);
+
+    return QString("%1:%2")
+        .arg(seconds / 60, 2, 10, QChar('0'))
+        .arg(seconds % 60, 2, 10, QChar('0'));
+}
+
+// Gleiche Darstellung wie auf den Übungs-Cards: "–", wenn kein Wert existiert.
+QString formatValueWithUnit(double value, const QString &unit)
+{
+    if (value == 0.0)
+        return QStringLiteral("–");
+
+    QString text = QString::number(value, 'g', 15);
+
+    if (!unit.isEmpty())
+        text += " " + unit;
+
+    return text;
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -239,6 +267,146 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // ── Routine-Ausführung ───────────────────────────────────────────────
+    routineExecutionTimer = new QTimer(this);
+    // 16 ms entsprechen etwa 60 Aktualisierungen pro Sekunde.
+    routineExecutionTimer->setTimerType(Qt::PreciseTimer);
+    routineExecutionTimer->setInterval(16);
+
+    // Feine Auflösung (Promille) für einen flüssigen Balken.
+    ui->routineExecutionProgressBar->setRange(0, 1000);
+    ui->routineExecutionProgressBar->setValue(1000);
+
+    // Ausgeblendete Pfeile behalten ihren Platz, damit die Übungsleiste
+    // beim Wechsel zwischen erster/mittlerer/letzter Übung nicht springt.
+    for (QPushButton *arrow : {ui->routineExecutionPreviousButton,
+                               ui->routineExecutionNextButton}) {
+        QSizePolicy policy = arrow->sizePolicy();
+        policy.setRetainSizeWhenHidden(true);
+        arrow->setSizePolicy(policy);
+    }
+
+    // Nur Zahlen mit Punkt oder Komma.
+    ui->routineExecutionExerciseValueEdit->setValidator(
+        new QRegularExpressionValidator(
+            QRegularExpression(QStringLiteral("[0-9]*[.,]?[0-9]*")),
+            this));
+
+    connect(routineExecutionTimer, &QTimer::timeout, this, [this]() {
+
+        if (routineExecutionIndex < 0
+            || routineExecutionIndex >= routineExecutionItems.size()) {
+            setRoutineExecutionRunning(false);
+            return;
+        }
+
+        RoutineExecutionItem &item =
+            routineExecutionItems[routineExecutionIndex];
+
+        // Echte vergangene Zeit seit dem letzten Tick verwenden,
+        // damit der Countdown nicht driftet.
+        const int deltaMs = static_cast<int>(
+            std::min<qint64>(routineExecutionClock.restart(), 1000));
+
+        const int usedMs = std::min(deltaMs, item.remainingMs);
+
+        item.remainingMs -= usedMs;
+        item.elapsedMs   += usedMs;
+        updateRoutineExecutionTimerDisplay();
+
+        if (item.remainingMs <= 0) {
+            setRoutineExecutionRunning(false);
+            QApplication::beep();
+        }
+    });
+
+    connect(ui->routineExecutionStartPauseButton, &QPushButton::clicked,
+            this, [this]() {
+
+        if (routineExecutionIndex < 0
+            || routineExecutionIndex >= routineExecutionItems.size())
+            return;
+
+        RoutineExecutionItem &item =
+            routineExecutionItems[routineExecutionIndex];
+
+        if (routineExecutionTimer->isActive()) {
+            setRoutineExecutionRunning(false);
+            return;
+        }
+
+        if (item.durationSeconds <= 0)
+            return;
+
+        // Nach Ablauf startet ein erneuter Klick wieder bei voller Zeit.
+        if (item.remainingMs <= 0)
+            item.remainingMs = item.durationSeconds * 1000;
+
+        setRoutineExecutionRunning(true);
+    });
+
+    connect(ui->routineExecutionStopButton, &QPushButton::clicked,
+            this, [this]() {
+
+        if (routineExecutionIndex < 0
+            || routineExecutionIndex >= routineExecutionItems.size())
+            return;
+
+        RoutineExecutionItem &item =
+            routineExecutionItems[routineExecutionIndex];
+
+        // Stopp setzt den Countdown zurück (gelaufene Zeit bleibt gezählt).
+        item.remainingMs = item.durationSeconds * 1000;
+        setRoutineExecutionRunning(false);
+    });
+
+    connect(ui->routineExecutionPreviousButton, &QPushButton::clicked,
+            this, [this]() {
+        selectRoutineExecutionExercise(routineExecutionIndex - 1);
+    });
+
+    connect(ui->routineExecutionNextButton, &QPushButton::clicked,
+            this, [this]() {
+        selectRoutineExecutionExercise(routineExecutionIndex + 1);
+    });
+
+    // Der neue Wert wird pro Übung gemerkt, damit er beim Hin- und
+    // Herwechseln nicht verloren geht.
+    connect(ui->routineExecutionExerciseValueEdit, &QLineEdit::textEdited,
+            this, [this](const QString &text) {
+
+        if (routineExecutionIndex >= 0
+            && routineExecutionIndex < routineExecutionItems.size()) {
+            routineExecutionItems[routineExecutionIndex].enteredText = text;
+        }
+    });
+
+    // Zurück verwirft die Eingaben, "Routine beenden" speichert sie.
+    connect(ui->routineExecutionBackButton, &QPushButton::clicked,
+            this, [this]() {
+        leaveRoutineExecution();
+    });
+
+    connect(ui->routineExecutionFinishButton, &QPushButton::clicked,
+            this, [this]() {
+        finishRoutineExecution();
+    });
+
+    // Wechselt der Nutzer mitten in der Ausführung in einen anderen Bereich
+    // (Dashboard, Einstellungen, anderer Hobby-Tab), wird die Ausführung
+    // sauber beendet: Timer stoppen, Seitenränder zurücksetzen.
+    auto leaveExecutionWhenPageHidden = [this]() {
+
+        if (currentExecutionRoutineId != 0
+            && !ui->routinesPage->isVisibleTo(this)) {
+            leaveRoutineExecution();
+        }
+    };
+
+    connect(ui->hobbyPageStack, &QStackedWidget::currentChanged,
+            this, leaveExecutionWhenPageHidden);
+    connect(ui->pageStack, &QStackedWidget::currentChanged,
+            this, leaveExecutionWhenPageHidden);
     // Die beiden Filter wechseln nur die sichtbare Seite
     // innerhalb des Routinen-Stacks.
     connect(
@@ -725,6 +893,10 @@ MainWindow::MainWindow(QWidget *parent)
         // "aktiv" markiert bleiben (immer nur ein Indikator).
         ui->dashboardButton->setChecked(false);
         ui->settingsButton->setChecked(false);
+
+        // Eine laufende Routine-Ausführung gehört zum bisherigen Hobby.
+        if (currentExecutionRoutineId != 0)
+            leaveRoutineExecution();
 
         currentHobby   = item->text();
         currentHobbyId = item->data(Qt::UserRole).toInt();
@@ -3886,7 +4058,10 @@ void MainWindow::loadRoutineCards()
             &QPushButton::clicked,
             this,
             [this, routine]() {
-                Q_UNUSED(routine);
+
+                // Merkt die Routine, lädt ihre Übungen und wechselt
+                // von der Übersicht auf die Ausführungsansicht.
+                showRoutineExecution(routine.id);
             }
             );
 
@@ -3968,6 +4143,402 @@ void MainWindow::loadRoutineCards()
         archiveRowCount,
         1
         );
+}
+
+void MainWindow::loadRoutineExecution()
+{
+    // Ohne ausgewählte Routine gibt es nichts anzuzeigen.
+    if (currentExecutionRoutineId == 0)
+        return;
+
+    setRoutineExecutionRunning(false);
+    routineExecutionItems.clear();
+    routineExecutionIndex = -1;
+
+    // Bisherige Einträge inklusive Stretch-Items entfernen.
+    while (QLayoutItem *item =
+               ui->routineExecutionExerciseListLayout->takeAt(0)) {
+
+        if (QWidget *widget = item->widget())
+            widget->deleteLater();
+
+        delete item;
+    }
+
+    // Die gespeicherten Schritte der Routine laden.
+    const QList<RoutineStep> steps =
+        RoutineRepository::getSteps(
+            currentExecutionRoutineId
+            );
+
+    // Die Übungen des aktuellen Hobbys laden.
+    // Darüber bekommen wir Name, Beschreibung, Wert und Einheit.
+    const QList<Exercise> exercises =
+        ExerciseRepository::getForHobby(
+            currentHobbyId,
+            true
+            );
+
+    QHash<int, Exercise> exerciseById;
+
+    for (const Exercise &exercise : exercises) {
+        exerciseById.insert(
+            exercise.id,
+            exercise
+            );
+    }
+
+    for (const RoutineStep &step : steps) {
+
+        // Schritte, deren Übung nicht gefunden wird, werden übersprungen.
+        if (!exerciseById.contains(step.exerciseId))
+            continue;
+
+        const Exercise exercise =
+            exerciseById.value(step.exerciseId);
+
+        // Aktueller Wert = zuletzt gespeicherter Wert.
+        // Ohne bisherige Ausführung gilt der Übungswert.
+        ExerciseLog latestLog;
+
+        const bool hasLatestLog =
+            ExerciseLogRepository::getLatestForExercise(
+                exercise.id,
+                latestLog
+                );
+
+        RoutineExecutionItem item;
+        item.exerciseId       = exercise.id;
+        item.name             = exercise.name;
+        item.description      = exercise.description;
+        item.unit             = exercise.unit;
+        item.currentValue     = hasLatestLog ? latestLog.value : exercise.value;
+        item.goal             = exercise.goal;
+        item.durationSeconds  = step.durationSeconds;
+        item.remainingMs      = step.durationSeconds * 1000;
+
+        routineExecutionItems.append(item);
+    }
+
+    // Stretch vor und nach den Buttons zentriert die Übungsleiste.
+    ui->routineExecutionExerciseListLayout->addStretch();
+
+    for (int index = 0; index < routineExecutionItems.size(); ++index) {
+
+        auto *button =
+            new QPushButton(
+                routineExecutionItems.at(index).name,
+                ui->routineExecutionExerciseListContainer
+                );
+
+        button->setObjectName(
+            "routineExecutionExerciseButton"
+            );
+
+        button->setCursor(
+            Qt::PointingHandCursor
+            );
+
+        button->setCheckable(true);
+
+        // Es ist immer genau eine Übung hervorgehoben.
+        button->setAutoExclusive(true);
+
+        // Gleiche Höhe wie die Pfeile links und rechts.
+        button->setFixedHeight(36);
+
+        // Die Position des Routine-Schritts wird am Button gespeichert.
+        button->setProperty(
+            "routineExerciseIndex",
+            index
+            );
+
+        ui->routineExecutionExerciseListLayout->addWidget(
+            button
+            );
+
+        connect(
+            button,
+            &QPushButton::clicked,
+            this,
+            [this, index]() {
+                selectRoutineExecutionExercise(index);
+            }
+            );
+    }
+
+    ui->routineExecutionExerciseListLayout->addStretch();
+
+    if (!routineExecutionItems.isEmpty()) {
+        selectRoutineExecutionExercise(0);
+        return;
+    }
+
+    // Routine ohne (auffindbare) Übungen: Anzeige leeren.
+    ui->routineExecutionExerciseNameLabel->setText(
+        "Diese Routine enthält keine Übungen."
+        );
+    ui->routineExecutionExerciseDescriptionLabel->clear();
+    ui->routineExecutionExerciseTargetLabel->clear();
+    ui->routineExecutionExerciseCurrentValueLabel->clear();
+    ui->routineExecutionExerciseUnitLabel->clear();
+    ui->routineExecutionExerciseValueEdit->clear();
+    ui->routineExecutionExerciseValueEdit->setEnabled(false);
+    ui->routineExecutionTimerLabel->setText(formatCountdown(0));
+    ui->routineExecutionProgressBar->setValue(0);
+    ui->routineExecutionStartPauseButton->setEnabled(false);
+    ui->routineExecutionStopButton->setEnabled(false);
+    updateRoutineExecutionNavigation();
+}
+
+void MainWindow::showRoutineExecution(int routineId)
+{
+    // Die ID merken, damit die Ausführungsansicht weiß,
+    // welche Routine gerade gestartet wurde.
+    currentExecutionRoutineId = routineId;
+
+    // Seitenrand der Hobby-Seiten merken und links/rechts entfernen,
+    // damit die Trennlinie über die ganze Breite geht.
+    if (!routineExecutionMarginsOverridden) {
+        routineExecutionSavedMargins =
+            ui->hobbyPageStackLayout->contentsMargins();
+        routineExecutionMarginsOverridden = true;
+    }
+
+    ui->hobbyPageStackLayout->setContentsMargins(
+        0,
+        routineExecutionSavedMargins.top(),
+        0,
+        routineExecutionSavedMargins.bottom()
+        );
+
+    // Die Übungen dieser Routine dynamisch aus der Datenbank laden.
+    loadRoutineExecution();
+
+    // Die Routinen-Seite bleibt dieselbe Seite. Wir wechseln lediglich
+    // vom Übersichts-Stack auf die Ausführungsansicht.
+    ui->routineViewStack->setCurrentWidget(
+        ui->routineExecutionPage
+        );
+}
+
+void MainWindow::leaveRoutineExecution()
+{
+    setRoutineExecutionRunning(false);
+
+    routineExecutionItems.clear();
+    routineExecutionIndex = -1;
+    currentExecutionRoutineId = 0;
+
+    // Ursprüngliche Seitenränder wiederherstellen.
+    if (routineExecutionMarginsOverridden) {
+        ui->hobbyPageStackLayout->setContentsMargins(
+            routineExecutionSavedMargins
+            );
+        routineExecutionMarginsOverridden = false;
+    }
+
+    ui->routineViewStack->setCurrentWidget(
+        ui->routineOverviewPage
+        );
+}
+
+void MainWindow::finishRoutineExecution()
+{
+    setRoutineExecutionRunning(false);
+
+    const bool saved = saveRoutineExecutionResults();
+
+    leaveRoutineExecution();
+
+    // Nach dem Speichern alle Ansichten aktualisieren, die Logs anzeigen.
+    if (saved) {
+        loadExerciseCards();
+        loadHistory();
+        loadTimeline();
+        loadRoutineCards();
+        loadDashboardRoutineCards();
+    }
+}
+
+bool MainWindow::saveRoutineExecutionResults()
+{
+    if (currentExecutionRoutineId == 0)
+        return false;
+
+    bool savedAnything = false;
+    int totalElapsedSeconds = 0;
+    bool anyValueEntered = false;
+
+    for (const RoutineExecutionItem &item :
+         std::as_const(routineExecutionItems)) {
+
+        const int elapsedSeconds = qRound(item.elapsedMs / 1000.0);
+        totalElapsedSeconds += elapsedSeconds;
+
+        // Komma und Punkt werden beide akzeptiert.
+        QString text = item.enteredText.trimmed();
+        text.replace(',', '.');
+
+        bool ok = false;
+        const double newValue = text.toDouble(&ok);
+
+        // Übungen ohne eingetragenen Wert werden nicht gespeichert.
+        if (!ok)
+            continue;
+
+        anyValueEntered = true;
+
+        int logId = 0;
+
+        // Ein Übungs-Log pro Übung: neuer Wert, Einheit und die
+        // tatsächlich gelaufene Zeit. Karten, Verlauf und Fortschritt
+        // lesen den letzten Log, deshalb erscheint der Wert überall.
+        if (!ExerciseLogRepository::add(
+                item.exerciseId,
+                newValue,
+                item.unit,
+                elapsedSeconds,
+                logId)) {
+
+            qDebug() << "Übungs-Log der Routine konnte nicht gespeichert werden:"
+                     << item.exerciseId;
+            continue;
+        }
+
+        savedAnything = true;
+    }
+
+    // Das Routine-Log wird nur geschrieben, wenn wirklich etwas passiert
+    // ist (Wert eingetragen oder Zeit gelaufen). Ein versehentliches
+    // Öffnen und Beenden erzeugt keinen Eintrag.
+    if (anyValueEntered || totalElapsedSeconds > 0) {
+
+        int routineLogId = 0;
+
+        if (RoutineRepository::addLog(
+                currentExecutionRoutineId,
+                totalElapsedSeconds,
+                routineLogId)) {
+            savedAnything = true;
+        } else {
+            qDebug() << "Routine-Log konnte nicht gespeichert werden.";
+        }
+    }
+
+    return savedAnything;
+}
+
+void MainWindow::selectRoutineExecutionExercise(int index)
+{
+    if (index < 0 || index >= routineExecutionItems.size())
+        return;
+
+    // Beim Wechsel läuft kein Timer weiter, die Restzeit bleibt erhalten.
+    setRoutineExecutionRunning(false);
+
+    routineExecutionIndex = index;
+
+    const RoutineExecutionItem &item =
+        routineExecutionItems.at(index);
+
+    ui->routineExecutionExerciseNameLabel->setText(item.name);
+    ui->routineExecutionExerciseDescriptionLabel->setText(item.description);
+    ui->routineExecutionExerciseTargetLabel->setText(
+        formatValueWithUnit(item.goal, item.unit));
+    ui->routineExecutionExerciseCurrentValueLabel->setText(
+        formatValueWithUnit(item.currentValue, item.unit));
+    ui->routineExecutionExerciseUnitLabel->setText(item.unit);
+
+    ui->routineExecutionExerciseValueEdit->setEnabled(true);
+    ui->routineExecutionExerciseValueEdit->setText(item.enteredText);
+
+    // Passenden Button hervorheben und in die Leiste scrollen.
+    for (int i = 0;
+         i < ui->routineExecutionExerciseListLayout->count();
+         ++i) {
+
+        QWidget *widget =
+            ui->routineExecutionExerciseListLayout->itemAt(i)->widget();
+
+        if (!widget)
+            continue;
+
+        if (widget->property("routineExerciseIndex").toInt() == index) {
+
+            if (auto *button = qobject_cast<QPushButton *>(widget))
+                button->setChecked(true);
+
+            ui->routineExecutionExerciseList->ensureWidgetVisible(widget);
+            break;
+        }
+    }
+
+    updateRoutineExecutionTimerDisplay();
+    updateRoutineExecutionNavigation();
+}
+
+void MainWindow::updateRoutineExecutionTimerDisplay()
+{
+    if (routineExecutionIndex < 0
+        || routineExecutionIndex >= routineExecutionItems.size())
+        return;
+
+    const RoutineExecutionItem &item =
+        routineExecutionItems.at(routineExecutionIndex);
+
+    // Aufrunden: "00:01" bleibt sichtbar, bis wirklich 0 erreicht ist.
+    ui->routineExecutionTimerLabel->setText(
+        formatCountdown((item.remainingMs + 999) / 1000)
+        );
+
+    // 1000 = volle Zeit verbleibt, 0 = 00:00.
+    const int value = item.durationSeconds > 0
+        ? qRound(1000.0 * item.remainingMs / (item.durationSeconds * 1000.0))
+        : 0;
+
+    ui->routineExecutionProgressBar->setValue(value);
+
+    ui->routineExecutionStartPauseButton->setEnabled(
+        item.durationSeconds > 0
+        );
+
+    ui->routineExecutionStopButton->setEnabled(
+        item.durationSeconds > 0
+        && (routineExecutionTimer->isActive()
+            || item.remainingMs != item.durationSeconds * 1000)
+        );
+}
+
+void MainWindow::updateRoutineExecutionNavigation()
+{
+    const int count = routineExecutionItems.size();
+
+    // Nicht benötigte Pfeile werden ausgeblendet, nicht deaktiviert.
+    ui->routineExecutionPreviousButton->setVisible(
+        routineExecutionIndex > 0
+        );
+
+    ui->routineExecutionNextButton->setVisible(
+        routineExecutionIndex >= 0
+        && routineExecutionIndex < count - 1
+        );
+}
+
+void MainWindow::setRoutineExecutionRunning(bool running)
+{
+    if (running) {
+        routineExecutionClock.start();
+        routineExecutionTimer->start();
+    } else {
+        routineExecutionTimer->stop();
+    }
+
+    ui->routineExecutionStartPauseButton->setText(
+        running ? "⏸" : "▶"
+        );
+
+    updateRoutineExecutionTimerDisplay();
 }
 
 void MainWindow::loadDashboardRoutineCards()

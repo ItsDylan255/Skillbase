@@ -1,8 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QElapsedTimer>
 #include <QHash>
+#include <QList>
 #include <QMainWindow>
+#include <QMargins>
 #include <QPoint>
 #include <QSoundEffect>
 #include <QString>
@@ -17,6 +20,7 @@ class QDialog;
 class QFrame;
 class QListWidgetItem;
 class QMouseEvent;
+class QTimer;
 class QToolButton;
 class QVBoxLayout;
 
@@ -70,7 +74,31 @@ private:
     // Lädt die Routinen des aktuellen Hobbys und verteilt
     // aktive und archivierte Routinen auf die jeweiligen Ansichten.
     void loadRoutineCards();
+
+    // Lädt die Übungen der aktuell ausgeführten Routine
+    // und erstellt daraus die auswählbare Liste.
+    void loadRoutineExecution();
+
     void loadDashboardRoutineCards();
+
+    // ── Routine-Ausführung ───────────────────────────────────────────────
+    // Öffnet die Ausführungsansicht für eine Routine.
+    void showRoutineExecution(int routineId);
+
+    // Verlässt die Ausführungsansicht OHNE zu speichern.
+    void leaveRoutineExecution();
+
+    // Speichert die Eingaben und verlässt die Ausführungsansicht.
+    void finishRoutineExecution();
+
+    // Schreibt Übungs-Logs und Routine-Log in die Datenbank.
+    // Liefert true, wenn mindestens etwas gespeichert wurde.
+    bool saveRoutineExecutionResults();
+
+    void selectRoutineExecutionExercise(int index);
+    void updateRoutineExecutionTimerDisplay();
+    void updateRoutineExecutionNavigation();
+    void setRoutineExecutionRunning(bool running);
 
     // ── Zustand ──────────────────────────────────────────────────────────
     Ui::MainWindow *ui;
@@ -80,6 +108,44 @@ private:
     // Übung, deren Detail-/Fortschrittsansicht gerade angezeigt wird.
     // 0, solange die normale Übungsübersicht sichtbar ist.
     int currentDetailExerciseId = 0;
+
+    // Routine, die gerade ausgeführt wird.
+    // 0 bedeutet, dass momentan keine Routine ausgeführt wird.
+    int currentExecutionRoutineId = 0;
+
+    // Daten einer Übung innerhalb der laufenden Routine.
+    struct RoutineExecutionItem
+    {
+        int exerciseId = 0;
+        QString name;
+        QString description;
+        QString unit;
+        double currentValue = 0.0;
+        double goal = 0.0;
+        int durationSeconds = 0;
+
+        // Millisekunden, damit der Fortschrittsbalken flüssig läuft.
+        int remainingMs = 0;
+
+        // Tatsächlich gelaufene Zeit. Stopp setzt nur den Countdown
+        // zurück, die bereits gelaufene Zeit bleibt erhalten.
+        int elapsedMs = 0;
+
+        // Bereits eingetippter neuer Wert (bleibt beim Wechseln erhalten).
+        QString enteredText;
+    };
+
+    QList<RoutineExecutionItem> routineExecutionItems;
+    int routineExecutionIndex = -1;
+    QTimer *routineExecutionTimer = nullptr;
+
+    // Misst die echte Zeit zwischen zwei Timer-Ticks (kein Driften).
+    QElapsedTimer routineExecutionClock;
+
+    // Die Hobby-Seiten haben seitlich Rand. Für die Ausführung wird er auf 0
+    // gesetzt, damit die Trennlinie über die ganze Breite geht.
+    QMargins routineExecutionSavedMargins;
+    bool routineExecutionMarginsOverridden = false;
 
     enum class HistoryFilter
     {

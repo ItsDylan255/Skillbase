@@ -485,7 +485,8 @@ QPushButton#addRoutineButton,
 QPushButton#addGoalButton,
 QPushButton#addRoadmapGoalButton,
 QPushButton#addTimelinePhaseButton,
-QPushButton#addButton {
+QPushButton#addButton,
+QPushButton#routineExecutionStartPauseButton {
     background-color: #ff6f61;
     color: #171012;
     border: 1px solid #ff6f61;
@@ -497,7 +498,8 @@ QPushButton#addRoutineButton:hover,
 QPushButton#addGoalButton:hover,
 QPushButton#addRoadmapGoalButton:hover,
 QPushButton#addTimelinePhaseButton:hover,
-QPushButton#addButton:hover {
+QPushButton#addButton:hover,
+QPushButton#routineExecutionStartPauseButton:hover {
     background-color: #ff8677;
     border-color: #ff8677;
 }
@@ -507,7 +509,8 @@ QPushButton#addRoutineButton:pressed,
 QPushButton#addGoalButton:pressed,
 QPushButton#addRoadmapGoalButton:pressed,
 QPushButton#addTimelinePhaseButton:pressed,
-QPushButton#addButton:pressed {
+QPushButton#addButton:pressed,
+QPushButton#routineExecutionStartPauseButton:pressed {
     background-color: #e85c4e;
     border-color: #e85c4e;
 }
@@ -517,7 +520,8 @@ QPushButton#addButton:pressed {
    1px Border), aber ohne Fläche und mit schmalerem Horizontal-Padding,
    damit der Button kompakt bleibt und nicht stärker wirkt als der Inhalt. */
 QPushButton#progressBackButton,
-QPushButton#timelineBackButton {
+QPushButton#timelineBackButton,
+QPushButton#routineExecutionBackButton {
     background-color: transparent;
     color: #9a9aa0;
     border: 1px solid transparent;
@@ -528,25 +532,29 @@ QPushButton#timelineBackButton {
 }
 
 QPushButton#progressBackButton:hover,
-QPushButton#timelineBackButton:hover {
+QPushButton#timelineBackButton:hover,
+QPushButton#routineExecutionBackButton:hover {
     background-color: #212124;
     color: #eaeaec;
 }
 
 QPushButton#progressBackButton:pressed,
-QPushButton#timelineBackButton:pressed {
+QPushButton#timelineBackButton:pressed,
+QPushButton#routineExecutionBackButton:pressed {
     background-color: #29292d;
     color: #eaeaec;
 }
 
 QPushButton#progressBackButton:focus,
-QPushButton#timelineBackButton:focus {
+QPushButton#timelineBackButton:focus,
+QPushButton#routineExecutionBackButton:focus {
     border: 1px solid #ff6f61;
     color: #eaeaec;
 }
 
 QPushButton#progressBackButton:disabled,
-QPushButton#timelineBackButton:disabled {
+QPushButton#timelineBackButton:disabled,
+QPushButton#routineExecutionBackButton:disabled {
     background-color: transparent;
     color: #55555a;
     border: 1px solid transparent;
@@ -1290,4 +1298,111 @@ QPushButton#routineSaveButton:disabled {
     background-color: #17171a;
     color: #55555a;
     border-color: #212124;
+}
+
+/* ---------- Routine-Ausführung (routineExecutionPage) ---------- */
+
+QScrollArea#routineExecutionExerciseList,
+QWidget#routineExecutionExerciseListContainer,
+QFrame#routineExecutionExerciseDetail {
+    background: transparent;
+    border: none;
+}
+
+/* Trennlinie über der unteren Zeile (volle Fensterbreite) */
+QFrame#routineExecutionNavigationSeparator {
+    background-color: #29292d;
+    border: none;
+    max-height: 1px;
+}
+
+QLabel#routineExecutionExerciseNameLabel {
+    font-size: 32px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QLabel#routineExecutionExerciseDescriptionLabel {
+    font-size: 16px;
+    color: #9a9aa0;
+}
+
+/* Beschriftungen über den Werten (Wert / Neu / Ziel) */
+QLabel#routineExecutionExerciseTargetHeaderLabel,
+QLabel#routineExecutionExerciseCurrentValueHeaderLabel,
+QLabel#routineExecutionExerciseNewValueHeaderLabel {
+    font-size: 18px;
+    font-weight: 600;
+    color: #6d6d73;
+}
+
+QLabel#routineExecutionExerciseTargetLabel,
+QLabel#routineExecutionExerciseCurrentValueLabel {
+    font-size: 28px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QLineEdit#routineExecutionExerciseValueEdit {
+    font-size: 28px;
+    font-weight: 600;
+    padding: 4px 12px;
+}
+
+QLabel#routineExecutionExerciseUnitLabel {
+    font-size: 16px;
+    color: #9a9aa0;
+}
+
+/* Countdown: bewusst der größte Text der Oberfläche */
+QLabel#routineExecutionTimerLabel {
+    font-size: 96px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QProgressBar#routineExecutionProgressBar {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    height: 16px;
+    max-height: 16px;
+}
+
+QProgressBar#routineExecutionProgressBar::chunk {
+    background-color: #ff6f61;
+    border-radius: 4px;
+}
+
+QPushButton#routineExecutionStartPauseButton,
+QPushButton#routineExecutionStopButton {
+    font-size: 24px;
+}
+
+/* Pfeile und Übungsbuttons unten: gleiche Schrift (13px), Höhe 36px
+   (Pfeile fix in der .ui, Übungsbuttons per setFixedHeight(36)). */
+QPushButton#routineExecutionPreviousButton,
+QPushButton#routineExecutionNextButton,
+QPushButton#routineExecutionExerciseButton {
+    font-size: 13px;
+}
+
+/* Übungs-Auswahl unten: dynamisch erzeugte, checkbare QPushButtons mit
+   objectName "routineExecutionExerciseButton". Inaktiv = Secondary
+   (Standard-QPushButton), aktiv (:checked) = Accent wie die Primary-Buttons. */
+QPushButton#routineExecutionExerciseButton:checked {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QPushButton#routineExecutionExerciseButton:checked:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QPushButton#routineExecutionExerciseButton:checked:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
 }
