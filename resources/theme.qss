@@ -1043,6 +1043,270 @@ QListWidget#hobbyList::item:selected {
     border-left: 2px solid #ff6f61;
 }
 
+/* ---------- Roadmap: Overlay-Buttons in der Zeile ---------- */
+
+/* Vier Icon-Buttons, die rechts in der Zeile des ausgewählten
+   Steps erscheinen. Sie sind Kinder des Tree-Widgets und werden
+   vom Code positioniert. */
+QToolButton#roadmapRowAddChildButton,
+QToolButton#roadmapRowRenameButton,
+QToolButton#roadmapRowToggleDoneButton,
+QToolButton#roadmapRowDeleteButton {
+    background-color: #212124;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    padding: 0;
+}
+
+QToolButton#roadmapRowAddChildButton:hover,
+QToolButton#roadmapRowRenameButton:hover,
+QToolButton#roadmapRowToggleDoneButton:hover {
+    background-color: #29292d;
+    border-color: #333338;
+}
+
+QToolButton#roadmapRowDeleteButton:hover {
+    background-color: rgba(229, 72, 77, 0.12);
+    border-color: rgba(229, 72, 77, 0.35);
+}
+
+QToolButton#roadmapRowAddChildButton:disabled,
+QToolButton#roadmapRowRenameButton:disabled,
+QToolButton#roadmapRowToggleDoneButton:disabled,
+QToolButton#roadmapRowDeleteButton:disabled {
+    background-color: #19191c;
+    border-color: #29292d;
+}
+
+/* Detail-Ansicht: Toggle zwischen Hierarchy und Tree. */
+QToolButton#roadmapHierarchyViewButton,
+QToolButton#roadmapTreeViewButton {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid #29292d;
+}
+
+QToolButton#roadmapHierarchyViewButton:hover,
+QToolButton#roadmapTreeViewButton:hover {
+    background-color: #212124;
+    border-color: #333338;
+}
+
+QToolButton#roadmapHierarchyViewButton:pressed,
+QToolButton#roadmapTreeViewButton:pressed {
+    background-color: #29292d;
+}
+
+QToolButton#roadmapHierarchyViewButton:checked,
+QToolButton#roadmapTreeViewButton:checked {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    border-bottom: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QToolButton#roadmapHierarchyViewButton:checked:hover,
+QToolButton#roadmapTreeViewButton:checked:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+    border-bottom: 1px solid #ff8677;
+}
+
+/* Platzhalter für die Diagramm-Ansicht. */
+QLabel#roadmapTreePlaceholderLabel {
+    color: #6d6d73;
+    font-size: 13px;
+}
+
+
+/* Der "+ Neuer Step"-Button ist der Primary-Button der Roadmap. */
+QPushButton#addRoadmapGoalButton {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QPushButton#addRoadmapGoalButton:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QPushButton#addRoadmapGoalButton:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
+}
+
+/* Roadmap-Karten: gleicher Look wie Routine-Karten. */
+QFrame#roadmapCard {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+}
+
+QFrame#roadmapCard:hover {
+    border: 1px solid #333338;
+}
+
+QLabel#roadmapCardNameLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #eaeaec;
+}
+
+QLabel#roadmapCardMetaHeaderLabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d6d73;
+    padding-top: 8px;
+}
+
+QLabel#roadmapCardStatLabel {
+    font-size: 11px;
+    color: #9a9aa0;
+}
+
+/* Mini-Baum in der Card: Root-Step (●) */
+QLabel#roadmapCardRootStepLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Mini-Baum: Kind-Steps */
+QLabel#roadmapCardChildStepLabel {
+    font-size: 12px;
+    color: #eaeaec;
+}
+
+/* Mini-Baum: erledigte Steps (ausgegraut) */
+QLabel#roadmapCardCompletedStepLabel {
+    font-size: 12px;
+    color: #4a4a4f;
+}
+
+/* Mini-Baum: "+ N weitere"-Zeile */
+QLabel#roadmapCardMoreLabel {
+    font-size: 11px;
+    color: #6d6d73;
+    padding-top: 4px;
+}
+
+/* Stern auf der Roadmap-Card */
+QToolButton#roadmapCardStarButton {
+    background-color: transparent;
+    border: none;
+    border-bottom: none;
+    border-radius: 4px;
+    padding: 0;
+    margin: 0;
+}
+
+QToolButton#roadmapCardStarButton:hover {
+    background-color: #212124;
+    border-bottom: none;
+}
+
+QToolButton#roadmapCardStarButton:pressed {
+    background-color: #29292d;
+    border-bottom: none;
+}
+
+/* Aktiver/Archiv-Toggle in der Roadmap-Übersicht */
+QToolButton#roadmapFilterActiveButton,
+QToolButton#roadmapFilterArchiveButton {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid #29292d;
+}
+
+QToolButton#roadmapFilterActiveButton:hover,
+QToolButton#roadmapFilterArchiveButton:hover {
+    background-color: #212124;
+    border-color: #333338;
+}
+
+QToolButton#roadmapFilterActiveButton:pressed,
+QToolButton#roadmapFilterArchiveButton:pressed {
+    background-color: #29292d;
+}
+
+QToolButton#roadmapFilterActiveButton:checked,
+QToolButton#roadmapFilterArchiveButton:checked {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    border-bottom: 1px solid #ff6f61;
+    font-weight: 600;
+}
+
+QToolButton#roadmapFilterActiveButton:checked:hover,
+QToolButton#roadmapFilterArchiveButton:checked:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+    border-bottom: 1px solid #ff8677;
+}
+
+/* Detail-Seite: Back-Button */
+QPushButton#roadmapDetailBackButton {
+    background-color: transparent;
+    color: #9a9aa0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton#roadmapDetailBackButton:hover {
+    background-color: #212124;
+    color: #eaeaec;
+}
+
+/* Detail-Seite: Titel — gleiche Größe wie die Section-Header
+   auf den anderen Seiten. */
+QLabel#roadmapDetailTitleLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Roadmap-Tree: Der Delegate zeichnet Auswahl und Inhalte selbst.
+   Der Rahmen kommt direkt am Tree. */
+QTreeWidget#roadmapTreeWidget {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    outline: none;
+    padding: 8px;
+}
+
+QTreeWidget#roadmapTreeWidget::item {
+    background: transparent;
+    border: none;
+}
+
+QTreeWidget#roadmapTreeWidget::item:hover {
+    background: transparent;
+}
+
+QTreeWidget#roadmapTreeWidget::item:selected {
+    background: transparent;
+    color: #eaeaec;
+}
+
+
 /* ---------- Ziel-Filter ---------- */
 
 /* "Offen"/"Geschafft" (Ziele) und "Aktiv"/"Archiv" (Routinen) verhalten sich wie normale sekundäre
@@ -1050,9 +1314,7 @@ QListWidget#hobbyList::item:selected {
 QToolButton#goalsFilterOpenButton,
 QToolButton#goalsFilterDoneButton,
 QToolButton#routinesFilterActiveButton,
-QToolButton#routinesFilterArchiveButton,
-QToolButton#roadmapTreeViewButton,
-QToolButton#roadmapDiagramViewButton {
+QToolButton#routinesFilterArchiveButton {
     background-color: #19191c;
     color: #eaeaec;
     border: 1px solid #29292d;
@@ -1513,4 +1775,14 @@ QPushButton#exerciseExecutionStartPauseButton,
 QPushButton#exerciseExecutionStopButton {
     icon-size: 24px;
     font-size: 24px;
+}
+
+QTreeWidget#roadmapTreeWidget {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 6px;
+    padding: 8px;
+}
+QFrame#roadmapCard:hover {
+    border: 1px solid #333338;
 }

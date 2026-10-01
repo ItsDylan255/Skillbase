@@ -90,7 +90,15 @@ qt_add_executable(Skillbase
     src/routinedialog.cpp
     include/clickablelabel.h
     src/clickablelabel.cpp
-
+    include/roadmapstep.h
+    include/roadmaprepository.h
+    src/roadmaprepository.cpp
+    src/roadmapminitreewidget.cpp
+    include/roadmapminitreewidget.h
+    include/roadmaptreewidget.h
+    src/roadmaptreewidget.cpp
+    include/roadmaptreedelegate.h
+    src/roadmaptreedelegate.cpp
 
 
 )

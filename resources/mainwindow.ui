@@ -527,7 +527,7 @@
              <item>
               <widget class="QStackedWidget" name="hobbyPageStack">
                <property name="currentIndex">
-                <number>4</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="dashboardHobbyPage">
                 <layout class="QVBoxLayout" name="hobbyDashboardLayout">
@@ -903,267 +903,420 @@
                 </layout>
                </widget>
                <widget class="QWidget" name="roadmapPage">
-                <layout class="QVBoxLayout" name="roadmapPageLayout">
+                <layout class="QVBoxLayout" name="roadmapPageRootLayout">
                  <property name="spacing">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="leftMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <item>
-                  <layout class="QHBoxLayout" name="roadmapHeaderLayout">
-                   <item>
-                    <widget class="QLabel" name="roadmapHeaderLabel">
-                     <property name="text">
-                      <string>Roadmap</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="roadmapHeaderSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="addRoadmapGoalButton">
-                     <property name="text">
-                      <string>+ Neues Ziel</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="roadmapViewToggleLayout">
-                   <item>
-                    <spacer name="roadmapViewToggleSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QToolButton" name="roadmapTreeViewButton">
-                     <property name="text">
-                      <string>Tree</string>
-                     </property>
-                     <property name="checkable">
-                      <bool>true</bool>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                     <property name="autoExclusive">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QToolButton" name="roadmapDiagramViewButton">
-                     <property name="text">
-                      <string>Diagram</string>
-                     </property>
-                     <property name="checkable">
-                      <bool>true</bool>
-                     </property>
-                     <property name="autoExclusive">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QSplitter" name="roadmapSplitter">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
+                  <widget class="QStackedWidget" name="roadmapViewStack">
+                   <property name="currentIndex">
+                    <number>0</number>
                    </property>
-                   <property name="childrenCollapsible">
-                    <bool>false</bool>
-                   </property>
-                   <widget class="QStackedWidget" name="roadmapViewStack">
-                    <property name="currentIndex">
-                     <number>0</number>
-                    </property>
-                    <widget class="QWidget" name="roadmapTreePage">
-                     <layout class="QVBoxLayout" name="roadmapTreePageLayout">
-                      <property name="leftMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>0</number>
-                      </property>
-                      <item>
-                       <widget class="QTreeWidget" name="roadmapTreeWidget">
-                        <property name="contextMenuPolicy">
-                         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-                        </property>
-                        <property name="headerHidden">
-                         <bool>true</bool>
-                        </property>
-                        <column>
-                         <property name="text">
-                          <string>Ziel</string>
-                         </property>
-                        </column>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="roadmapDiagramPage">
-                     <layout class="QVBoxLayout" name="roadmapDiagramPageLayout">
-                      <property name="leftMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>0</number>
-                      </property>
-                      <item>
-                       <widget class="QWidget" name="roadmapDiagramWidget" native="true">
-                        <property name="toolTip">
-                         <string>Hierarchie-Diagramm – wird per C++ gezeichnet</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </widget>
-                   <widget class="QWidget" name="roadmapInfoPanel" native="true">
-                    <property name="minimumSize">
-                     <size>
-                      <width>200</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>260</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <layout class="QVBoxLayout" name="roadmapInfoLayout">
+                   <widget class="QWidget" name="roadmapOverviewPage">
+                    <layout class="QVBoxLayout" name="roadmapOverviewPageLayout">
                      <property name="spacing">
-                      <number>8</number>
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>12</number>
                      </property>
                      <item>
-                      <widget class="QLabel" name="roadmapInfoTitle">
+                      <layout class="QHBoxLayout" name="roadmapHeaderLayout">
+                       <item>
+                        <widget class="QLabel" name="roadmapHeaderLabel">
+                         <property name="text">
+                          <string>Roadmap</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="roadmapHeaderSpacer">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>0</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="addRoadmapGoalButton">
+                         <property name="text">
+                          <string>+ Neuer Step</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="roadmapFilterLayout">
+                       <item>
+                        <widget class="QLineEdit" name="roadmapSearchLineEdit">
+                         <property name="placeholderText">
+                          <string>Roadmap durchsuchen...</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QToolButton" name="roadmapFilterActiveButton">
+                         <property name="text">
+                          <string>Aktiv</string>
+                         </property>
+                         <property name="checkable">
+                          <bool>true</bool>
+                         </property>
+                         <property name="checked">
+                          <bool>true</bool>
+                         </property>
+                         <property name="autoExclusive">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QToolButton" name="roadmapFilterArchiveButton">
+                         <property name="text">
+                          <string>Archiv</string>
+                         </property>
+                         <property name="checkable">
+                          <bool>true</bool>
+                         </property>
+                         <property name="autoExclusive">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QStackedWidget" name="roadmapFilterStack">
+                       <property name="currentIndex">
+                        <number>0</number>
+                       </property>
+                       <widget class="QWidget" name="roadmapActivePage">
+                        <layout class="QVBoxLayout" name="roadmapActivePageLayout">
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QLabel" name="roadmapActiveEmptyLabel">
+                           <property name="text">
+                            <string>Noch keine aktiven Roadmaps
+
+Leg mit &quot;+ Neuer Step&quot; deine erste Roadmap an.</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignCenter</set>
+                           </property>
+                           <property name="wordWrap">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QScrollArea" name="roadmapActiveScrollArea">
+                           <property name="frameShape">
+                            <enum>QFrame::Shape::NoFrame</enum>
+                           </property>
+                           <property name="widgetResizable">
+                            <bool>true</bool>
+                           </property>
+                           <widget class="QWidget" name="roadmapActiveCardsWidget">
+                            <property name="geometry">
+                             <rect>
+                              <x>0</x>
+                              <y>0</y>
+                              <width>62</width>
+                              <height>16</height>
+                             </rect>
+                            </property>
+                            <layout class="QGridLayout" name="roadmapActiveCardsLayout">
+                             <property name="leftMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="topMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="rightMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="bottomMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="spacing">
+                              <number>12</number>
+                             </property>
+                            </layout>
+                           </widget>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                       <widget class="QWidget" name="roadmapArchivePage">
+                        <layout class="QVBoxLayout" name="roadmapArchivePageLayout">
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QLabel" name="roadmapArchiveEmptyLabel">
+                           <property name="text">
+                            <string>Noch keine abgeschlossenen Roadmaps
+
+Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignCenter</set>
+                           </property>
+                           <property name="wordWrap">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QScrollArea" name="roadmapArchiveScrollArea">
+                           <property name="frameShape">
+                            <enum>QFrame::Shape::NoFrame</enum>
+                           </property>
+                           <property name="widgetResizable">
+                            <bool>true</bool>
+                           </property>
+                           <widget class="QWidget" name="roadmapArchiveCardsWidget">
+                            <property name="geometry">
+                             <rect>
+                              <x>0</x>
+                              <y>0</y>
+                              <width>62</width>
+                              <height>16</height>
+                             </rect>
+                            </property>
+                            <layout class="QGridLayout" name="roadmapArchiveCardsLayout">
+                             <property name="leftMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="topMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="rightMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="bottomMargin">
+                              <number>0</number>
+                             </property>
+                             <property name="spacing">
+                              <number>12</number>
+                             </property>
+                            </layout>
+                           </widget>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="roadmapDetailPage">
+                    <layout class="QVBoxLayout" name="roadmapDetailPageLayout">
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>12</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>12</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="roadmapDetailHeaderLayout">
+                       <item>
+                        <widget class="QPushButton" name="roadmapDetailBackButton">
+                         <property name="text">
+                          <string>← Zurück</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="roadmapDetailHeaderSpacer">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>0</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="roadmapDetailTitleLabel">
                        <property name="text">
-                        <string>Informationen</string>
+                        <string>Roadmap</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QFrame" name="roadmapInfoSeparator">
-                       <property name="frameShape">
-                        <enum>QFrame::Shape::HLine</enum>
+                      <layout class="QHBoxLayout" name="roadmapDetailToolbarLayout">
+                       <property name="spacing">
+                        <number>12</number>
                        </property>
-                      </widget>
+                       <item>
+                        <widget class="QLineEdit" name="roadmapDetailSearchLineEdit">
+                         <property name="placeholderText">
+                          <string>Steps durchsuchen...</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QToolButton" name="roadmapHierarchyViewButton">
+                         <property name="text">
+                          <string>Hierarchie</string>
+                         </property>
+                         <property name="checkable">
+                          <bool>true</bool>
+                         </property>
+                         <property name="checked">
+                          <bool>true</bool>
+                         </property>
+                         <property name="autoExclusive">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QToolButton" name="roadmapTreeViewButton">
+                         <property name="text">
+                          <string>Tree</string>
+                         </property>
+                         <property name="checkable">
+                          <bool>true</bool>
+                         </property>
+                         <property name="autoExclusive">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
                      </item>
                      <item>
-                      <widget class="QLabel" name="roadmapInfoNameLabel">
-                       <property name="text">
-                        <string/>
+                      <widget class="QStackedWidget" name="roadmapDetailViewStack">
+                       <property name="currentIndex">
+                        <number>0</number>
                        </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
+                       <widget class="QWidget" name="roadmapHierarchyPage">
+                        <layout class="QVBoxLayout" name="roadmapHierarchyPageLayout">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="RoadmapTreeWidget" name="roadmapTreeWidget">
+                           <property name="headerHidden">
+                            <bool>true</bool>
+                           </property>
+                           <column>
+                            <property name="text">
+                             <string>Step</string>
+                            </property>
+                           </column>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                       <widget class="QWidget" name="roadmapTreePage">
+                        <layout class="QVBoxLayout" name="roadmapTreePageLayout">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QLabel" name="roadmapTreePlaceholderLabel">
+                           <property name="text">
+                            <string>Diagramm-Ansicht folgt in Kürze.</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
                       </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoStatusHeader">
-                       <property name="text">
-                        <string>Status</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoStatusLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoDescriptionHeader">
-                       <property name="text">
-                        <string>Beschreibung</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoDescriptionLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoParentHeader">
-                       <property name="text">
-                        <string>Übergeordnetes Ziel</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="roadmapInfoParentLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <spacer name="roadmapInfoSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Orientation::Vertical</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>0</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                      </spacer>
                      </item>
                     </layout>
                    </widget>
@@ -3633,6 +3786,11 @@ Sobald du ein Ziel als geschafft markierst, landet es hier im Archiv.</string>
    <extends>QWidget</extends>
    <header location="global">exerciseprogresschartwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RoadmapTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">roadmaptreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

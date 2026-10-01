@@ -25,6 +25,7 @@ class QTimer;
 class QToolButton;
 class QVBoxLayout;
 class QLineEdit;
+class QTreeWidgetItem;
 
 namespace Ui {
 class MainWindow;
@@ -36,6 +37,7 @@ struct Exercise;
 struct Goal;
 struct Routine;
 struct TimelinePhase;
+struct RoadmapStep;
 
 class MainWindow : public QMainWindow
 {
@@ -90,6 +92,51 @@ private:
     void startExerciseExecutionTimerEdit();
     void commitExerciseExecutionTimerEdit();
     void cancelExerciseExecutionTimerEdit();
+
+    // ── Roadmap ──────────────────────────────────────────────────────────
+
+    // Hauptübersicht: Cards für alle Root-Steps.
+    void loadRoadmapCards();
+
+    // Detail-Ansicht: Tree eines Root-Steps.
+    void loadRoadmapDetail(int rootId);
+
+    // Wechsel zwischen Übersicht und Detail.
+    void showRoadmapOverview();
+    void showRoadmapDetail(int rootId);
+
+    // Aktiviert/deaktiviert die Aktionsbuttons je nach Auswahl im Tree.
+    void updateRoadmapActionButtons();
+
+    // Aktions-Handler (Detail-Ansicht).
+    void onRoadmapAddRootStep();          // "+ Neuer Step" in der Übersicht
+    void onRoadmapAddChildStep();
+    void onRoadmapRenameSelectedStep();
+    void onRoadmapToggleSelectedStepDone();
+    void onRoadmapDeleteSelectedStep();
+
+    // Baut rekursiv einen Tree-Zweig in der Detail-Ansicht auf.
+    void buildRoadmapTreeItem(
+        QTreeWidgetItem *parentItem,
+        int parentId,
+        const QList<struct RoadmapStep> &steps
+        );
+
+    // Stern-Handling: markiert einen Root-Step als Haupt-Roadmap.
+    void onRoadmapToggleStar(int rootStepId);
+
+    // Positioniert die Overlay-Buttons rechts in der aktuellen Zeile.
+    void updateRoadmapRowButtons();
+
+    // Aktiviert/deaktiviert die Overlay-Buttons je nach Auswahl.
+    void updateRoadmapRowButtonsState();
+
+    // Prüft rekursiv, ob `step` ein Nachkomme von `rootId` ist.
+    bool isDescendantOf(
+        const struct RoadmapStep &step,
+        int rootId,
+        const QList<struct RoadmapStep> &allSteps
+        );
 
     // ── Verlauf ──────────────────────────────────────────────────────────
     void loadHistory();
@@ -251,6 +298,23 @@ private:
     // Merkt sich, von welchem Tab aus die Übungs-Detailansicht geöffnet wurde.
     // Wird vom Back-Button benutzt, um dorthin zurückzukehren.
     QWidget *exerciseDetailReturnPage = nullptr;
+
+    // Roadmap: zuletzt geladene Steps (flache Liste).
+    QList<RoadmapStep> roadmapSteps;
+
+    // In der Detail-Ansicht: vier Overlay-Buttons, die rechts in
+    // der Zeile des ausgewählten Steps erscheinen.
+    QToolButton *roadmapRowAddChildButton = nullptr;
+    QToolButton *roadmapRowRenameButton = nullptr;
+    QToolButton *roadmapRowToggleDoneButton = nullptr;
+    QToolButton *roadmapRowDeleteButton = nullptr;
+
+    // Buttons für den Filter in der Detail-Ansicht.
+    QString roadmapDetailFilterText;
+
+    // Root-Step-ID, deren Detail-Ansicht gerade angezeigt wird.
+    // 0 = Übersicht sichtbar.
+    int currentRoadmapDetailRootId = 0;
 
     // Wenn die Fortschrittsseite aus einer laufenden Ausführung geöffnet
     // wurde, merkt sich diese Flag, wohin der Back-Button zurückkehren soll.

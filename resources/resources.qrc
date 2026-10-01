@@ -10,6 +10,10 @@
         <file>icons/play.svg</file>
         <file>icons/pause.svg</file>
         <file>icons/stop.svg</file>
+        <file>icons/roadmap-add.svg</file>
+        <file>icons/roadmap-rename.svg</file>
+        <file>icons/roadmap-check.svg</file>
+        <file>icons/roadmap-delete.svg</file>
         <file>audio/timer_complete.wav</file>
         <file>audio/goal-completed.wav</file>
         <file>theme.qss</file>

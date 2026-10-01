@@ -14,13 +14,25 @@
 #include "routine.h"
 #include "routinerepository.h"
 #include "timelinephaserepository.h"
+#include "roadmaprepository.h"
 
 #include "exerciseprogresschartwidget.h"
 #include "routinedialog.h"
 #include "timelinebarwidget.h"
 #include "timelinephasedialog.h"
 #include "clickablelabel.h"
+#include "roadmapminitreewidget.h"
+#include "roadmaptreedelegate.h"
+#include "roadmaptreewidget.h"
+#include <QResizeEvent>
+#include <QScrollBar>
 
+
+#include <QBrush>
+#include <QFont>
+#include <QGridLayout>
+#include <QScrollArea>
+#include <QSizePolicy>
 #include <QApplication>
 #include <QCheckBox>
 #include <QColor>
@@ -64,7 +76,7 @@
 #include <utility>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
-
+#include <QTreeWidgetItem>
 
 namespace {
 
@@ -988,141 +1000,211 @@ MainWindow::MainWindow(QWidget *parent)
         ui->goalsFilterOpenButton->click();
     });
 
-
-
-    // ── Timeline: Phase hinzufügen ─────────────────────────────────────────────
-
-    connect(
-        ui->addTimelinePhaseButton,
-        &QPushButton::clicked,
-        this,
-        [this]() {
-
-            // Ohne ausgewähltes Hobby kann keine Phase angelegt werden.
-            if (currentHobbyId == 0)
-                return;
-
-            TimelinePhaseDialog dialog(this);
-
-            dialog.setWindowTitle("Phase hinzufügen");
-
-            // Das späteste vorhandene Enddatum des Hobbys ermitteln.
-            const QDate latestEndDate =
-                TimelinePhaseRepository::getLatestEndDateForHobby(currentHobbyId);
-
-            QDate suggestedStartDate;
-
-            if (latestEndDate.isValid()) {
-
-                // Eine neue Phase beginnt standardmäßig
-                // am Tag nach der letzten vorhandenen Phase.
-                suggestedStartDate = latestEndDate.addDays(1);
-
-            } else {
-
-                // Wenn noch keine Phase existiert,
-                // wird heute als Startdatum vorgeschlagen.
-                suggestedStartDate = QDate::currentDate();
-            }
-
-            // Einen Monat als Standarddauer vorschlagen.
-            const QDate suggestedEndDate =
-                suggestedStartDate.addMonths(1);
-
-            dialog.setDateRange(
-                suggestedStartDate,
-                suggestedEndDate
-                );
-
-            // Der Speichern-Button wird manuell behandelt.
-            // Dadurch können wir erst speichern und den Dialog
-            // nur bei Erfolg schließen.
-            connect(
-                dialog.saveButton(),
-                &QPushButton::clicked,
-                &dialog,
-                [&dialog, this]() {
-
-                    // Zuerst die Eingaben im Dialog prüfen.
-                    // Bei einem Fehler bleibt der Dialog offen.
-                    if (!dialog.validateInput())
-                        return;
-
-                    int phaseId = 0;
-
-                    // Erst jetzt versuchen wir, die Phase
-                    // tatsächlich in der Datenbank anzulegen.
-                    const bool success =
-                        TimelinePhaseRepository::add(
-                            currentHobbyId,
-                            dialog.name(),
-                            dialog.description(),
-                            dialog.startDate().toString("yyyy-MM-dd"),
-                            dialog.endDate().toString("yyyy-MM-dd"),
-                            phaseId
-                            );
-
-                    if (!success) {
-
-                        // Die Datenbank hat die Phase abgelehnt,
-                        // beispielsweise wegen einer Überschneidung.
-                        // Der Dialog bleibt geöffnet.
-                        QMessageBox::warning(
-                            &dialog,
-                            "Phase konnte nicht gespeichert werden",
-                            "Die Phase überschneidet sich mit einer "
-                            "bereits vorhandenen Phase oder konnte "
-                            "nicht gespeichert werden."
-                            );
-
-                        return;
-                    }
-
-                    // Nur bei erfolgreichem Speichern wird
-                    // der Dialog tatsächlich geschlossen.
-                    dialog.accept();
-                }
-                );
-
-
-
-            // Der Dialog wird genau einmal geöffnet.
-            // Abbrechen funktioniert weiterhin über die
-            // rejected()-Verbindung aus der .ui-Datei.
-            if (dialog.exec() != QDialog::Accepted)
-                return;
-
-            // Die Timeline erst nach erfolgreichem Speichern aktualisieren.
-            loadTimeline();
-            refreshHobbyDashboardOverview(ui, currentHobbyId);
-        }
-        );
-
-
-    connect(
-        ui->addRoutineButton,
-        &QPushButton::clicked,
-        this,
-        [this]() {
-
-            RoutineDialog dialog(
-                currentHobbyId,
-                this
-                );
-
-            // Nur wenn tatsächlich gespeichert wurde,
-            // müssen die Routinen neu aus der Datenbank geladen werden.
-            if (dialog.exec() == QDialog::Accepted) {
-                loadRoutineCards();
-                loadDashboardRoutineCards();
-            }
-        }
-        );
-
     connect(ui->roadmapTab, &QToolButton::clicked, this, [this]() {
         ui->roadmapTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->roadmapPage);
+
+        // Immer mit der Übersicht starten.
+        showRoadmapOverview();
+        loadRoadmapCards();
     });
+    // ── Roadmap-Detail-Ansicht: Suchleiste ───────────────────────────────
+    //
+    // Der Suchtext wird in roadmapDetailFilterText gespeichert.
+    // loadRoadmapDetail() wertet ihn aus und blendet nicht passende
+    // Items aus.
+
+    connect(
+        ui->roadmapDetailSearchLineEdit,
+        &QLineEdit::textChanged,
+        this,
+        [this](const QString &text) {
+
+            roadmapDetailFilterText = text.trimmed();
+
+            // Nur neu laden, wenn eine Roadmap geöffnet ist.
+            if (currentRoadmapDetailRootId > 0)
+                loadRoadmapDetail(currentRoadmapDetailRootId);
+        }
+        );
+
+    // ── Roadmap-Detail-Ansicht: Overlay-Buttons rechts in der Zeile ──────
+    //
+    // Vier Icon-Buttons, die rechts in der Zeile des ausgewählten Steps
+    // erscheinen. Sie sind Kinder des Tree-Widgets und werden per
+    // updateRoadmapRowButtons() positioniert.
+    //
+    // Die Buttons existieren von Anfang an, sind aber unsichtbar.
+    // Sobald ein Step selektiert wird, werden sie sichtbar geschaltet
+    // und an die richtige Stelle verschoben.
+
+    auto createRoadmapRowButton =
+        [this](const QString &objectName,
+               const QString &iconPath,
+               const QString &tooltip) -> QToolButton * {
+
+        auto *button = new QToolButton(ui->roadmapTreeWidget);
+
+        button->setObjectName(objectName);
+        button->setFixedSize(24, 24);
+        button->setIconSize(QSize(16, 16));
+        button->setAutoRaise(true);
+        button->setCursor(Qt::PointingHandCursor);
+        button->setIcon(QIcon(iconPath));
+        button->setToolTip(tooltip);
+        button->setVisible(false);
+
+        return button;
+    };
+
+    roadmapRowAddChildButton = createRoadmapRowButton(
+        "roadmapRowAddChildButton",
+        ":/icons/roadmap-add.svg",
+        "Unter-Step erstellen"
+        );
+
+    roadmapRowRenameButton = createRoadmapRowButton(
+        "roadmapRowRenameButton",
+        ":/icons/roadmap-rename.svg",
+        "Umbenennen"
+        );
+
+    roadmapRowToggleDoneButton = createRoadmapRowButton(
+        "roadmapRowToggleDoneButton",
+        ":/icons/roadmap-check.svg",
+        "Als erledigt markieren"
+        );
+
+    roadmapRowDeleteButton = createRoadmapRowButton(
+        "roadmapRowDeleteButton",
+        ":/icons/roadmap-delete.svg",
+        "Löschen"
+        );
+
+    // ── Verbindungen ────────────────────────────────────────────────────
+
+    connect(
+        roadmapRowAddChildButton,
+        &QToolButton::clicked,
+        this,
+        [this]() { onRoadmapAddChildStep(); }
+        );
+
+    connect(
+        roadmapRowRenameButton,
+        &QToolButton::clicked,
+        this,
+        [this]() { onRoadmapRenameSelectedStep(); }
+        );
+
+    connect(
+        roadmapRowToggleDoneButton,
+        &QToolButton::clicked,
+        this,
+        [this]() { onRoadmapToggleSelectedStepDone(); }
+        );
+
+    connect(
+        roadmapRowDeleteButton,
+        &QToolButton::clicked,
+        this,
+        [this]() { onRoadmapDeleteSelectedStep(); }
+        );
+
+    // ── Sichtbarkeit / Position aktualisieren ───────────────────────────
+    //
+    // Bei jeder Auswahl-Änderung und jedem Scroll müssen die Buttons
+    // neu positioniert werden.
+
+    connect(
+        ui->roadmapTreeWidget,
+        &QTreeWidget::itemSelectionChanged,
+        this,
+        [this]() {
+            updateRoadmapRowButtons();
+            updateRoadmapRowButtonsState();
+        }
+        );
+
+    connect(
+        ui->roadmapTreeWidget->verticalScrollBar(),
+        &QScrollBar::valueChanged,
+        this,
+        [this]() {
+            updateRoadmapRowButtons();
+        }
+        );
+
+    // Initial deaktiviert, bis ein Step ausgewählt ist.
+    updateRoadmapRowButtonsState();
+
+    // ── Roadmap-Tree: Delegate für Linien und Punkte ─────────────────────
+    //
+    // Der Delegate zeichnet Pfeile, Punkte und Linien selbst.
+    // Das RoadmapTreeWidget zeichnet die vertikalen Verbindungslinien.
+
+    if (auto *roadmapTree = ui->roadmapTreeWidget) {
+
+        roadmapTree->setItemDelegate(
+            new RoadmapTreeDelegate(roadmapTree)
+            );
+
+        // Indentation und rootIsDecorated werden in RoadmapTreeWidget
+        // gesetzt. Nicht überschreiben.
+        roadmapTree->setUniformRowHeights(true);
+        roadmapTree->setExpandsOnDoubleClick(false);
+        roadmapTree->setSelectionMode(QAbstractItemView::SingleSelection);
+    }
+
+    // Auto-Einklappen in der Detail-Ansicht:
+    // Wenn ein Step eingeklappt wird, werden auch alle seine
+    // Nachkommen eingeklappt.
+    connect(
+        ui->roadmapTreeWidget,
+        &QTreeWidget::itemCollapsed,
+        this,
+        [](QTreeWidgetItem *item) {
+
+            std::function<void(QTreeWidgetItem *)> collapseAll =
+                [&](QTreeWidgetItem *parent) {
+
+                    for (int i = 0; i < parent->childCount(); ++i) {
+
+                        QTreeWidgetItem *child = parent->child(i);
+
+                        if (child->isExpanded())
+                            child->setExpanded(false);
+
+                        collapseAll(child);
+                    }
+                };
+
+            collapseAll(item);
+        }
+        );
+
+    // Toggle: Hierarchy View ↔ Tree View.
+    connect(
+        ui->roadmapHierarchyViewButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->roadmapDetailViewStack->setCurrentWidget(
+                ui->roadmapHierarchyPage
+                );
+        }
+        );
+
+    connect(
+        ui->roadmapTreeViewButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->roadmapDetailViewStack->setCurrentWidget(
+                ui->roadmapTreePage
+                );
+        }
+        );
 
     // ── Notizen ─────────────────────────────────────────────────────────────
 
@@ -1225,6 +1307,8 @@ MainWindow::MainWindow(QWidget *parent)
         ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
         loadGoalCards();
         loadDashboardRoutineCards();
+        showRoadmapOverview();
+        loadRoadmapCards();
 
 
         ui->dashboardTab->setChecked(true);
@@ -1531,6 +1615,115 @@ MainWindow::MainWindow(QWidget *parent)
     // zu ermöglichen.
     ui->goalOpenCardsWidget->setAcceptDrops(true);
     ui->goalOpenCardsWidget->installEventFilter(this);
+
+    // ── Roadmap ──────────────────────────────────────────────────────────
+
+    // "+ Neuer Step" in der Übersicht → Root-Step erstellen.
+    connect(
+        ui->addRoadmapGoalButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            onRoadmapAddRootStep();
+        }
+        );
+
+    // Aktiv/Archiv-Filter.
+    connect(
+        ui->roadmapFilterActiveButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->roadmapFilterStack->setCurrentWidget(
+                ui->roadmapActivePage
+                );
+        }
+        );
+
+    connect(
+        ui->roadmapFilterArchiveButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            ui->roadmapFilterStack->setCurrentWidget(
+                ui->roadmapArchivePage
+                );
+        }
+        );
+
+    // Suchfeld.
+    connect(
+        ui->roadmapSearchLineEdit,
+        &QLineEdit::textChanged,
+        this,
+        [this]() {
+            loadRoadmapCards();
+        }
+        );
+
+    // Back-Button in der Detail-Ansicht.
+    connect(
+        ui->roadmapDetailBackButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            showRoadmapOverview();
+        }
+        );
+
+    // Aktionen in der Detail-Ansicht.
+    connect(
+        ui->roadmapTreeWidget,
+        &QTreeWidget::itemSelectionChanged,
+        this,
+        [this]() {
+            updateRoadmapActionButtons();
+        }
+        );
+
+    // TODO: In Nachricht 2 werden die 4 Buttons in die Zeile
+    // des ausgewählten Steps integriert. Dann werden die Connects
+    // wieder aktiviert.
+
+    /*
+    connect(
+        ui->roadmapAddChildButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            onRoadmapAddChildStep();
+        }
+        );
+
+    connect(
+        ui->roadmapRenameButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            onRoadmapRenameSelectedStep();
+        }
+        );
+
+    connect(
+        ui->roadmapToggleDoneButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            onRoadmapToggleSelectedStepDone();
+        }
+        );
+
+    connect(
+        ui->roadmapDeleteButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            onRoadmapDeleteSelectedStep();
+        }
+        );
+    */
+
+    updateRoadmapActionButtons();
 }
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
@@ -1869,6 +2062,75 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             }
         }
     }
+
+    // ── Roadmap-Cards: Hover für den Stern ───────────────────────────────
+    //
+    // Bei nicht markierten Cards erscheint der Stern nur beim Hover.
+    // Bei markierten Cards bleibt er dauerhaft sichtbar.
+    // Archivierte Cards haben gar keinen Stern — der bleibt unsichtbar.
+
+    if (auto *card = qobject_cast<QFrame *>(watched)) {
+
+        if (card->objectName() == "roadmapCard") {
+
+            const bool isArchived =
+                card->property("roadmapIsArchived").toBool();
+
+            // Archivierte Cards haben keinen Stern — nichts zu tun.
+            if (!isArchived) {
+
+                const bool isCurrent =
+                    card->property("roadmapIsCurrent").toBool();
+
+                // Der Stern wird nur gezeigt oder versteckt, wenn die
+                // Card NICHT markiert ist. Eine markierte Card behält
+                // ihren Stern auch außerhalb des Hovers.
+                if (!isCurrent) {
+
+                    auto *starButton =
+                        card->findChild<QToolButton *>(
+                            "roadmapCardStarButton"
+                            );
+
+                    if (starButton) {
+
+                        if (event->type() == QEvent::Enter) {
+                            starButton->setVisible(true);
+                        }
+
+                        if (event->type() == QEvent::Leave) {
+                            starButton->setVisible(false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // ── Roadmap-Card: Klick öffnet die Detail-Ansicht ────────────────────
+    if (event->type() == QEvent::MouseButtonRelease) {
+
+        auto *card = qobject_cast<QFrame *>(watched);
+
+        if (card && card->objectName() == "roadmapCard") {
+
+            auto *mouseEvent = static_cast<QMouseEvent *>(event);
+
+            if (mouseEvent->button() == Qt::LeftButton) {
+
+                const int rootId =
+                    card->property("roadmapRootId").toInt();
+
+                if (rootId > 0)
+                    showRoadmapDetail(rootId);
+
+                return true;
+            }
+        }
+    }
+
+
     // ── Übungskarten / History-Karten: Klick öffnet die Detailansicht ───────
     if (event->type() == QEvent::MouseButtonRelease) {
 
@@ -6130,6 +6392,853 @@ void MainWindow::cancelExerciseExecutionTimerEdit()
     exerciseExecutionTimerEdit->setVisible(false);
 
     updateExerciseExecutionTimerDisplay();
+}
+
+// ── Roadmap: Übersicht ──────────────────────────────────────────────────────
+
+void MainWindow::loadRoadmapCards()
+{
+    // Beide Cards-Container leeren.
+    auto clearLayout = [](QLayout *layout) {
+
+        while (layout->count() > 0) {
+
+            QLayoutItem *item = layout->takeAt(0);
+
+            if (item->widget())
+                item->widget()->deleteLater();
+
+            delete item;
+        }
+    };
+
+    clearLayout(ui->roadmapActiveCardsLayout);
+    clearLayout(ui->roadmapArchiveCardsLayout);
+
+    // Spalten-Stretch: 3 gleiche Spalten (1,1,1).
+    // Damit nimmt jede Karte auch bei nur 1-2 Karten genau 1/3 ein.
+    for (int c = 0; c < 3; ++c) {
+        ui->roadmapActiveCardsLayout->setColumnStretch(c, 1);
+        ui->roadmapArchiveCardsLayout->setColumnStretch(c, 1);
+    }
+
+    // Row-Stretch zurücksetzen (wird weiter unten neu gesetzt).
+    for (int r = 0; r < 100; ++r) {
+        ui->roadmapActiveCardsLayout->setRowStretch(r, 0);
+        ui->roadmapArchiveCardsLayout->setRowStretch(r, 0);
+    }
+
+    if (currentHobbyId == 0) {
+
+        ui->roadmapActiveEmptyLabel->setVisible(true);
+        ui->roadmapActiveScrollArea->setVisible(false);
+
+        ui->roadmapArchiveEmptyLabel->setVisible(true);
+        ui->roadmapArchiveScrollArea->setVisible(false);
+
+        return;
+    }
+
+    // Alle Steps laden.
+    const QList<RoadmapStep> allSteps =
+        RoadmapRepository::getForHobby(currentHobbyId);
+
+    // Root-Steps extrahieren (parentId == 0).
+    QList<RoadmapStep> rootSteps;
+
+    for (const RoadmapStep &step : allSteps) {
+
+        if (step.parentId == 0)
+            rootSteps.append(step);
+    }
+
+    // Suchtext filtern.
+    const QString searchText =
+        ui->roadmapSearchLineEdit->text().trimmed();
+
+    // Aktiv / Archiv aufteilen:
+    // Ein Root-Step ist "archiviert", wenn er und alle seine Nachkommen
+    // erledigt sind. Sonst "aktiv".
+    QList<RoadmapStep> activeRoots;
+    QList<RoadmapStep> archivedRoots;
+
+    for (const RoadmapStep &root : rootSteps) {
+
+        // Suche anwenden.
+        if (!searchText.isEmpty() &&
+            !root.name.contains(searchText, Qt::CaseInsensitive)) {
+
+            continue;
+        }
+
+        // Prüfen, ob der gesamte Unterbaum erledigt ist.
+        bool allDone = true;
+
+        for (const RoadmapStep &step : allSteps) {
+
+            if (step.id == root.id || isDescendantOf(step, root.id, allSteps)) {
+
+                if (!step.completed) {
+                    allDone = false;
+                    break;
+                }
+            }
+        }
+
+        if (allDone)
+            archivedRoots.append(root);
+        else
+            activeRoots.append(root);
+    }
+
+    // Sortieren: Root-Step mit Stern zuerst.
+    auto sortByCurrent = [](QList<RoadmapStep> &list) {
+
+        std::stable_sort(
+            list.begin(),
+            list.end(),
+            [](const RoadmapStep &a, const RoadmapStep &b) {
+                return a.isCurrent && !b.isCurrent;
+            }
+            );
+    };
+
+    sortByCurrent(activeRoots);
+    sortByCurrent(archivedRoots);
+
+    // Cards bauen.
+    constexpr int columnCount = 3;
+
+    auto buildCard = [this, allSteps](const RoadmapStep &root, bool archived) -> QFrame * {
+
+        auto *card = new QFrame();
+        card->setObjectName("roadmapCard");
+        card->setFrameShape(QFrame::StyledPanel);
+        card->setFixedHeight(364);
+        card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        card->setCursor(Qt::PointingHandCursor);
+
+        // Step-ID und Status als Properties speichern — der eventFilter()
+        // braucht sie für Hover und Klick.
+        card->setProperty("roadmapRootId", root.id);
+        card->setProperty("roadmapIsCurrent", root.isCurrent);
+        card->setProperty("roadmapIsArchived", archived);
+
+        // Hover-Events aktivieren (für den Stern und den Hover-Effekt).
+        card->setAttribute(Qt::WA_Hover, true);
+
+        // Klick → Detail-Ansicht.
+        card->installEventFilter(this);
+
+        auto *cardLayout = new QVBoxLayout(card);
+        cardLayout->setContentsMargins(12, 12, 12, 12);
+        cardLayout->setSpacing(4);
+
+        // ── Kopf: Name + Stern ────────────────────────────────────────────
+        auto *topRow = new QHBoxLayout();
+        topRow->setContentsMargins(0, 0, 0, 0);
+        topRow->setSpacing(8);
+
+        auto *nameLabel = new QLabel(root.name, card);
+        nameLabel->setObjectName("roadmapCardNameLabel");
+        nameLabel->setWordWrap(true);
+        nameLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+
+        topRow->addWidget(nameLabel, 1);
+
+        // Stern: nur bei aktiven Roadmaps.
+        if (!archived) {
+
+            auto *starButton = new QToolButton(card);
+            starButton->setObjectName("roadmapCardStarButton");
+            starButton->setFixedSize(24, 24);
+            starButton->setIconSize(QSize(16, 16));
+            starButton->setAutoRaise(true);
+            starButton->setCursor(Qt::PointingHandCursor);
+
+            starButton->setIcon(
+                QIcon(
+                    root.isCurrent
+                        ? ":/icons/star-filled.svg"
+                        : ":/icons/star-outline.svg"
+                    )
+                );
+
+            starButton->setToolTip(
+                root.isCurrent
+                    ? "Aktuelle Roadmap"
+                    : "Als aktuelle Roadmap festlegen"
+                );
+
+            // Der Stern ist nur dann dauerhaft sichtbar, wenn die
+            // Roadmap als aktuelle markiert ist. Sonst erscheint er
+            // nur beim Hover über die Card.
+            if (!root.isCurrent)
+                starButton->setVisible(false);
+
+            connect(
+                starButton,
+                &QToolButton::clicked,
+                this,
+                [this, rootId = root.id]() {
+                    onRoadmapToggleStar(rootId);
+                }
+                );
+
+            topRow->addWidget(starButton, 0, Qt::AlignTop | Qt::AlignRight);
+        }
+
+        cardLayout->addLayout(topRow);
+
+        // ── Hierarchie (Mini-Baum) ────────────────────────────────────────
+        auto *hierarchyHeader = new QLabel("Hierarchie", card);
+        hierarchyHeader->setObjectName("roadmapCardMetaHeaderLabel");
+        cardLayout->addWidget(hierarchyHeader);
+
+        // Custom-Widget mit echten Linien und Preorder-Traversal.
+        // Die Card ist 364 px hoch. Nach Abzug von Header ("Hierarchie"),
+        // Statistik-Zeile und Paddings bleiben ca. 280 px für den
+        // Mini-Baum. Bei ca. 20 px Zeilenhöhe passen ca. 14 Zeilen rein.
+        auto *miniTree = new RoadmapMiniTreeWidget(card);
+        miniTree->setMaxVisibleNodes(14);
+        miniTree->setData(root, allSteps);
+        cardLayout->addWidget(miniTree);
+
+        // Zwischen Mini-Baum und Statistik-Zeile setzen wir einen
+        // Stretch. Dadurch wird die Statistik-Zeile immer an den
+        // unteren Rand der Card gedrückt — unabhängig davon, wie
+        // viele Steps der Mini-Baum enthält.
+        cardLayout->addStretch();
+
+
+        // ── Statistik ─────────────────────────────────────────────────────
+        int totalSteps = 0;
+        int doneSteps = 0;
+
+        for (const RoadmapStep &step : allSteps) {
+
+            if (step.id == root.id || isDescendantOf(step, root.id, allSteps)) {
+                ++totalSteps;
+                if (step.completed)
+                    ++doneSteps;
+            }
+        }
+
+        auto *statsLabel = new QLabel(
+            QString("%1 Schritte · %2 erledigt")
+                .arg(totalSteps)
+                .arg(doneSteps),
+            card
+            );
+
+        statsLabel->setObjectName("roadmapCardStatLabel");
+        cardLayout->addWidget(statsLabel);
+
+        return card;
+    };
+
+    // ── Aktive Roadmaps ───────────────────────────────────────────────────
+    for (int i = 0; i < activeRoots.size(); ++i) {
+
+        QFrame *card = buildCard(activeRoots[i], false);
+
+        ui->roadmapActiveCardsLayout->addWidget(
+            card,
+            i / columnCount,
+            i % columnCount
+            );
+    }
+
+    // Empty-State / Sichtbarkeit.
+    ui->roadmapActiveEmptyLabel->setVisible(activeRoots.isEmpty());
+    ui->roadmapActiveScrollArea->setVisible(!activeRoots.isEmpty());
+
+    // Row-Stretch: Der restliche vertikale Platz wandert in eine
+    // leere Zeile unter den Cards. Dadurch bleiben die Cards oben.
+    const int activeRowCount =
+        (activeRoots.size() + columnCount - 1) / columnCount;
+
+    ui->roadmapActiveCardsLayout->setRowStretch(activeRowCount, 1);
+    // ── Archivierte Roadmaps ──────────────────────────────────────────────
+    for (int i = 0; i < archivedRoots.size(); ++i) {
+
+        QFrame *card = buildCard(archivedRoots[i], true);
+
+        ui->roadmapArchiveCardsLayout->addWidget(
+            card,
+            i / columnCount,
+            i % columnCount
+            );
+    }
+
+    ui->roadmapArchiveEmptyLabel->setVisible(archivedRoots.isEmpty());
+    ui->roadmapArchiveScrollArea->setVisible(!archivedRoots.isEmpty());
+
+    // Row-Stretch für Archiv.
+    const int archiveRowCount =
+        (archivedRoots.size() + columnCount - 1) / columnCount;
+
+    ui->roadmapArchiveCardsLayout->setRowStretch(archiveRowCount, 1);
+}
+
+// Hilfsfunktion: Prüft, ob `step` (rekursiv) ein Nachkomme von `rootId` ist.
+bool MainWindow::isDescendantOf(
+    const RoadmapStep &step,
+    int rootId,
+    const QList<RoadmapStep> &allSteps
+    )
+{
+    int currentId = step.parentId;
+
+    while (currentId > 0) {
+
+        if (currentId == rootId)
+            return true;
+
+        // Parent finden.
+        bool found = false;
+
+        for (const RoadmapStep &s : allSteps) {
+
+            if (s.id == currentId) {
+                currentId = s.parentId;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+            return false;
+    }
+
+    return false;
+}
+
+// ── Roadmap: Detail-Ansicht ─────────────────────────────────────────────────
+
+void MainWindow::loadRoadmapDetail(int rootId)
+{
+    ui->roadmapTreeWidget->clear();
+
+    if (currentHobbyId == 0 || rootId <= 0)
+        return;
+
+    // Alle Steps laden.
+    const QList<RoadmapStep> allSteps =
+        RoadmapRepository::getForHobby(currentHobbyId);
+
+    // Root-Step finden.
+    RoadmapStep root;
+    bool found = false;
+
+    for (const RoadmapStep &step : allSteps) {
+
+        if (step.id == rootId) {
+            root = step;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+        return;
+
+    // Titel anzeigen (Root-Name als Überschrift).
+    ui->roadmapDetailTitleLabel->setText(root.name);
+
+    // Root-Step NICHT als Top-Level-Item.
+    // Stattdessen direkt die Kinder einfügen.
+    buildRoadmapTreeItem(nullptr, root.id, allSteps);
+
+    ui->roadmapTreeWidget->expandAll();
+
+    // ── Filter anwenden ──────────────────────────────────────────────────
+    //
+    // Vorgehen:
+    //   1. Zuerst alle Items auf "sichtbar" setzen (clear).
+    //   2. Dann rekursiv durchgehen und prüfen:
+    //      - Passt der Text zum Filter? → Item sichtbar lassen.
+    //      - Hat ein Kind den Filter erfüllt? → Item auch sichtbar lassen.
+    //      - Sonst → ausblenden.
+    //
+    // Die Funktion gibt zurück, ob das Item oder eines seiner Kinder
+    // sichtbar bleiben soll. Damit können wir bequem rekursiv arbeiten.
+
+    if (!roadmapDetailFilterText.isEmpty()) {
+
+        std::function<bool(QTreeWidgetItem *)> applyFilter =
+            [&](QTreeWidgetItem *item) -> bool {
+
+            // Prüfen, ob der Text des Items passt.
+            const bool matches =
+                item->text(0).contains(
+                    roadmapDetailFilterText,
+                    Qt::CaseInsensitive
+                    );
+
+            // Kinder rekursiv prüfen.
+            bool hasVisibleChild = false;
+
+            for (int i = 0; i < item->childCount(); ++i) {
+
+                if (applyFilter(item->child(i)))
+                    hasVisibleChild = true;
+            }
+
+            // Das Item bleibt sichtbar, wenn es selbst passt
+            // ODER mindestens ein Kind sichtbar ist.
+            const bool visible = matches || hasVisibleChild;
+
+            item->setHidden(!visible);
+
+            // Wenn ein Kind sichtbar ist, expandieren wir das Item,
+            // damit der Treffer im aufgeklappten Baum sichtbar ist.
+            if (hasVisibleChild)
+                item->setExpanded(true);
+
+            return visible;
+        };
+
+        for (int i = 0; i < ui->roadmapTreeWidget->topLevelItemCount(); ++i)
+            applyFilter(ui->roadmapTreeWidget->topLevelItem(i));
+    }
+
+    updateRoadmapRowButtonsState();
+    updateRoadmapRowButtons();
+}
+
+void MainWindow::buildRoadmapTreeItem(
+    QTreeWidgetItem *parentItem,
+    int parentId,
+    const QList<RoadmapStep> &steps
+    )
+{
+    // Alle direkten Kinder sammeln.
+    QList<RoadmapStep> children;
+
+    for (const RoadmapStep &step : steps) {
+        if (step.parentId == parentId)
+            children.append(step);
+    }
+
+    // Sortieren: offene zuerst.
+    std::stable_sort(
+        children.begin(),
+        children.end(),
+        [](const RoadmapStep &a, const RoadmapStep &b) {
+            return !a.completed && b.completed;
+        }
+        );
+
+    for (const RoadmapStep &step : children) {
+
+        QTreeWidgetItem *item = nullptr;
+
+        if (parentItem)
+            item = new QTreeWidgetItem(parentItem);
+        else
+            item = new QTreeWidgetItem(ui->roadmapTreeWidget);
+
+        item->setText(0, step.name);
+        item->setData(0, Qt::UserRole, step.id);
+
+        // Status als Item-Property speichern, damit der Delegate
+        // ihn lesen kann.
+        item->setData(0, Qt::UserRole + 1, step.completed);
+
+        // Farbe wird vom Delegate gesetzt — nicht hier.
+
+        // Rekursiv.
+        buildRoadmapTreeItem(item, step.id, steps);
+    }
+}
+
+void MainWindow::showRoadmapOverview()
+{
+    currentRoadmapDetailRootId = 0;
+    ui->roadmapViewStack->setCurrentWidget(ui->roadmapOverviewPage);
+
+    // Karten neu laden, damit Änderungen aus der Detail-Ansicht
+    // (z. B. Root umbenannt, Step erledigt) sofort sichtbar sind.
+    loadRoadmapCards();
+}
+
+void MainWindow::showRoadmapDetail(int rootId)
+{
+    currentRoadmapDetailRootId = rootId;
+    loadRoadmapDetail(rootId);
+    ui->roadmapViewStack->setCurrentWidget(ui->roadmapDetailPage);
+}
+// ── Roadmap: Overlay-Buttons ────────────────────────────────────────────────
+
+void MainWindow::updateRoadmapRowButtons()
+{
+    // Wenn keine Roadmap geladen ist, gibt's nichts zu tun.
+    if (currentRoadmapDetailRootId == 0)
+        return;
+
+    // Wenn die Buttons nicht existieren, gibt's nichts zu tun.
+    if (!roadmapRowAddChildButton)
+        return;
+
+    // Nur in der Hierarchie-Ansicht anzeigen.
+    if (ui->roadmapDetailViewStack->currentWidget()
+        != ui->roadmapHierarchyPage) {
+
+        for (QToolButton *b : {
+                 roadmapRowAddChildButton,
+                 roadmapRowRenameButton,
+                 roadmapRowToggleDoneButton,
+                 roadmapRowDeleteButton
+             }) {
+            if (b)
+                b->setVisible(false);
+        }
+        return;
+    }
+
+    // Ausgewähltes Item ermitteln.
+    QTreeWidgetItem *item = ui->roadmapTreeWidget->currentItem();
+
+    if (!item) {
+        for (QToolButton *b : {
+                 roadmapRowAddChildButton,
+                 roadmapRowRenameButton,
+                 roadmapRowToggleDoneButton,
+                 roadmapRowDeleteButton
+             }) {
+            if (b)
+                b->setVisible(false);
+        }
+        return;
+    }
+
+    // Rechteck der Zeile in Koordinaten des Tree-Widgets.
+    const QRect rect = ui->roadmapTreeWidget->visualItemRect(item);
+
+    // Wenn die Zeile außerhalb des sichtbaren Bereichs ist, ausblenden.
+    if (rect.bottom() < 0
+        || rect.top() > ui->roadmapTreeWidget->viewport()->height()) {
+
+        for (QToolButton *b : {
+                 roadmapRowAddChildButton,
+                 roadmapRowRenameButton,
+                 roadmapRowToggleDoneButton,
+                 roadmapRowDeleteButton
+             }) {
+            if (b)
+                b->setVisible(false);
+        }
+        return;
+    }
+
+    // Position der Buttons:
+    // Rechtsbündig in der Zeile, aber mit 8 px Abstand zum rechten Rand.
+    const int buttonSize = 24;
+    const int gap = 2;
+    const int rightPadding = 8;
+
+    int rightEdge =
+        ui->roadmapTreeWidget->viewport()->width() - rightPadding;
+
+    // Die Y-Position im Koordinatensystem des Tree-Widgets.
+    // Der Viewport beginnt normalerweise bei (0, 0) — der
+    // Header ist ausgeblendet.
+    const int buttonY =
+        ui->roadmapTreeWidget->viewport()->y()
+        + rect.top()
+        + (rect.height() - buttonSize) / 2;
+
+    // Von rechts nach links positionieren.
+    auto placeButton = [&](QToolButton *b) {
+
+        if (!b)
+            return;
+
+        const int x = rightEdge - buttonSize;
+        b->move(x, buttonY);
+        rightEdge -= buttonSize + gap;
+        b->raise();
+        b->show();
+    };
+
+    placeButton(roadmapRowDeleteButton);
+    placeButton(roadmapRowToggleDoneButton);
+    placeButton(roadmapRowRenameButton);
+    placeButton(roadmapRowAddChildButton);
+}
+
+void MainWindow::updateRoadmapRowButtonsState()
+{
+    QTreeWidgetItem *item = ui->roadmapTreeWidget->currentItem();
+
+    const bool hasSelection = (item != nullptr);
+
+    if (roadmapRowAddChildButton)
+        roadmapRowAddChildButton->setEnabled(hasSelection);
+
+    if (roadmapRowRenameButton)
+        roadmapRowRenameButton->setEnabled(hasSelection);
+
+    if (roadmapRowToggleDoneButton)
+        roadmapRowToggleDoneButton->setEnabled(hasSelection);
+
+    if (roadmapRowDeleteButton)
+        roadmapRowDeleteButton->setEnabled(hasSelection);
+
+    if (hasSelection && roadmapRowToggleDoneButton) {
+
+        const int stepId = item->data(0, Qt::UserRole).toInt();
+
+        RoadmapStep step;
+
+        if (RoadmapRepository::getById(stepId, step)) {
+
+            roadmapRowToggleDoneButton->setToolTip(
+                step.completed
+                    ? "Als unerledigt markieren"
+                    : "Als erledigt markieren"
+                );
+        }
+    }
+}
+
+// ── Roadmap: Stern-Handling ─────────────────────────────────────────────────
+
+void MainWindow::onRoadmapToggleStar(int rootStepId)
+{
+
+
+    if (currentHobbyId == 0 || rootStepId <= 0)
+        return;
+
+    RoadmapStep step;
+
+    if (!RoadmapRepository::getById(rootStepId, step))
+        return;
+
+    const bool newState = !step.isCurrent;
+
+    if (!RoadmapRepository::setCurrent(rootStepId, newState))
+        return;
+
+    loadRoadmapCards();
+}
+
+// ── Roadmap: Aktionen in der Detail-Ansicht ─────────────────────────────────
+
+void MainWindow::updateRoadmapActionButtons()
+{
+    // Wird von updateRoadmapRowButtonsState() abgelöst.
+    // Nur noch delegieren, um Kompatibilität zu wahren.
+
+    updateRoadmapRowButtonsState();
+}
+
+void MainWindow::onRoadmapAddRootStep()
+{
+    if (currentHobbyId == 0)
+        return;
+
+    bool ok = false;
+
+    const QString name = QInputDialog::getText(
+                             this,
+                             "Neue Roadmap",
+                             "Name:",
+                             QLineEdit::Normal,
+                             "",
+                             &ok
+                             ).trimmed();
+
+    if (!ok || name.isEmpty())
+        return;
+
+    int newId = 0;
+
+    if (!RoadmapRepository::add(currentHobbyId, 0, name, newId)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Root-Step konnte nicht erstellt werden."
+            );
+
+        return;
+    }
+
+    loadRoadmapCards();
+}
+
+void MainWindow::onRoadmapAddChildStep()
+{
+    QTreeWidgetItem *current = ui->roadmapTreeWidget->currentItem();
+
+    if (!current)
+        return;
+
+    const int parentId = current->data(0, Qt::UserRole).toInt();
+
+    if (parentId <= 0)
+        return;
+
+    bool ok = false;
+
+    const QString name = QInputDialog::getText(
+                             this,
+                             "Neuer Unter-Step",
+                             "Name:",
+                             QLineEdit::Normal,
+                             "",
+                             &ok
+                             ).trimmed();
+
+    if (!ok || name.isEmpty())
+        return;
+
+    int newId = 0;
+
+    if (!RoadmapRepository::add(currentHobbyId, parentId, name, newId)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Unter-Step konnte nicht erstellt werden."
+            );
+
+        return;
+    }
+
+    loadRoadmapDetail(currentRoadmapDetailRootId);
+}
+
+void MainWindow::onRoadmapRenameSelectedStep()
+{
+    QTreeWidgetItem *current = ui->roadmapTreeWidget->currentItem();
+
+    if (!current)
+        return;
+
+    const int stepId = current->data(0, Qt::UserRole).toInt();
+
+    if (stepId <= 0)
+        return;
+
+    bool ok = false;
+
+    const QString name = QInputDialog::getText(
+                             this,
+                             "Step umbenennen",
+                             "Neuer Name:",
+                             QLineEdit::Normal,
+                             current->text(0),
+                             &ok
+                             ).trimmed();
+
+    if (!ok || name.isEmpty())
+        return;
+
+    if (!RoadmapRepository::rename(stepId, name)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Step konnte nicht umbenannt werden."
+            );
+
+        return;
+    }
+
+    // Wenn der Root-Step umbenannt wurde, muss auch der Titel aktualisiert werden.
+    if (stepId == currentRoadmapDetailRootId) {
+        ui->roadmapDetailTitleLabel->setText(name);
+    }
+
+    loadRoadmapDetail(currentRoadmapDetailRootId);
+}
+
+void MainWindow::onRoadmapToggleSelectedStepDone()
+{
+    QTreeWidgetItem *current = ui->roadmapTreeWidget->currentItem();
+
+    if (!current)
+        return;
+
+    const int stepId = current->data(0, Qt::UserRole).toInt();
+
+    if (stepId <= 0)
+        return;
+
+    RoadmapStep step;
+
+    if (!RoadmapRepository::getById(stepId, step))
+        return;
+
+    if (!RoadmapRepository::setCompletedRecursive(
+            stepId,
+            !step.completed)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Status konnte nicht geändert werden."
+            );
+
+        return;
+    }
+
+    loadRoadmapDetail(currentRoadmapDetailRootId);
+}
+
+void MainWindow::onRoadmapDeleteSelectedStep()
+{
+    QTreeWidgetItem *current = ui->roadmapTreeWidget->currentItem();
+
+    if (!current)
+        return;
+
+    const int stepId = current->data(0, Qt::UserRole).toInt();
+
+    if (stepId <= 0)
+        return;
+
+    // Sonderfall: Root-Step löschen → zurück zur Übersicht.
+    const bool isRoot = (stepId == currentRoadmapDetailRootId);
+
+    const QString message = isRoot
+                                ? QString("Möchtest du die Roadmap „%1“ und alle Unter-Steps wirklich löschen?")
+                                      .arg(current->text(0))
+                                : QString("Möchtest du den Step „%1“ und alle Unter-Steps wirklich löschen?")
+                                      .arg(current->text(0));
+
+    const auto answer = QMessageBox::question(
+        this,
+        "Löschen",
+        message,
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+        );
+
+    if (answer != QMessageBox::Yes)
+        return;
+
+    if (!RoadmapRepository::removeRecursive(stepId)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Step konnte nicht gelöscht werden."
+            );
+
+        return;
+    }
+
+    if (isRoot) {
+        showRoadmapOverview();
+        loadRoadmapCards();
+    } else {
+        loadRoadmapDetail(currentRoadmapDetailRootId);
+    }
 }
 
 MainWindow::~MainWindow()
