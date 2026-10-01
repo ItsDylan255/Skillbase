@@ -51,15 +51,36 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    // Lädt ein Hobby anhand seiner ID: Sidebar-Auswahl markieren,
+    // currentHobbyId setzen, Notizen laden, Dashboard aktualisieren,
+    // Cards aller Tabs laden.
+    void selectHobbyById(int hobbyId);
+
+    // Wird beim App-Start aufgerufen. Lädt das zuletzt geöffnete
+    // Hobby aus QSettings; falls das nicht existiert, das erste
+    // Hobby; falls gar keins existiert, wird der Willkommens-
+    // Bildschirm angezeigt.
+    void restoreLastOpenedHobby();
     // ── Übungen ──────────────────────────────────────────────────────────
     void loadExerciseCards();
     void editExercise(int exerciseId);
-
+    // Öffnet den Dialog zum Anlegen eines neuen Hobbys und fügt es
+    // der Sidebar-Liste hinzu. Wird sowohl vom "+ hinzufügen"-Eintrag
+    // in der hobbyList als auch vom Willkommens-Button aufgerufen.
+    void onAddHobby();
     // Übungen: Wechsel zwischen Kartenübersicht und Detail-/
     // Fortschrittsansicht innerhalb derselben Seite (kein neues Fenster).
     void showExerciseOverview();
     void showExerciseDetail(int exerciseId);
     void loadExerciseDetail(int exerciseId);
+    // Hobby-Einstellungen-Dialog öffnen (Zahnrad unten rechts).
+    void openHobbySettingsDialog();
+
+    // Aktualisiert die Roadmap-Sektion im Hobby-Dashboard.
+    void refreshHobbyRoadmapSection(int hobbyId);
+
+    // Aktualisiert die Stats-Zeile im Hobby-Dashboard.
+    void refreshHobbyStatsSection(int hobbyId);
 
     // ── Übungs-Ausführung ────────────────────────────────────────────────
     // Öffnet die Ausführungsansicht für eine einzelne Übung.
@@ -348,6 +369,17 @@ private:
     // Bearbeitung sichtbar geschaltet.
     QLineEdit *exerciseDetailStartValueEdit = nullptr;
     bool exerciseDetailStartValueEditing = false;
+    // Baut die aktuelle Hauptziel-Card für das Hobby-Dashboard.
+    // Wird als echte Goal-Card gerendert, analog zur Ziele-Seite.
+    void renderDashboardGoalCard();
+
+    // Roadmap-Detail: Titel inline bearbeiten
+    QLineEdit *roadmapDetailTitleEdit = nullptr;
+    bool roadmapDetailTitleEditing = false;
+
+    void startRoadmapDetailTitleEdit();
+    void commitRoadmapDetailTitleEdit();
+    void cancelRoadmapDetailTitleEdit();
 
 };
 #endif // MAINWINDOW_H

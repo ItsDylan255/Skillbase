@@ -92,14 +92,15 @@ QLabel#sidebarTitleLabel {
     font-size: 16px;
     font-weight: 600;
     color: #eaeaec;
-    padding: 8px 4px 16px 4px;
+    padding: 8px 12px 16px 12px;
 }
 
 QLabel#sidebarHobbySectionLabel {
-    font-size: 11px;
-    font-weight: 600;
-    color: #6d6d73;
-    padding: 12px 4px 4px 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #eaeaec;
+    padding: 22px 16px 10px 16px;
+    border-bottom: 2px solid #29292d;
 }
 
 #sidebar QPushButton {
@@ -109,7 +110,7 @@ QLabel#sidebarHobbySectionLabel {
     border-radius: 0px;
     color: #9a9aa0;
     text-align: left;
-    padding: 8px 10px 8px 8px;
+    padding: 8px 12px 8px 10px;
     font-size: 13px;
     font-weight: 500;
 }
@@ -279,7 +280,10 @@ QLabel#exerciseDetailPercentLabel {
 QLabel#hobbyStatExercisesValueLabel,
 QLabel#hobbyStatTimeValueLabel,
 QLabel#hobbyStatSessionsValueLabel,
-QLabel#hobbyStatGoalsValueLabel {
+QLabel#hobbyStatGoalsValueLabel,
+QLabel#hobbyStatStreakValueLabel,
+QLabel#hobbyStatRoutinesValueLabel,
+QLabel#hobbyStatRoadmapValueLabel {
     font-size: 20px;
     font-weight: 700;
     color: #eaeaec;
@@ -288,7 +292,10 @@ QLabel#hobbyStatGoalsValueLabel {
 QLabel#hobbyStatExercisesCaptionLabel,
 QLabel#hobbyStatTimeCaptionLabel,
 QLabel#hobbyStatSessionsCaptionLabel,
-QLabel#hobbyStatGoalsCaptionLabel {
+QLabel#hobbyStatGoalsCaptionLabel,
+QLabel#hobbyStatStreakCaptionLabel,
+QLabel#hobbyStatRoutinesCaptionLabel,
+QLabel#hobbyStatRoadmapCaptionLabel {
     font-size: 12px;
     color: #9a9aa0;
 }
@@ -357,7 +364,8 @@ QFrame#dashboardDivider3,
 QFrame#hobbyDashboardDivider1,
 QFrame#hobbyDashboardDivider2,
 QFrame#hobbyDashboardDivider3,
-QFrame#hobbyDashboardDivider4 {
+QFrame#hobbyDashboardDivider4,
+QFrame#hobbyDashboardDividerPhaseGoals {
     background-color: #29292d;
     max-height: 1px;
     border: none;
@@ -388,7 +396,7 @@ QFrame#hobbyGoalSection:hover {
 
 /* Fortschrittsbalken der aktuellen Phase im Hobby-Dashboard - gleiche
    Optik wie der Fortschrittsbalken in der Übungs-Detailansicht. */
-QProgressBar#hobbyPhaseProgressBar {
+QProgressBar#hobbyRoadmapProgressBar {
     background-color: #121214;
     border: 1px solid #29292d;
     border-radius: 4px;
@@ -396,7 +404,7 @@ QProgressBar#hobbyPhaseProgressBar {
     max-height: 8px;
 }
 
-QProgressBar#hobbyPhaseProgressBar::chunk {
+QProgressBar#hobbyRoadmapProgressBar::chunk {
     background-color: #ff6f61;
     border-radius: 4px;
 }
@@ -743,7 +751,12 @@ QDateEdit::down-arrow {
 QDateEdit::down-arrow:disabled {
     image: url(:/icons/chevron-down-disabled.svg);
 }
-
+QListWidget#hobbyList {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+}
 /* ---------- Listen / Trees ---------- */
 QListWidget, QTreeWidget {
     background-color: #19191c;
@@ -1030,20 +1043,26 @@ QCheckBox::indicator:checked {
     border-color: #ff6f61;
 }
 
-QListWidget#hobbyList {
-    background: transparent;
-    border: none;
-}
 
 QListWidget#hobbyList::item {
     background: transparent;
     border: none;
-    padding: 8px 12px;
+    border-bottom: 1px solid #29292d;
+    border-radius: 0;
+    padding: 8px 16px;
+}
+
+/* Erstes Hobby-Item direkt unter der Trennlinie: oberes Padding
+   entfernen, damit kein Extra-Abstand zwischen Linie und Text
+   entsteht. */
+QListWidget#hobbyList::item:first {
+    padding-top: 8px;
 }
 
 QListWidget#hobbyList::item:selected {
     background: transparent;
     border-left: 2px solid #ff6f61;
+    border-radius: 0;
 }
 
 /* ---------- Roadmap: Overlay-Buttons in der Zeile ---------- */
@@ -1806,4 +1825,66 @@ QTreeWidget#roadmapTreeWidget {
 }
 QFrame#roadmapCard:hover {
     border: 1px solid #333338;
+}
+
+/* Willkommens-Bildschirm */
+QLabel#dashboardWelcomeTitleLabel {
+    font-size: 28px;
+    font-weight: 700;
+    color: #eaeaec;
+}
+
+QLabel#dashboardWelcomeSubtitleLabel {
+    font-size: 14px;
+    color: #9a9aa0;
+}
+
+QPushButton#dashboardWelcomeAddHobbyButton {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    font-weight: 600;
+    padding: 8px 20px;
+}
+
+QPushButton#dashboardWelcomeAddHobbyButton:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QPushButton#dashboardWelcomeAddHobbyButton:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
+}
+
+/* Zahnrad-Button im Hobby-Dashboard: kompakt, quadratisch, ohne
+   QToolButton-Standard-Padding, damit das Icon die volle Fläche nutzt. */
+QToolButton#hobbySettingsButton {
+    background-color: transparent;
+    border: none;
+    border-bottom: none;
+    border-radius: 4px;
+    padding: 0;
+}
+
+QToolButton#hobbySettingsButton:hover {
+    background-color: #212124;
+    border-radius: 4px;
+}
+
+QToolButton#hobbySettingsButton:pressed {
+    background-color: #29292d;
+}
+
+QProgressBar#hobbyPhaseProgressBar {
+    background-color: #121214;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    height: 8px;
+    max-height: 8px;
+}
+
+QProgressBar#hobbyPhaseProgressBar::chunk {
+    background-color: #ff6f61;
+    border-radius: 4px;
 }

@@ -5,35 +5,27 @@
 #include "ui_goal_dialog.h"
 
 #include "categoryrepository.h"
+#include "clickablelabel.h"
 #include "exerciselogrepository.h"
+#include "exerciseprogresschartwidget.h"
 #include "exerciserepository.h"
 #include "goal.h"
 #include "goalrepository.h"
 #include "hobbynoterepository.h"
 #include "hobbyrepository.h"
-#include "routine.h"
-#include "routinerepository.h"
-#include "timelinephaserepository.h"
-#include "roadmaprepository.h"
-
-#include "exerciseprogresschartwidget.h"
-#include "routinedialog.h"
-#include "timelinebarwidget.h"
-#include "timelinephasedialog.h"
-#include "clickablelabel.h"
 #include "roadmapminitreewidget.h"
+#include "roadmaprepository.h"
 #include "roadmaptreedelegate.h"
 #include "roadmaptreewidget.h"
-#include <QResizeEvent>
-#include <QScrollBar>
+#include "routine.h"
+#include "routinedialog.h"
+#include "routinerepository.h"
+#include "timelinebarwidget.h"
+#include "timelinephasedialog.h"
+#include "timelinephaserepository.h"
 
-
-#include <QBrush>
-#include <QFont>
-#include <QGridLayout>
-#include <QScrollArea>
-#include <QSizePolicy>
 #include <QApplication>
+#include <QBrush>
 #include <QCheckBox>
 #include <QColor>
 #include <QComboBox>
@@ -47,11 +39,14 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QEvent>
+#include <QFont>
 #include <QFrame>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QHash>
+#include <QHBoxLayout>
 #include <QIcon>
 #include <QInputDialog>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -63,20 +58,24 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QResizeEvent>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QSet>
+#include <QSettings>
 #include <QSignalBlocker>
+#include <QSizePolicy>
 #include <QSpacerItem>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidgetItem>
 #include <QUrl>
 #include <QVBoxLayout>
-#include <QKeyEvent>
+
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <utility>
-#include <QRegularExpression>
-#include <QRegularExpressionValidator>
-#include <QTreeWidgetItem>
 
 namespace {
 
@@ -170,43 +169,130 @@ void refreshHobbyDashboardOverview(Ui::MainWindow *ui, int hobbyId)
         }
     }
 
-    if (hasCurrentGoal) {
+    // Das aktuelle Ziel wird nicht mehr in statische Labels geschrieben,
+    // sondern als echte Goal-Card in den Container gerendert.
+    // Das macht renderDashboardGoalCard() weiter unten.
 
-        ui->hobbyGoalNameLabel->setText(
-            currentGoal.title
-            );
+    // ── Aktuelle Roadmap ─────────────────────────────────────────────────
+    //
+    // Die Roadmap-Sektion zeigt die als "aktuell" markierte Roadmap
+    // des Hobbys. Falls keine markiert ist, wird ein Hinweis angezeigt
+    // und der Nutzer kann per Klick auf die Roadmap-Seite wechseln.
 
-        const QDate deadline =
-            currentGoal.deadline.isEmpty()
-                ? QDate()
-                : QDate::fromString(
-                      currentGoal.deadline,
-                      "yyyy-MM-dd"
-                      );
+    const QList<RoadmapStep> allSteps =
+        RoadmapRepository::getForHobby(hobbyId);
 
-        ui->hobbyGoalDeadlineLabel->setText(
-            deadline.isValid()
-                ? "Bis " + deadline.toString("dd.MM.")
-                : QString()
-            );
+    RoadmapStep currentRoot;
+    bool hasCurrentRoot = false;
 
-    } else {
+    for (const RoadmapStep &step : allSteps) {
 
-        ui->hobbyGoalNameLabel->setText(
-            "Kein Hauptziel festgelegt"
-            );
-
-        ui->hobbyGoalDeadlineLabel->setText(
-            QString()
-            );
+        if (step.parentId == 0 && step.isCurrent) {
+            currentRoot = step;
+            hasCurrentRoot = true;
+            break;
+        }
     }
 
-    // ── Statistik ────────────────────────────────────────────────────────
+    if (hasCurrentRoot) {
+
+        // Mini-Baum füllen. Ohne das Namens-Label haben wir mehr
+        // vertikalen Platz — deshalb zeigen wir mehr Zeilen.
+        if (auto *miniTree =
+            qobject_cast<RoadmapMiniTreeWidget *>(
+                ui->hobbyRoadmapMiniTree)) {
+
+            miniTree->setMaxVisibleNodes(6);
+            miniTree->setData(currentRoot, allSteps);
+        }
+
+
+        // Fortschritt im aktuellen Root-Unterbaum berechnen.
+        int totalSteps = 0;
+        int doneSteps  = 0;
+
+        std::function<bool(const RoadmapStep &, int)> isInSubtree =
+            [&](const RoadmapStep &step, int rootId) -> bool {
+
+                int currentId = step.parentId;
+
+                while (currentId > 0) {
+
+                    if (currentId == rootId)
+                        return true;
+
+                    bool found = false;
+
+                    for (const RoadmapStep &s : allSteps) {
+                        if (s.id == currentId) {
+                            currentId = s.parentId;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                        return false;
+                }
+
+                return false;
+            };
+
+        for (const RoadmapStep &step : allSteps) {
+
+            if (step.id == currentRoot.id ||
+                isInSubtree(step, currentRoot.id)) {
+
+                ++totalSteps;
+
+                if (step.completed)
+                    ++doneSteps;
+            }
+        }
+
+        const int percent = totalSteps > 0
+                                ? qRound(100.0 * doneSteps / totalSteps)
+                                : 0;
+
+        ui->hobbyRoadmapProgressLabel->setText(
+            QString("%1 von %2 erledigt")
+                .arg(doneSteps)
+                .arg(totalSteps)
+            );
+
+        ui->hobbyRoadmapProgressBar->setValue(percent);
+
+         } else {
+
+        ui->hobbyRoadmapProgressLabel->setText(
+            "Klicke, um die Roadmap-Übersicht zu öffnen."
+            );
+
+        ui->hobbyRoadmapProgressBar->setValue(0);
+
+        // Mini-Baum leeren.
+        if (auto *miniTree =
+            qobject_cast<RoadmapMiniTreeWidget *>(
+                ui->hobbyRoadmapMiniTree)) {
+
+            RoadmapStep emptyRoot;
+            miniTree->setData(emptyRoot, {});
+            miniTree->setMaxVisibleNodes(6);
+        }
+    }
+
+    // ── Stats ────────────────────────────────────────────────────────────
     //
-    // "Übungen" zählt alle geloggten Ausführungen (nicht die Anzahl
-    // angelegter Übungen), "Sessions" die Anzahl unterschiedlicher Tage,
-    // an denen mindestens eine Ausführung stattgefunden hat.
-    const QList<Exercise> exercises = ExerciseRepository::getForHobby(hobbyId);
+    // 1. Gesamtzeit   — Summe aller Übungszeiten
+    // 2. Streak       — aufeinanderfolgende Tage mit Aktivität
+    // 3. Routinen     — Anzahl als "aktuell" markierter Routinen
+    // 4. Übungen      — Anzahl aller geloggten Ausführungen
+    // 5. Ziele        — Anzahl offener Ziele
+    // 6. Roadmap      — Fortschritt der aktuellen Roadmap in %
+
+    // Übungen + Gesamtzeit + Streak-Tage sammeln.
+    const QList<Exercise> exercises =
+        ExerciseRepository::getForHobby(hobbyId);
 
     int totalExecutions      = 0;
     int totalDurationSeconds = 0;
@@ -224,15 +310,13 @@ void refreshHobbyDashboardOverview(Ui::MainWindow *ui, int hobbyId)
             totalDurationSeconds += log.durationSeconds;
 
             const QString day = log.performedAt.left(10); // "yyyy-MM-dd"
+
             if (!day.isEmpty())
                 sessionDays.insert(day);
         }
     }
 
-    ui->hobbyStatExercisesValueLabel->setText(
-        QString::number(totalExecutions)
-        );
-
+    // Gesamtzeit.
     const int totalMinutes = totalDurationSeconds / 60;
 
     ui->hobbyStatTimeValueLabel->setText(
@@ -241,13 +325,111 @@ void refreshHobbyDashboardOverview(Ui::MainWindow *ui, int hobbyId)
             : QString("%1 min").arg(totalMinutes)
         );
 
-    ui->hobbyStatSessionsValueLabel->setText(
-        QString::number(sessionDays.size())
+    // Streak.
+    int streak = 0;
+    QDate day = QDate::currentDate();
+
+    // Wenn heute nichts passiert ist, mit gestern anfangen.
+    if (!sessionDays.contains(day.toString("yyyy-MM-dd")))
+        day = day.addDays(-1);
+
+    while (sessionDays.contains(day.toString("yyyy-MM-dd"))) {
+        ++streak;
+        day = day.addDays(-1);
+    }
+
+    ui->hobbyStatStreakValueLabel->setText(
+        QString::number(streak)
         );
 
-    ui->hobbyStatGoalsValueLabel->setText(
-        QString::number(goals.size())
+    // Routinen (aktive, nicht archivierte, als "aktuell" markierte).
+    int activeRoutineCount = 0;
+
+    for (const Routine &routine :
+         RoutineRepository::getForHobby(hobbyId)) {
+
+        if (!routine.archived && routine.isCurrent)
+            ++activeRoutineCount;
+    }
+
+    ui->hobbyStatRoutinesValueLabel->setText(
+        QString::number(activeRoutineCount)
         );
+
+    // Übungen.
+    ui->hobbyStatExercisesValueLabel->setText(
+        QString::number(totalExecutions)
+        );
+
+    // Ziele (nur offene).
+    int openGoals = 0;
+
+    for (const Goal &goal : goals) {
+        if (!goal.isDone())
+            ++openGoals;
+    }
+
+    ui->hobbyStatGoalsValueLabel->setText(
+        QString::number(openGoals)
+        );
+
+    // Roadmap.
+    if (hasCurrentRoot) {
+
+        int totalSteps = 0;
+        int doneSteps  = 0;
+
+        std::function<bool(const RoadmapStep &, int)> isInSubtree =
+            [&](const RoadmapStep &step, int rootId) -> bool {
+
+                int currentId = step.parentId;
+
+                while (currentId > 0) {
+
+                    if (currentId == rootId)
+                        return true;
+
+                    bool found = false;
+
+                    for (const RoadmapStep &s : allSteps) {
+                        if (s.id == currentId) {
+                            currentId = s.parentId;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                        return false;
+                }
+
+                return false;
+            };
+
+        for (const RoadmapStep &step : allSteps) {
+
+            if (step.id == currentRoot.id ||
+                isInSubtree(step, currentRoot.id)) {
+
+                ++totalSteps;
+
+                if (step.completed)
+                    ++doneSteps;
+            }
+        }
+
+        const int percent = totalSteps > 0
+                                ? qRound(100.0 * doneSteps / totalSteps)
+                                : 0;
+
+        ui->hobbyStatRoadmapValueLabel->setText(
+            QString("%1 %").arg(percent)
+            );
+
+    } else {
+
+        ui->hobbyStatRoadmapValueLabel->setText("–");
+    }
 }
 
 // Formatiert Sekunden als "MM:SS" für den Routine-Countdown.
@@ -339,6 +521,13 @@ MainWindow::MainWindow(QWidget *parent)
     // gleich breit sein, egal was der Qt Designer mit der .ui macht.
     for (int c = 0; c < 3; ++c)
         ui->hobbyCurrentRoutinesLayout->setColumnStretch(c, 1);
+
+    // Die drei Dashboard-Sektionen (Ziel / Roadmap / Notiz) sollen
+    // exakt gleich breit sein. Da Qt Designer kein stretch-Attribut
+    // in der .ui akzeptiert, setzen wir es im Code.
+    ui->hobbyGoalRoadmapNotesRowLayout->setStretch(0, 1);   // Ziel
+    ui->hobbyGoalRoadmapNotesRowLayout->setStretch(1, 1);   // Roadmap
+    ui->hobbyGoalRoadmapNotesRowLayout->setStretch(2, 1);   // Notiz
 
     // ── Routine-Ausführung ───────────────────────────────────────────────
     routineExecutionTimer = new QTimer(this);
@@ -443,6 +632,20 @@ MainWindow::MainWindow(QWidget *parent)
     exerciseExecutionTimerEdit->setAlignment(Qt::AlignCenter);
     exerciseExecutionTimerEdit->setVisible(false);
     exerciseExecutionTimerEdit->installEventFilter(this);
+
+    // ── Roadmap-Detail: Titel inline umbenennen ─────────────────────────
+    // Klick auf den Roadmap-Namen öffnet ein Edit-Feld an gleicher Stelle.
+    ui->roadmapDetailTitleLabel->setCursor(Qt::PointingHandCursor);
+    ui->roadmapDetailTitleLabel->setToolTip("Klicken zum Umbenennen");
+    ui->roadmapDetailTitleLabel->installEventFilter(this);
+
+    // Kind des Parent-WIDGETS (nicht des Layouts), damit das Layout
+    // nicht verschoben wird.
+    roadmapDetailTitleEdit = new QLineEdit(
+        ui->roadmapDetailTitleLabel->parentWidget());
+    roadmapDetailTitleEdit->setObjectName("roadmapDetailTitleEdit");
+    roadmapDetailTitleEdit->setVisible(false);
+    roadmapDetailTitleEdit->installEventFilter(this);
 
     connect(routineExecutionTimer, &QTimer::timeout, this, [this]() {
 
@@ -752,7 +955,25 @@ MainWindow::MainWindow(QWidget *parent)
         };
 
     installDashboardClickFilter(ui->hobbyPhaseSection);
-    installDashboardClickFilter(ui->hobbyGoalSection);
+    installDashboardClickFilter(ui->hobbyGoalSectionContainer);
+
+    // Roadmap-Sektion im Hobby-Dashboard klickbar machen.
+    installDashboardClickFilter(ui->hobbyRoadmapSection);
+
+    // Zahnrad-Button (Hobby-Einstellungen).
+    ui->hobbySettingsButton->setIcon(
+        QIcon(QStringLiteral(":/icons/settings-gear.svg"))
+        );
+    ui->hobbySettingsButton->setIconSize(QSize(18, 18));
+
+    connect(
+        ui->hobbySettingsButton,
+        &QToolButton::clicked,
+        this,
+        [this]() {
+            openHobbySettingsDialog();
+        }
+        );
 
     // ── Timeline: Klick auf einen Phasen-Balken ─────────────────────────────
     //
@@ -900,26 +1121,23 @@ MainWindow::MainWindow(QWidget *parent)
     for (const Hobby &hobby : HobbyRepository::getAll()) {
         QListWidgetItem *item = new QListWidgetItem(hobby.name);
         item->setData(Qt::UserRole, hobby.id);
+
         ui->hobbyList->addItem(item);
     }
+
     QListWidgetItem *addHobbyItem = new QListWidgetItem("+ hinzufügen");
     addHobbyItem->setFlags(addHobbyItem->flags() & ~Qt::ItemIsSelectable);
+
+    QFont addFont = addHobbyItem->font();
+    addFont.setBold(false);
+    addHobbyItem->setFont(addFont);
+
     ui->hobbyList->addItem(addHobbyItem);
 
-    ui->pageStack->setCurrentWidget(ui->dashboardPage);
+    // Beim Start das zuletzt geöffnete Hobby laden. Falls keins
+    // existiert, wird der Willkommens-Bildschirm angezeigt.
+    restoreLastOpenedHobby();
 
-    // ── Sidebar-Navigation ──────────────────────────────────────────────────
-
-    connect(ui->dashboardButton, &QPushButton::clicked, this, [this]() {
-        ui->hobbyList->clearSelection();
-        ui->pageStack->setCurrentWidget(ui->dashboardPage);
-    });
-
-
-    connect(ui->settingsButton, &QPushButton::clicked, this, [this]() {
-        ui->hobbyList->clearSelection();
-        ui->pageStack->setCurrentWidget(ui->settingsPage);
-    });
 
     // ── Hobby-Tab-Navigation ────────────────────────────────────────────────
     // Die Hobby-Tabs verhalten sich wie eine feste Navigation:
@@ -1231,99 +1449,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->hobbyList, &QListWidget::itemClicked, this, [this](QListWidgetItem *item) {
 
         if (item->text() == "+ hinzufügen") {
-            bool ok;
-            QString hobbyName = QInputDialog::getText(
-                this, "Neues Hobby", "Name des Hobbys:",
-                QLineEdit::Normal, "", &ok);
-
-            if (ok && !hobbyName.isEmpty()) {
-                int hobbyId;
-                if (HobbyRepository::add(hobbyName, "", hobbyId)) {
-                    QListWidgetItem *newItem = new QListWidgetItem(hobbyName);
-                    newItem->setData(Qt::UserRole, hobbyId);
-                    int addHobbyIndex = ui->hobbyList->count() - 1;
-                    ui->hobbyList->insertItem(addHobbyIndex, newItem);
-                }
-            }
+            onAddHobby();
             return;
         }
 
-        // Die Hobby-Auswahl ist die aktive Navigation - die
-        // obersten Sidebar-Buttons dürfen dann nicht mehr als
-        // "aktiv" markiert bleiben (immer nur ein Indikator).
-        ui->dashboardButton->setChecked(false);
-        ui->settingsButton->setChecked(false);
-
-        // Eine laufende Routine- oder Übungs-Ausführung gehört zum
-        // bisherigen Hobby. Beim Hobby-Wechsel wird sie komplett
-        // beendet (nicht nur pausiert), weil der Zustand nicht mit
-        // dem neuen Hobby vereinbar ist.
-        if (currentExecutionRoutineId != 0)
-            leaveRoutineExecution();
-
-        if (currentExecutionExerciseId != 0)
-            leaveExerciseExecution();
-
-        currentHobby   = item->text();
-        currentHobbyId = item->data(Qt::UserRole).toInt();
-
-        // Beim Hobby-Wechsel einen evtl. gemerkten Rückkehrpunkt der
-        // Übungs-Detailansicht zurücksetzen, damit der Back-Button
-        // nicht ins vorherige Hobby zurückspringt.
-        exerciseDetailReturnPage = nullptr;
-
-        ui->hobbyLabel->setText(currentHobby);
-
-        {
-            QSignalBlocker blocker(ui->hobbyNotesTextEdit);
-            ui->hobbyNotesTextEdit->setPlainText(
-                HobbyNoteRepository::getContent(currentHobbyId));
-        }
-
-        refreshHobbyDashboardOverview(ui, currentHobbyId);
-
-        // Kategorien des ausgewählten Hobbys in den Filter laden
-        ui->exerciseCategoryComboBox->clear();
-
-        ui->exerciseCategoryComboBox->addItem(
-            "Alle Kategorien",
-            0
-            );
-
-        ui->exerciseCategoryComboBox->addItem(
-            "Archiv",
-            -1
-            );
-
-        for (const Category &cat :
-             CategoryRepository::getForHobby(currentHobbyId)) {
-
-            ui->exerciseCategoryComboBox->addItem(
-                cat.name,
-                cat.id
-                );
-        }
-
-        // Ein Hobby-Wechsel soll nicht mitten in der Detailansicht
-        // einer Übung des vorherigen Hobbys landen.
-        showExerciseOverview();
-
-        loadExerciseCards();
-        loadHistory();
-        loadTimeline();
-        loadRoutineCards();
-        ui->goalsFilterOpenButton->setChecked(true);
-        ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
-        loadGoalCards();
-        loadDashboardRoutineCards();
-        showRoadmapOverview();
-        loadRoadmapCards();
-
-
-        ui->dashboardTab->setChecked(true);
-        ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
-        ui->pageStack->setCurrentWidget(ui->hobbyPage);
+        const int hobbyId = item->data(Qt::UserRole).toInt();
+        selectHobbyById(hobbyId);
     });
+
+    connect(
+        ui->dashboardWelcomeAddHobbyButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            onAddHobby();
+        }
+        );
 
     // ── Übung hinzufügen ────────────────────────────────────────────────────
 
@@ -1690,48 +1831,6 @@ MainWindow::MainWindow(QWidget *parent)
         }
         );
 
-    // TODO: In Nachricht 2 werden die 4 Buttons in die Zeile
-    // des ausgewählten Steps integriert. Dann werden die Connects
-    // wieder aktiviert.
-
-    /*
-    connect(
-        ui->roadmapAddChildButton,
-        &QToolButton::clicked,
-        this,
-        [this]() {
-            onRoadmapAddChildStep();
-        }
-        );
-
-    connect(
-        ui->roadmapRenameButton,
-        &QToolButton::clicked,
-        this,
-        [this]() {
-            onRoadmapRenameSelectedStep();
-        }
-        );
-
-    connect(
-        ui->roadmapToggleDoneButton,
-        &QToolButton::clicked,
-        this,
-        [this]() {
-            onRoadmapToggleSelectedStepDone();
-        }
-        );
-
-    connect(
-        ui->roadmapDeleteButton,
-        &QToolButton::clicked,
-        this,
-        [this]() {
-            onRoadmapDeleteSelectedStep();
-        }
-        );
-    */
-
     updateRoadmapActionButtons();
 }
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
@@ -1767,6 +1866,40 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 
         if (event->type() == QEvent::FocusOut) {
             commitRoutineExecutionTimerEdit();
+            return true;
+        }
+    }
+    // ── Roadmap-Detail: Titel inline bearbeiten ──────────────────────────
+    if (watched == ui->roadmapDetailTitleLabel &&
+        event->type() == QEvent::MouseButtonRelease) {
+
+        auto *mouseEvent = static_cast<QMouseEvent *>(event);
+
+        if (mouseEvent->button() == Qt::LeftButton) {
+            startRoadmapDetailTitleEdit();
+            return true;
+        }
+    }
+
+    if (watched == roadmapDetailTitleEdit) {
+
+        if (event->type() == QEvent::KeyPress) {
+
+            const int key = static_cast<QKeyEvent *>(event)->key();
+
+            if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+                commitRoadmapDetailTitleEdit();
+                return true;
+            }
+
+            if (key == Qt::Key_Escape) {
+                cancelRoadmapDetailTitleEdit();
+                return true;
+            }
+        }
+
+        if (event->type() == QEvent::FocusOut) {
+            commitRoadmapDetailTitleEdit();
             return true;
         }
     }
@@ -1888,9 +2021,13 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 
             // Prüfen, ob auf das aktuelle Ziel oder eines seiner
             // enthaltenen Widgets geklickt wurde.
+            //
+            // Auf dem Dashboard ist das Ziel keine statische Sektion mehr,
+            // sondern ein Container (hobbyGoalSectionContainer), in den
+            // renderDashboardGoalCard() dynamisch eine Goal-Card rendert.
             const bool goalClicked =
-                watched == ui->hobbyGoalSection ||
-                ui->hobbyGoalSection->isAncestorOf(
+                watched == ui->hobbyGoalSectionContainer ||
+                ui->hobbyGoalSectionContainer->isAncestorOf(
                     qobject_cast<QWidget *>(watched)
                     );
 
@@ -1898,9 +2035,35 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
                 ui->goalsTab->setChecked(true);
                 ui->hobbyPageStack->setCurrentWidget(ui->goalsPage);
 
-                // Den "Offen"-Button wirklich auslösen, damit der Filter
-                // genauso angewendet wird wie bei einem normalen Benutzerklick.
                 ui->goalsFilterOpenButton->click();
+
+                return true;
+            }
+
+            // Klick auf die leere Ziel-Card im Dashboard → Ziele-Seite.
+            if (auto *card = qobject_cast<QFrame *>(watched)) {
+                if (card->property("dashboardEmptyGoal").toBool()) {
+                    ui->goalsTab->setChecked(true);
+                    ui->hobbyPageStack->setCurrentWidget(ui->goalsPage);
+                    ui->goalsFilterOpenButton->click();
+                    return true;
+                }
+            }
+
+            // Prüfen, ob auf die Roadmap-Sektion oder eines ihrer
+            // enthaltenen Widgets geklickt wurde.
+            const bool roadmapClicked =
+                watched == ui->hobbyRoadmapSection ||
+                ui->hobbyRoadmapSection->isAncestorOf(
+                    qobject_cast<QWidget *>(watched)
+                    );
+
+            if (roadmapClicked) {
+                ui->roadmapTab->setChecked(true);
+                ui->hobbyPageStack->setCurrentWidget(ui->roadmapPage);
+
+                showRoadmapOverview();
+                loadRoadmapCards();
 
                 return true;
             }
@@ -4572,7 +4735,7 @@ void MainWindow::loadRoutineCards()
                 );
         }
 
-        constexpr int visibleExerciseCount = 4;
+        constexpr int visibleExerciseCount = 6;
 
         int shownCount = 0;
 
@@ -7318,7 +7481,626 @@ void MainWindow::onRoadmapDeleteSelectedStep()
     }
 }
 
+void MainWindow::openHobbySettingsDialog()
+{
+    if (currentHobbyId == 0)
+        return;
+
+    QDialog dialog(this);
+    dialog.setWindowTitle("Hobby-Einstellungen");
+    dialog.setMinimumWidth(360);
+
+    auto *layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(20, 20, 20, 20);
+    layout->setSpacing(12);
+
+    // ── Umbenennen ───────────────────────────────────────────────────────
+    auto *nameLabel = new QLabel("Name", &dialog);
+    nameLabel->setObjectName("hobbySettingsFieldLabel");
+    layout->addWidget(nameLabel);
+
+    auto *nameEdit = new QLineEdit(currentHobby, &dialog);
+    layout->addWidget(nameEdit);
+
+    auto *renameButton = new QPushButton("Umbenennen", &dialog);
+    renameButton->setObjectName("hobbySettingsRenameButton");
+    layout->addWidget(renameButton);
+
+    // ── Trenner ──────────────────────────────────────────────────────────
+    auto *separator = new QFrame(&dialog);
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Plain);
+    separator->setObjectName("hobbySettingsSeparator");
+    layout->addWidget(separator);
+
+    // ── Löschen ──────────────────────────────────────────────────────────
+    auto *deleteButton = new QPushButton("Hobby löschen", &dialog);
+    deleteButton->setObjectName("hobbySettingsDeleteButton");
+    layout->addWidget(deleteButton);
+
+    // ── Schließen ────────────────────────────────────────────────────────
+    auto *closeButton = new QPushButton("Schließen", &dialog);
+    closeButton->setObjectName("hobbySettingsCloseButton");
+    layout->addWidget(closeButton);
+
+    // ── Umbenennen ───────────────────────────────────────────────────────
+    connect(renameButton, &QPushButton::clicked, &dialog, [&]() {
+
+        const QString newName = nameEdit->text().trimmed();
+
+        if (newName.isEmpty() || newName == currentHobby)
+            return;
+
+        if (!HobbyRepository::rename(currentHobbyId, newName)) {
+            QMessageBox::warning(
+                &dialog,
+                "Fehler",
+                "Das Hobby konnte nicht umbenannt werden."
+                );
+            return;
+        }
+
+        // Sidebar-Eintrag aktualisieren.
+        for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+            QListWidgetItem *item = ui->hobbyList->item(i);
+
+            if (item->data(Qt::UserRole).toInt() == currentHobbyId) {
+                item->setText(newName);
+                break;
+            }
+        }
+
+        currentHobby = newName;
+        ui->hobbyLabel->setText(newName);
+
+        dialog.accept();
+    });
+
+    // ── Löschen ──────────────────────────────────────────────────────────
+    connect(deleteButton, &QPushButton::clicked, &dialog, [&]() {
+
+        const auto answer = QMessageBox::question(
+            &dialog,
+            "Hobby löschen",
+            QString("Möchtest du das Hobby „%1“ wirklich löschen?\n\n"
+                    "Alle Übungen, Ziele, Routinen, Roadmaps, Phasen, "
+                    "Notizen und Logs werden mitgelöscht. "
+                    "Das kann nicht rückgängig gemacht werden.")
+                .arg(currentHobby),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+            );
+
+        if (answer != QMessageBox::Yes)
+            return;
+
+        const int deletedHobbyId = currentHobbyId;
+
+        if (!HobbyRepository::removeRecursive(deletedHobbyId)) {
+            QMessageBox::warning(
+                &dialog,
+                "Fehler",
+                "Das Hobby konnte nicht gelöscht werden."
+                );
+            return;
+        }
+
+        // Sidebar-Eintrag entfernen.
+        for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+            QListWidgetItem *item = ui->hobbyList->item(i);
+
+            if (item->data(Qt::UserRole).toInt() == deletedHobbyId) {
+                delete ui->hobbyList->takeItem(i);
+                break;
+            }
+        }
+
+        // currentHobbyId zurücksetzen.
+        currentHobbyId = 0;
+        currentHobby.clear();
+
+        // Nächstes Hobby öffnen oder Willkommens-Bildschirm.
+        int nextHobbyId = 0;
+
+        for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+            const int id = ui->hobbyList->item(i)->data(Qt::UserRole).toInt();
+
+            if (id > 0) {
+                nextHobbyId = id;
+                break;
+            }
+        }
+
+        if (nextHobbyId > 0) {
+            selectHobbyById(nextHobbyId);
+        } else {
+            ui->pageStack->setCurrentWidget(ui->dashboardPage);
+
+            QSettings settings("Skillbase", "Skillbase");
+            settings.remove("lastHobbyId");
+        }
+
+        dialog.accept();
+    });
+
+    connect(closeButton, &QPushButton::clicked, &dialog, [&]() {
+        dialog.reject();
+    });
+
+    dialog.exec();
+}
+
+void MainWindow::onAddHobby()
+{
+    bool ok = false;
+
+    const QString hobbyName = QInputDialog::getText(
+                                  this,
+                                  "Neues Hobby",
+                                  "Name des Hobbys:",
+                                  QLineEdit::Normal,
+                                  "",
+                                  &ok
+                                  ).trimmed();
+
+    if (!ok || hobbyName.isEmpty())
+        return;
+
+    int hobbyId = 0;
+
+    if (!HobbyRepository::add(hobbyName, "", hobbyId)) {
+        qDebug() << "Hobby konnte nicht gespeichert werden.";
+        return;
+    }
+
+    QListWidgetItem *newItem = new QListWidgetItem(hobbyName);
+    newItem->setData(Qt::UserRole, hobbyId);
+
+    // Vor dem "+ hinzufügen"-Eintrag einfügen.
+    const int addHobbyIndex = ui->hobbyList->count() - 1;
+    ui->hobbyList->insertItem(addHobbyIndex, newItem);
+
+    // Neu angelegtes Hobby direkt öffnen. Das setzt auch die Fett-
+    // Formatierung, weil selectHobbyById() das Ziel-Item fett macht.
+    selectHobbyById(hobbyId);
+}
+
+void MainWindow::selectHobbyById(int hobbyId)
+{
+    if (hobbyId <= 0)
+        return;
+
+    // Alle Hobby-Items auf normal setzen, das Ziel-Item anschließend fett.
+    for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+        QListWidgetItem *item = ui->hobbyList->item(i);
+
+        // "+ hinzufügen" hat keine UserRole-Daten und bleibt normal.
+        if (item->data(Qt::UserRole).toInt() <= 0)
+            continue;
+
+        QFont f = item->font();
+        f.setBold(false);
+        item->setFont(f);
+    }
+
+    // Passenden Sidebar-Eintrag finden.
+    QListWidgetItem *targetItem = nullptr;
+
+    for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+        QListWidgetItem *item = ui->hobbyList->item(i);
+
+        if (item->data(Qt::UserRole).toInt() == hobbyId) {
+            targetItem = item;
+            break;
+        }
+    }
+
+    if (!targetItem)
+        return;
+
+    // Sidebar-Auswahl markieren.
+    ui->hobbyList->setCurrentItem(targetItem);
+
+    // Nur das ausgewählte Hobby fett darstellen.
+    {
+        QFont f = targetItem->font();
+        f.setBold(true);
+        targetItem->setFont(f);
+    }
+
+    // Eine laufende Routine- oder Übungs-Ausführung gehört zum
+    // bisherigen Hobby. Beim Hobby-Wechsel wird sie komplett beendet.
+    if (currentExecutionRoutineId != 0)
+        leaveRoutineExecution();
+
+    if (currentExecutionExerciseId != 0)
+        leaveExerciseExecution();
+
+    currentHobby   = targetItem->text();
+    currentHobbyId = targetItem->data(Qt::UserRole).toInt();
+
+    // Letztes Hobby in den Einstellungen merken.
+    QSettings settings("Skillbase", "Skillbase");
+    settings.setValue("lastHobbyId", currentHobbyId);
+
+    // Rückkehrpunkt der Übungs-Detailansicht zurücksetzen.
+    exerciseDetailReturnPage = nullptr;
+
+    ui->hobbyLabel->setText(currentHobby);
+
+    {
+        QSignalBlocker blocker(ui->hobbyNotesTextEdit);
+        ui->hobbyNotesTextEdit->setPlainText(
+            HobbyNoteRepository::getContent(currentHobbyId));
+    }
+
+    refreshHobbyDashboardOverview(ui, currentHobbyId);
+    renderDashboardGoalCard();
+
+    // Kategorien des ausgewählten Hobbys in den Filter laden.
+    ui->exerciseCategoryComboBox->clear();
+
+    ui->exerciseCategoryComboBox->addItem(
+        "Alle Kategorien",
+        0
+        );
+
+    ui->exerciseCategoryComboBox->addItem(
+        "Archiv",
+        -1
+        );
+
+    for (const Category &cat :
+         CategoryRepository::getForHobby(currentHobbyId)) {
+
+        ui->exerciseCategoryComboBox->addItem(
+            cat.name,
+            cat.id
+            );
+    }
+
+    // Ein Hobby-Wechsel soll nicht mitten in der Detailansicht
+    // einer Übung des vorherigen Hobbys landen.
+    showExerciseOverview();
+
+    loadExerciseCards();
+    loadHistory();
+    loadTimeline();
+    loadRoutineCards();
+    ui->goalsFilterOpenButton->setChecked(true);
+    ui->goalsViewStack->setCurrentWidget(ui->goalsOpenPage);
+    loadGoalCards();
+    loadDashboardRoutineCards();
+    showRoadmapOverview();
+    loadRoadmapCards();
+
+    ui->dashboardTab->setChecked(true);
+    ui->hobbyPageStack->setCurrentWidget(ui->dashboardHobbyPage);
+    ui->pageStack->setCurrentWidget(ui->hobbyPage);
+}
+
+void MainWindow::restoreLastOpenedHobby()
+{
+    // Wenn es gar kein Hobby gibt, Willkommens-Bildschirm zeigen.
+    if (ui->hobbyList->count() <= 1) {
+        // count == 1 bedeutet nur "+ hinzufügen" ist drin.
+        ui->pageStack->setCurrentWidget(ui->dashboardPage);
+        return;
+    }
+
+    // Letztes Hobby aus QSettings lesen.
+    QSettings settings("Skillbase", "Skillbase");
+    const int lastHobbyId = settings.value("lastHobbyId", 0).toInt();
+
+    // Prüfen, ob das Hobby mit dieser ID noch existiert.
+    bool found = false;
+
+    if (lastHobbyId > 0) {
+
+        for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+            QListWidgetItem *item = ui->hobbyList->item(i);
+
+            if (item->data(Qt::UserRole).toInt() == lastHobbyId) {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (found) {
+        selectHobbyById(lastHobbyId);
+        return;
+    }
+
+    // Fallback: erstes echtes Hobby öffnen.
+    for (int i = 0; i < ui->hobbyList->count(); ++i) {
+
+        QListWidgetItem *item = ui->hobbyList->item(i);
+
+        // "+ hinzufügen" hat keine UserRole-Daten.
+        const int id = item->data(Qt::UserRole).toInt();
+
+        if (id > 0) {
+            selectHobbyById(id);
+            return;
+        }
+    }
+
+    // Sicherheitsnetz.
+    ui->pageStack->setCurrentWidget(ui->dashboardPage);
+}
+
+void MainWindow::renderDashboardGoalCard()
+{
+    // Container leeren.
+    while (ui->hobbyGoalContainerLayout->count() > 0) {
+
+        QLayoutItem *item = ui->hobbyGoalContainerLayout->takeAt(0);
+
+        if (item->widget())
+            item->widget()->deleteLater();
+
+        delete item;
+    }
+
+    if (currentHobbyId == 0)
+        return;
+
+    // Aktuelles Hauptziel finden.
+    const QList<Goal> goals =
+        GoalRepository::getForHobby(currentHobbyId);
+
+    Goal currentGoal;
+    bool hasCurrentGoal = false;
+
+    for (const Goal &goal : goals) {
+
+        if (goal.isDone())
+            continue;
+
+        if (goal.isCurrent) {
+            currentGoal = goal;
+            hasCurrentGoal = true;
+            break;
+        }
+    }
+
+    // Wenn kein Hauptziel markiert ist: Hinweis-Card anzeigen.
+    if (!hasCurrentGoal) {
+
+        auto *emptyCard = new QFrame(ui->hobbyGoalSectionContainer);
+        emptyCard->setObjectName("goalCard");
+        emptyCard->setFrameShape(QFrame::StyledPanel);
+        emptyCard->setFixedHeight(176);
+        emptyCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        emptyCard->setCursor(Qt::PointingHandCursor);
+
+        emptyCard->setProperty("dashboardEmptyGoal", true);
+        emptyCard->installEventFilter(this);
+
+        auto *layout = new QVBoxLayout(emptyCard);
+        layout->setContentsMargins(12, 12, 12, 12);
+        layout->setSpacing(4);
+
+        auto *label = new QLabel("Kein Hauptziel festgelegt", emptyCard);
+        label->setProperty("role", "muted");
+        label->setWordWrap(true);
+        label->setAlignment(Qt::AlignCenter);
+        label->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+
+        layout->addStretch();
+        layout->addWidget(label);
+        layout->addStretch();
+
+        ui->hobbyGoalContainerLayout->addWidget(emptyCard);
+        return;
+    }
+
+    // ── Echte Ziel-Card bauen (analog zur Ziele-Seite) ─────────────────
+    auto *card = new QFrame(ui->hobbyGoalSectionContainer);
+    card->setObjectName("goalCard");
+    card->setFrameShape(QFrame::StyledPanel);
+    card->setFixedHeight(176);
+    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    // Kein Drag & Drop auf dem Dashboard.
+    card->setProperty("goalId", currentGoal.id);
+    card->setProperty("goalDraggable", false);
+    card->setProperty("goalIsCurrent", true);
+
+    card->setCursor(Qt::PointingHandCursor);
+    card->installEventFilter(this);
+    card->setAttribute(Qt::WA_Hover, true);
+
+    auto *cardLayout = new QVBoxLayout(card);
+    cardLayout->setContentsMargins(12, 12, 12, 12);
+    cardLayout->setSpacing(4);
+
+    // ── Titel + Stern ───────────────────────────────────────────────────
+    auto *topRow = new QHBoxLayout();
+    topRow->setSpacing(8);
+
+    auto *titleLabel = new QLabel(currentGoal.title, card);
+    titleLabel->setObjectName("goalCardTitleLabel");
+    titleLabel->setWordWrap(true);
+
+    topRow->addWidget(titleLabel, 1);
+
+    auto *currentButton = new QToolButton(card);
+    currentButton->setObjectName("goalCurrentButton");
+    currentButton->setFixedSize(24, 24);
+    currentButton->setIconSize(QSize(16, 16));
+    currentButton->setCursor(Qt::PointingHandCursor);
+    currentButton->setAutoRaise(true);
+    currentButton->setIcon(QIcon(":/icons/star-filled.svg"));
+    currentButton->setToolTip("Aktuelles Hauptziel");
+
+    connect(
+        currentButton,
+        &QToolButton::clicked,
+        this,
+        [this, goalId = currentGoal.id]() {
+            if (GoalRepository::setCurrent(goalId, false)) {
+                renderDashboardGoalCard();
+                refreshHobbyDashboardOverview(ui, currentHobbyId);
+            }
+        }
+        );
+
+    topRow->addWidget(currentButton, 0, Qt::AlignTop | Qt::AlignRight);
+    cardLayout->addLayout(topRow);
+
+    // ── Beschreibung ────────────────────────────────────────────────────
+    QString description = currentGoal.description;
+
+    constexpr int maxDescriptionChars = 90;
+    if (description.length() > maxDescriptionChars) {
+        description = description.left(maxDescriptionChars).trimmed() + "…";
+    }
+
+    auto *descriptionLabel = new QLabel(description, card);
+    descriptionLabel->setObjectName("goalCardDescriptionLabel");
+    descriptionLabel->setProperty("role", "secondary");
+    descriptionLabel->setWordWrap(true);
+    descriptionLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    cardLayout->addWidget(descriptionLabel, 1);
+
+    // ── Deadline ────────────────────────────────────────────────────────
+    auto *deadlineHeader = new QLabel("Deadline", card);
+    deadlineHeader->setObjectName("goalCardMetaHeaderLabel");
+    deadlineHeader->setProperty("role", "muted");
+    cardLayout->addWidget(deadlineHeader);
+
+    QString deadlineText = "–";
+    if (!currentGoal.deadline.isEmpty()) {
+        const QDate deadlineDate =
+            QDate::fromString(currentGoal.deadline, "yyyy-MM-dd");
+        if (deadlineDate.isValid())
+            deadlineText = deadlineDate.toString("dd.MM.yyyy");
+    }
+
+    auto *deadlineValue = new QLabel(deadlineText, card);
+    deadlineValue->setObjectName("goalCardDeadlineLabel");
+    cardLayout->addWidget(deadlineValue);
+
+    // ── Checkbox ────────────────────────────────────────────────────────
+    auto *bottomRow = new QHBoxLayout();
+    bottomRow->setContentsMargins(0, 0, 0, 0);
+    bottomRow->setSpacing(0);
+
+    auto *doneCheckBox = new QCheckBox(card);
+    doneCheckBox->setObjectName("goalDoneCheckBox");
+    doneCheckBox->setFixedSize(24, 24);
+    doneCheckBox->setCursor(Qt::PointingHandCursor);
+    doneCheckBox->setChecked(currentGoal.isDone());
+
+    connect(
+        doneCheckBox,
+        &QCheckBox::toggled,
+        this,
+        [this, goalId = currentGoal.id](bool checked) {
+            if (GoalRepository::setStatus(
+                    goalId,
+                    checked ? QStringLiteral("done") : QStringLiteral("open"))) {
+
+                if (checked && goalCompletedSound)
+                    goalCompletedSound->play();
+
+                loadGoalCards();
+                renderDashboardGoalCard();
+                refreshHobbyDashboardOverview(ui, currentHobbyId);
+            }
+        }
+        );
+
+    bottomRow->addWidget(doneCheckBox, 0, Qt::AlignLeft | Qt::AlignBottom);
+    cardLayout->addLayout(bottomRow);
+
+    ui->hobbyGoalContainerLayout->addWidget(card);
+}
+
+// ── Roadmap-Detail: Titel inline bearbeiten ─────────────────────────
+
+void MainWindow::startRoadmapDetailTitleEdit()
+{
+    if (currentRoadmapDetailRootId <= 0 || !roadmapDetailTitleEdit)
+        return;
+
+    roadmapDetailTitleEditing = true;
+
+    roadmapDetailTitleEdit->setFont(ui->roadmapDetailTitleLabel->font());
+    roadmapDetailTitleEdit->setText(ui->roadmapDetailTitleLabel->text());
+
+    const QPoint labelPos =
+        ui->roadmapDetailTitleLabel->mapTo(
+            roadmapDetailTitleEdit->parentWidget(), QPoint(0, 0));
+
+    // Der Name kann länger werden als das Label jetzt breit ist,
+    // deshalb mindestens 300 px.
+    const int width = qMax(ui->roadmapDetailTitleLabel->width(), 300);
+
+    roadmapDetailTitleEdit->setGeometry(
+        labelPos.x(),
+        labelPos.y(),
+        width,
+        ui->roadmapDetailTitleLabel->height());
+
+    roadmapDetailTitleEdit->setVisible(true);
+    roadmapDetailTitleEdit->raise();
+    roadmapDetailTitleEdit->setFocus();
+    roadmapDetailTitleEdit->selectAll();
+}
+
+void MainWindow::commitRoadmapDetailTitleEdit()
+{
+    if (!roadmapDetailTitleEditing)
+        return;
+
+    roadmapDetailTitleEditing = false;
+
+    if (!roadmapDetailTitleEdit)
+        return;
+
+    const QString name = roadmapDetailTitleEdit->text().trimmed();
+
+    roadmapDetailTitleEdit->setVisible(false);
+
+    // Leer oder unverändert: still verwerfen.
+    if (name.isEmpty() ||
+        name == ui->roadmapDetailTitleLabel->text()) {
+        return;
+    }
+
+    if (!RoadmapRepository::rename(currentRoadmapDetailRootId, name)) {
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Die Roadmap konnte nicht umbenannt werden.");
+        return;
+    }
+
+    // Lädt auch den Titel neu.
+    loadRoadmapDetail(currentRoadmapDetailRootId);
+}
+
+void MainWindow::cancelRoadmapDetailTitleEdit()
+{
+    if (!roadmapDetailTitleEditing)
+        return;
+
+    roadmapDetailTitleEditing = false;
+
+    if (roadmapDetailTitleEdit)
+        roadmapDetailTitleEdit->setVisible(false);
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;
-};
+}
