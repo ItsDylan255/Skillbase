@@ -1184,8 +1184,8 @@ Leg mit &quot;+ Roadmap&quot; deine erste Roadmap an.</string>
                              <rect>
                               <x>0</x>
                               <y>0</y>
-                              <width>62</width>
-                              <height>16</height>
+                              <width>100</width>
+                              <height>30</height>
                              </rect>
                             </property>
                             <layout class="QGridLayout" name="roadmapActiveCardsLayout">
@@ -1255,8 +1255,8 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                              <rect>
                               <x>0</x>
                               <y>0</y>
-                              <width>86</width>
-                              <height>16</height>
+                              <width>100</width>
+                              <height>30</height>
                              </rect>
                             </property>
                             <layout class="QGridLayout" name="roadmapArchiveCardsLayout">
@@ -1689,7 +1689,7 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                  <item>
                   <widget class="QStackedWidget" name="routineViewStack">
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <widget class="QWidget" name="routineOverviewPage">
                     <layout class="QVBoxLayout" name="routinesPageLayout">
@@ -1900,8 +1900,8 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                              <rect>
                               <x>0</x>
                               <y>0</y>
-                              <width>86</width>
-                              <height>16</height>
+                              <width>100</width>
+                              <height>30</height>
                              </rect>
                             </property>
                             <layout class="QGridLayout" name="routineArchiveCardsLayout">
@@ -3038,8 +3038,8 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>62</width>
-                          <height>16</height>
+                          <width>100</width>
+                          <height>30</height>
                          </rect>
                         </property>
                         <layout class="QGridLayout" name="exerciseCardsLayout">
@@ -3511,8 +3511,8 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>62</width>
-                      <height>160</height>
+                      <width>98</width>
+                      <height>112</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="historyEntriesLayout">
@@ -3690,8 +3690,8 @@ Leg mit &quot;+ Ziel&quot; dein erstes Ziel für dieses Hobby an.</string>
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>62</width>
-                          <height>16</height>
+                          <width>100</width>
+                          <height>30</height>
                          </rect>
                         </property>
                         <layout class="QGridLayout" name="goalOpenCardsLayout">
@@ -3761,8 +3761,8 @@ Sobald du ein Ziel als geschafft markierst, landet es hier im Archiv.</string>
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>86</width>
-                          <height>16</height>
+                          <width>100</width>
+                          <height>30</height>
                          </rect>
                         </property>
                         <layout class="QGridLayout" name="goalDoneCardsLayout">
