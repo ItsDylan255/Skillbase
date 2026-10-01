@@ -67,14 +67,6 @@ void TimelineBarWidget::setPhases(
     update();
 }
 
-void TimelineBarWidget::setHobbyColor(
-    const QColor &color
-    )
-{
-    hobbyColor = color;
-
-    update();
-}
 
 void TimelineBarWidget::showEvent(QShowEvent *event)
 {
@@ -684,11 +676,7 @@ void TimelineBarWidget::paintEvent(
 
     // ── Phasen-Segmente ────────────────────────────────────────────────────
 
-    const QColor fillColor =
-        hobbyColor.isValid()
-            ? hobbyColor
-            : QColor("#ff6f61");
-
+    const QColor fillColor("#ff6f61");
     QFont nameFont =
         painter.font();
 

@@ -10,6 +10,7 @@
 #include <QSoundEffect>
 #include <QString>
 
+
 // Vorwärtsdeklarationen: Dieser Header verwendet Qt-Widgets und Modelltypen
 // nur per Zeiger oder Referenz. Die vollständigen Header werden erst in
 // mainwindow.cpp eingebunden, damit Änderungen daran nicht jede Datei
@@ -23,6 +24,7 @@ class QMouseEvent;
 class QTimer;
 class QToolButton;
 class QVBoxLayout;
+class QLineEdit;
 
 namespace Ui {
 class MainWindow;
@@ -57,8 +59,46 @@ private:
     void showExerciseDetail(int exerciseId);
     void loadExerciseDetail(int exerciseId);
 
+    // ── Übungs-Ausführung ────────────────────────────────────────────────
+    // Öffnet die Ausführungsansicht für eine einzelne Übung.
+    void showExerciseExecution(int exerciseId);
+
+    // Verlässt die Ausführungsansicht OHNE zu speichern.
+    void leaveExerciseExecution();
+
+    // Speichert die Eingaben und verlässt die Ausführungsansicht.
+    void finishExerciseExecution();
+
+    // Schreibt den Übungs-Log in die Datenbank.
+    // Liefert true, wenn etwas gespeichert wurde.
+    bool saveExerciseExecutionResults();
+
+    // Aktualisiert Timer-Label und Fortschrittsbalken.
+    void updateExerciseExecutionTimerDisplay();
+
+    // Startet/stoppt den Timer und passt die Button-Beschriftung an.
+    void setExerciseExecutionRunning(bool running);
+    // ── Übungsname in der Ausführung klickbar machen ─────────────────────
+    // Öffnet die Fortschrittsseite der aktuellen Übung.
+    void openCurrentExerciseProgress();
+    // ── Timer inline bearbeiten (Routine + Übung) ────────────────────────
+    // Klick auf das Timer-Label öffnet ein Edit-Feld an gleicher Stelle.
+    void startRoutineExecutionTimerEdit();
+    void commitRoutineExecutionTimerEdit();
+    void cancelRoutineExecutionTimerEdit();
+
+    void startExerciseExecutionTimerEdit();
+    void commitExerciseExecutionTimerEdit();
+    void cancelExerciseExecutionTimerEdit();
+
     // ── Verlauf ──────────────────────────────────────────────────────────
     void loadHistory();
+
+    // ── Übungs-Detailansicht: Startwert inline bearbeiten ───────────────
+    // Macht aus dem Startwert-Label ein editierbares Feld, ohne Dialog.
+    void startExerciseDetailStartValueEdit();
+    void commitExerciseDetailStartValueEdit();
+    void cancelExerciseDetailStartValueEdit();
 
     // ── Timeline ─────────────────────────────────────────────────────────
     void loadTimeline();
@@ -147,6 +187,47 @@ private:
     QMargins routineExecutionSavedMargins;
     bool routineExecutionMarginsOverridden = false;
 
+    // ── Übungs-Ausführung: Zustand ───────────────────────────────────────
+    // Übung, die gerade einzeln ausgeführt wird.
+    // 0 bedeutet, dass momentan keine Übung ausgeführt wird.
+    int currentExecutionExerciseId = 0;
+
+    // Daten der Übung, die gerade ausgeführt wird.
+    struct ExerciseExecutionData
+    {
+        int exerciseId = 0;
+        QString name;
+        QString description;
+        QString unit;
+        double currentValue = 0.0;
+        double goal = 0.0;
+
+        // Der vom Nutzer eingegebene neue Wert.
+        QString enteredText;
+    };
+
+    ExerciseExecutionData exerciseExecutionData;
+
+    QTimer *exerciseExecutionTimer = nullptr;
+
+    // Misst die echte Zeit zwischen zwei Timer-Ticks (kein Driften).
+    QElapsedTimer exerciseExecutionClock;
+
+    // Gesamtzeit, die für diese Ausführung vorgesehen ist.
+    // 0 bedeutet: noch keine Zeit gesetzt -> Start/Pause/Stopp deaktiviert.
+    int exerciseExecutionTotalMs = 0;
+
+    // Verbleibende Zeit in Millisekunden.
+    int exerciseExecutionRemainingMs = 0;
+
+    // Gelaufene Zeit in Millisekunden (wird beim Speichern verwendet).
+    int exerciseExecutionElapsedMs = 0;
+
+    // Die Hobby-Seiten haben seitlich Rand. Für die Übungs-Ausführung
+    // wird er ebenfalls auf 0 gesetzt.
+    QMargins exerciseExecutionSavedMargins;
+    bool exerciseExecutionMarginsOverridden = false;
+
     enum class HistoryFilter
     {
         All,
@@ -163,8 +244,39 @@ private:
     QPoint goalDragStartPos;
     QSoundEffect *goalCompletedSound = nullptr;
 
+    // Sound, der abgespielt wird, wenn ein Routine- oder Übungs-Timer
+    // abgelaufen ist. Wird im Konstruktor aus den Ressourcen geladen.
+    QSoundEffect *timerCompleteSound = nullptr;
+
     // Merkt sich, von welchem Tab aus die Übungs-Detailansicht geöffnet wurde.
     // Wird vom Back-Button benutzt, um dorthin zurückzukehren.
     QWidget *exerciseDetailReturnPage = nullptr;
+
+    // Wenn die Fortschrittsseite aus einer laufenden Ausführung geöffnet
+    // wurde, merkt sich diese Flag, wohin der Back-Button zurückkehren soll.
+    // 0 = keine, 1 = Routine-Ausführung, 2 = Übungs-Ausführung.
+    enum class ProgressReturnSource
+    {
+        None,
+        RoutineExecution,
+        ExerciseExecution
+    };
+
+    ProgressReturnSource progressReturnSource =
+        ProgressReturnSource::None;
+
+    // Inline-Bearbeitung der Timer-Labels (Routine + Übung).
+    QLineEdit *routineExecutionTimerEdit = nullptr;
+    bool routineExecutionTimerEditing = false;
+
+    QLineEdit *exerciseExecutionTimerEdit = nullptr;
+    bool exerciseExecutionTimerEditing = false;
+
+    // Inline-Bearbeitung des Startwerts in der Detailansicht.
+    // Das Edit-Feld wird zur Laufzeit erzeugt und nur während der
+    // Bearbeitung sichtbar geschaltet.
+    QLineEdit *exerciseDetailStartValueEdit = nullptr;
+    bool exerciseDetailStartValueEditing = false;
+
 };
 #endif // MAINWINDOW_H

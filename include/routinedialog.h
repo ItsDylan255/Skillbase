@@ -85,6 +85,10 @@ private:
     // Eine andere ID bedeutet: bestehende Routine bearbeiten.
     int routineId = 0;
 
+    // Blendet die Pfeil-Buttons der ersten/letzten Zeile aus,
+    // damit oben/unten nicht ins Leere zeigt.
+    void updateMoveButtonVisibility();
+
     // Alle nicht archivierten Übungen des aktuellen Hobbys.
     QList<Exercise> availableExercises;
 

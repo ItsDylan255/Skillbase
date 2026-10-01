@@ -194,6 +194,11 @@ QLabel#exerciseDetailGoalHeaderLabel,
 QLabel#exerciseDetailLastPerformedHeaderLabel,
 QLabel#exerciseDetailExecutionCountHeaderLabel,
 QLabel#exerciseDetailTotalTimeHeaderLabel,
+QLabel#exerciseDetailAvgDurationHeaderLabel,
+QLabel#exerciseDetailFirstPerformedHeaderLabel,
+QLabel#exerciseDetailBestValueHeaderLabel,
+QLabel#exerciseDetailAvgValueHeaderLabel,
+QLabel#exerciseDetailProgressSinceStartHeaderLabel,
 QLabel#todaySectionLabel,
 QLabel#goalsSectionLabel,
 QLabel#progressSectionLabel,
@@ -218,6 +223,11 @@ QLabel#exerciseDetailGoalValueLabel,
 QLabel#exerciseDetailLastPerformedLabel,
 QLabel#exerciseDetailExecutionCountLabel,
 QLabel#exerciseDetailTotalTimeLabel,
+QLabel#exerciseDetailAvgDurationLabel,
+QLabel#exerciseDetailFirstPerformedLabel,
+QLabel#exerciseDetailBestValueLabel,
+QLabel#exerciseDetailAvgValueLabel,
+QLabel#exerciseDetailProgressSinceStartLabel,
 QLabel#hobbyPhaseNameLabel,
 QLabel#hobbyGoalNameLabel {
     font-size: 14px;
@@ -306,6 +316,16 @@ QPushButton#exerciseDetailEditStartValueButton {
     font-weight: 500;
     padding: 2px 6px;
 }
+/* Inline-Bearbeitung des Startwerts: ersetzt das Label während der Bearbeitung */
+QLineEdit#exerciseDetailStartValueEdit {
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #ff6f61;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
 
 QPushButton#exerciseDetailEditStartValueButton:hover {
     color: #eaeaec;
@@ -341,6 +361,13 @@ QFrame#hobbyDashboardDivider4 {
     background-color: #29292d;
     max-height: 1px;
     border: none;
+}
+
+/* Timeline-Seite: Trennlinie über die volle Seitenbreite (ohne 12px-Margins) */
+QFrame#timelineSeparator {
+    background-color: #29292d;
+    border: none;
+    max-height: 1px;
 }
 
 /* Aktuelle Phase / Aktuelles Ziel im Hobby-Dashboard: untereinander
@@ -479,6 +506,15 @@ QPushButton:focus {
     outline: none;
 }
 
+/* Die Start/Pause/Stopp-Buttons bekommen keinen Windows-Fokusrahmen. */
+QPushButton#routineExecutionStartPauseButton:focus,
+QPushButton#routineExecutionStopButton:focus,
+QPushButton#exerciseExecutionStartPauseButton:focus,
+QPushButton#exerciseExecutionStopButton:focus {
+    outline: none;
+    border: 1px solid #ff6f61;
+}
+
 /* Primary-Buttons: alle "+ hinzufügen"-Aktionen */
 QPushButton#addExerciseButton,
 QPushButton#addRoutineButton,
@@ -486,7 +522,8 @@ QPushButton#addGoalButton,
 QPushButton#addRoadmapGoalButton,
 QPushButton#addTimelinePhaseButton,
 QPushButton#addButton,
-QPushButton#routineExecutionStartPauseButton {
+QPushButton#routineExecutionStartPauseButton,
+QPushButton#exerciseExecutionStartPauseButton {
     background-color: #ff6f61;
     color: #171012;
     border: 1px solid #ff6f61;
@@ -499,7 +536,8 @@ QPushButton#addGoalButton:hover,
 QPushButton#addRoadmapGoalButton:hover,
 QPushButton#addTimelinePhaseButton:hover,
 QPushButton#addButton:hover,
-QPushButton#routineExecutionStartPauseButton:hover {
+QPushButton#routineExecutionStartPauseButton:hover,
+QPushButton#exerciseExecutionStartPauseButton:hover {
     background-color: #ff8677;
     border-color: #ff8677;
 }
@@ -510,55 +548,12 @@ QPushButton#addGoalButton:pressed,
 QPushButton#addRoadmapGoalButton:pressed,
 QPushButton#addTimelinePhaseButton:pressed,
 QPushButton#addButton:pressed,
-QPushButton#routineExecutionStartPauseButton:pressed {
+QPushButton#routineExecutionStartPauseButton:pressed,
+QPushButton#exerciseExecutionStartPauseButton:pressed {
     background-color: #e85c4e;
     border-color: #e85c4e;
 }
 
-/* Zurück-Buttons der Unterseiten (Fortschritt, Timeline): Ghost-Variante.
-   Gleiche Höhe/Radius/Schrift wie alle QPushButtons (Padding oben/unten 7px,
-   1px Border), aber ohne Fläche und mit schmalerem Horizontal-Padding,
-   damit der Button kompakt bleibt und nicht stärker wirkt als der Inhalt. */
-QPushButton#progressBackButton,
-QPushButton#timelineBackButton,
-QPushButton#routineExecutionBackButton {
-    background-color: transparent;
-    color: #9a9aa0;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    padding: 7px 10px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-QPushButton#progressBackButton:hover,
-QPushButton#timelineBackButton:hover,
-QPushButton#routineExecutionBackButton:hover {
-    background-color: #212124;
-    color: #eaeaec;
-}
-
-QPushButton#progressBackButton:pressed,
-QPushButton#timelineBackButton:pressed,
-QPushButton#routineExecutionBackButton:pressed {
-    background-color: #29292d;
-    color: #eaeaec;
-}
-
-QPushButton#progressBackButton:focus,
-QPushButton#timelineBackButton:focus,
-QPushButton#routineExecutionBackButton:focus {
-    border: 1px solid #ff6f61;
-    color: #eaeaec;
-}
-
-QPushButton#progressBackButton:disabled,
-QPushButton#timelineBackButton:disabled,
-QPushButton#routineExecutionBackButton:disabled {
-    background-color: transparent;
-    color: #55555a;
-    border: 1px solid transparent;
-}
 
 /* Destruktive Aktionen: dezent über Textfarbe, keine Fläche */
 QPushButton#deleteButton,
@@ -1326,10 +1321,16 @@ QFrame#routineExecutionNavigationSeparator {
     max-height: 1px;
 }
 
-QLabel#routineExecutionExerciseNameLabel {
+QLabel#routineExecutionExerciseNameLabel,
+ClickableLabel#routineExecutionExerciseNameLabel {
     font-size: 32px;
     font-weight: 600;
     color: #eaeaec;
+}
+
+ClickableLabel#routineExecutionExerciseNameLabel:hover,
+ClickableLabel#exerciseExecutionExerciseNameLabel:hover {
+    color: #ff6f61;
 }
 
 QLabel#routineExecutionExerciseDescriptionLabel {
@@ -1341,9 +1342,9 @@ QLabel#routineExecutionExerciseDescriptionLabel {
 QLabel#routineExecutionExerciseTargetHeaderLabel,
 QLabel#routineExecutionExerciseCurrentValueHeaderLabel,
 QLabel#routineExecutionExerciseNewValueHeaderLabel {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
-    color: #6d6d73;
+    color: #9a9aa0;
 }
 
 QLabel#routineExecutionExerciseTargetLabel,
@@ -1371,6 +1372,17 @@ QLabel#routineExecutionTimerLabel {
     color: #eaeaec;
 }
 
+/* Inline-Bearbeitung des Routine-Timers */
+QLineEdit#routineExecutionTimerEdit {
+    font-size: 96px;
+    font-weight: 600;
+    color: #eaeaec;
+    background-color: #19191c;
+    border: 2px solid #ff6f61;
+    border-radius: 6px;
+    padding: 4px 12px;
+}
+
 QProgressBar#routineExecutionProgressBar {
     background-color: #19191c;
     border: 1px solid #29292d;
@@ -1386,6 +1398,7 @@ QProgressBar#routineExecutionProgressBar::chunk {
 
 QPushButton#routineExecutionStartPauseButton,
 QPushButton#routineExecutionStopButton {
+    icon-size: 24px;
     font-size: 24px;
 }
 
@@ -1415,4 +1428,89 @@ QPushButton#routineExecutionExerciseButton:checked:hover {
 QPushButton#routineExecutionExerciseButton:checked:pressed {
     background-color: #e85c4e;
     border-color: #e85c4e;
+}
+
+/* ---------- Übungs-Ausführung (exerciseExecutionPage) ---------- */
+
+/* Gleiche Optik wie die Routine-Ausführung, nur mit eigenen Objektnamen. */
+
+QFrame#exerciseExecutionExerciseDetail {
+    background: transparent;
+    border: none;
+}
+
+QLabel#exerciseExecutionExerciseNameLabel,
+ClickableLabel#exerciseExecutionExerciseNameLabel {
+    font-size: 32px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QLabel#exerciseExecutionExerciseDescriptionLabel {
+    font-size: 16px;
+    color: #9a9aa0;
+}
+
+/* Beschriftungen über den Werten (Wert / Neu / Ziel) */
+QLabel#exerciseExecutionExerciseTargetHeaderLabel,
+QLabel#exerciseExecutionExerciseCurrentValueHeaderLabel,
+QLabel#exerciseExecutionExerciseNewValueHeaderLabel {
+    font-size: 20px;
+    font-weight: 600;
+    color: #9a9aa0;
+}
+
+QLabel#exerciseExecutionExerciseTargetLabel,
+QLabel#exerciseExecutionExerciseCurrentValueLabel {
+    font-size: 28px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+QLineEdit#exerciseExecutionExerciseValueEdit {
+    font-size: 28px;
+    font-weight: 600;
+    padding: 4px 12px;
+}
+
+QLabel#exerciseExecutionExerciseUnitLabel {
+    font-size: 16px;
+    color: #9a9aa0;
+}
+
+/* Countdown: gleiche Größe wie in der Routine-Ausführung. */
+QLabel#exerciseExecutionTimerLabel {
+    font-size: 96px;
+    font-weight: 600;
+    color: #eaeaec;
+}
+
+/* Inline-Bearbeitung des Übungs-Timers */
+QLineEdit#exerciseExecutionTimerEdit {
+    font-size: 96px;
+    font-weight: 600;
+    color: #eaeaec;
+    background-color: #19191c;
+    border: 2px solid #ff6f61;
+    border-radius: 6px;
+    padding: 4px 12px;
+}
+
+QProgressBar#exerciseExecutionProgressBar {
+    background-color: #19191c;
+    border: 1px solid #29292d;
+    border-radius: 4px;
+    height: 16px;
+    max-height: 16px;
+}
+
+QProgressBar#exerciseExecutionProgressBar::chunk {
+    background-color: #ff6f61;
+    border-radius: 4px;
+}
+
+QPushButton#exerciseExecutionStartPauseButton,
+QPushButton#exerciseExecutionStopButton {
+    icon-size: 24px;
+    font-size: 24px;
 }

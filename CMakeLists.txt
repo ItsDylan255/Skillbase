@@ -72,9 +72,9 @@ qt_add_executable(Skillbase
     src/exerciseprogresschartwidget.cpp
     include/exerciseprogresschartwidget.h
 
-    src/exerciseexecutiondialog.cpp
-    include/exerciseexecutiondialog.h
-    resources/exercise_execution_dialog.ui
+
+
+
 
     resources/exercise_dialog.ui
     resources/resources.qrc
@@ -88,6 +88,8 @@ qt_add_executable(Skillbase
     resources/routine_dialog.ui
     include/routinedialog.h
     src/routinedialog.cpp
+    include/clickablelabel.h
+    src/clickablelabel.cpp
 
 
 

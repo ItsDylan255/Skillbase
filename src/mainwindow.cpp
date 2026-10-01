@@ -15,11 +15,11 @@
 #include "routinerepository.h"
 #include "timelinephaserepository.h"
 
-#include "exerciseexecutiondialog.h"
 #include "exerciseprogresschartwidget.h"
 #include "routinedialog.h"
 #include "timelinebarwidget.h"
 #include "timelinephasedialog.h"
+#include "clickablelabel.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -58,10 +58,13 @@
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
-
+#include <QKeyEvent>
 #include <algorithm>
 #include <cmath>
 #include <utility>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
+
 
 namespace {
 
@@ -267,6 +270,64 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // ── Übungsname in der Ausführung klickbar machen ─────────────────────
+    //
+    // Klick auf den Übungsnamen in der Routine- oder Übungs-Ausführung
+    // öffnet die Fortschrittsseite. Der Timer wird dabei pausiert.
+    // Der Back-Button führt zurück zur Ausführung.
+
+    connect(
+        qobject_cast<ClickableLabel *>(
+            ui->routineExecutionExerciseNameLabel),
+        &ClickableLabel::clicked,
+        this,
+        [this]() {
+
+            if (currentExecutionRoutineId == 0)
+                return;
+
+            if (routineExecutionIndex < 0
+                || routineExecutionIndex >= routineExecutionItems.size())
+                return;
+
+            // Timer pausieren.
+            setRoutineExecutionRunning(false);
+
+            progressReturnSource =
+                ProgressReturnSource::RoutineExecution;
+
+            const int exerciseId =
+                routineExecutionItems.at(routineExecutionIndex).exerciseId;
+
+            showExerciseDetail(exerciseId);
+        }
+        );
+
+    connect(
+        qobject_cast<ClickableLabel *>(
+            ui->exerciseExecutionExerciseNameLabel),
+        &ClickableLabel::clicked,
+        this,
+        [this]() {
+
+            if (currentExecutionExerciseId == 0)
+                return;
+
+            // Timer pausieren.
+            setExerciseExecutionRunning(false);
+
+            progressReturnSource =
+                ProgressReturnSource::ExerciseExecution;
+
+            showExerciseDetail(currentExecutionExerciseId);
+        }
+        );
+
+    // Die drei Dashboard-Routinen-Karten sollen immer
+    // gleich breit sein, egal was der Qt Designer mit der .ui macht.
+    for (int c = 0; c < 3; ++c)
+        ui->hobbyCurrentRoutinesLayout->setColumnStretch(c, 1);
+
     // ── Routine-Ausführung ───────────────────────────────────────────────
     routineExecutionTimer = new QTimer(this);
     // 16 ms entsprechen etwa 60 Aktualisierungen pro Sekunde.
@@ -276,6 +337,47 @@ MainWindow::MainWindow(QWidget *parent)
     // Feine Auflösung (Promille) für einen flüssigen Balken.
     ui->routineExecutionProgressBar->setRange(0, 1000);
     ui->routineExecutionProgressBar->setValue(1000);
+
+    // Stopp-Button bekommt ein Icon statt Text.
+    ui->routineExecutionStopButton->setText(QString());
+    ui->routineExecutionStopButton->setIcon(
+        QIcon(QStringLiteral(":/icons/stop.svg"))
+        );
+
+    // Start/Pause-Button startet mit dem Play-Icon.
+    ui->routineExecutionStartPauseButton->setText(QString());
+    ui->routineExecutionStartPauseButton->setIcon(
+        QIcon(QStringLiteral(":/icons/play.svg"))
+        );
+
+    // Die Start/Pause/Stopp-Buttons sollen keinen Windows-Fokusrahmen
+    // bekommen, weil sie sonst eine kleine blaue Markierung zeigen.
+    ui->routineExecutionStartPauseButton->setFocusPolicy(Qt::NoFocus);
+    ui->routineExecutionStopButton->setFocusPolicy(Qt::NoFocus);
+
+    // ── Übungs-Ausführung ────────────────────────────────────────────────
+    exerciseExecutionTimer = new QTimer(this);
+    exerciseExecutionTimer->setTimerType(Qt::PreciseTimer);
+    exerciseExecutionTimer->setInterval(16);
+
+    // Feine Auflösung (Promille) für einen flüssigen Balken.
+    ui->exerciseExecutionProgressBar->setRange(0, 1000);
+    ui->exerciseExecutionProgressBar->setValue(0);
+
+    ui->exerciseExecutionStopButton->setText(QString());
+    ui->exerciseExecutionStopButton->setIcon(
+        QIcon(QStringLiteral(":/icons/stop.svg"))
+        );
+
+    ui->exerciseExecutionStartPauseButton->setText(QString());
+    ui->exerciseExecutionStartPauseButton->setIcon(
+        QIcon(QStringLiteral(":/icons/play.svg"))
+        );
+
+    // Die Start/Pause/Stopp-Buttons sollen keinen Windows-Fokusrahmen
+    // bekommen, weil sie sonst eine kleine blaue Markierung zeigen.
+    ui->exerciseExecutionStartPauseButton->setFocusPolicy(Qt::NoFocus);
+    ui->exerciseExecutionStopButton->setFocusPolicy(Qt::NoFocus);
 
     // Ausgeblendete Pfeile behalten ihren Platz, damit die Übungsleiste
     // beim Wechsel zwischen erster/mittlerer/letzter Übung nicht springt.
@@ -291,6 +393,44 @@ MainWindow::MainWindow(QWidget *parent)
         new QRegularExpressionValidator(
             QRegularExpression(QStringLiteral("[0-9]*[.,]?[0-9]*")),
             this));
+
+    // ── Timer-Labels inline bearbeitbar machen ──────────────────────────
+    //
+    // Klick auf das jeweilige Timer-Label öffnet ein Edit-Feld an
+    // gleicher Stelle. Enter/Fokus-Verlust übernimmt die Zeit,
+    // Escape verwirft sie.
+
+    // Routine-Timer
+    ui->routineExecutionTimerLabel->setCursor(Qt::PointingHandCursor);
+    ui->routineExecutionTimerLabel->setToolTip(
+        "Zeit antippen, um sie zu ändern");
+    ui->routineExecutionTimerLabel->installEventFilter(this);
+
+    routineExecutionTimerEdit = new QLineEdit(
+        ui->routineExecutionTimerLabel->parentWidget());
+
+    routineExecutionTimerEdit->setObjectName(
+        "routineExecutionTimerEdit");
+
+    routineExecutionTimerEdit->setAlignment(Qt::AlignCenter);
+    routineExecutionTimerEdit->setVisible(false);
+    routineExecutionTimerEdit->installEventFilter(this);
+
+    // Übungs-Timer
+    ui->exerciseExecutionTimerLabel->setCursor(Qt::PointingHandCursor);
+    ui->exerciseExecutionTimerLabel->setToolTip(
+        "Zeit antippen, um sie zu ändern");
+    ui->exerciseExecutionTimerLabel->installEventFilter(this);
+
+    exerciseExecutionTimerEdit = new QLineEdit(
+        ui->exerciseExecutionTimerLabel->parentWidget());
+
+    exerciseExecutionTimerEdit->setObjectName(
+        "exerciseExecutionTimerEdit");
+
+    exerciseExecutionTimerEdit->setAlignment(Qt::AlignCenter);
+    exerciseExecutionTimerEdit->setVisible(false);
+    exerciseExecutionTimerEdit->installEventFilter(this);
 
     connect(routineExecutionTimer, &QTimer::timeout, this, [this]() {
 
@@ -316,34 +456,39 @@ MainWindow::MainWindow(QWidget *parent)
 
         if (item.remainingMs <= 0) {
             setRoutineExecutionRunning(false);
-            QApplication::beep();
+
+            if (timerCompleteSound)
+                timerCompleteSound->play();
         }
     });
 
     connect(ui->routineExecutionStartPauseButton, &QPushButton::clicked,
             this, [this]() {
 
-        if (routineExecutionIndex < 0
-            || routineExecutionIndex >= routineExecutionItems.size())
-            return;
+                if (routineExecutionIndex < 0
+                    || routineExecutionIndex >= routineExecutionItems.size())
+                    return;
 
-        RoutineExecutionItem &item =
-            routineExecutionItems[routineExecutionIndex];
+                RoutineExecutionItem &item =
+                    routineExecutionItems[routineExecutionIndex];
 
-        if (routineExecutionTimer->isActive()) {
-            setRoutineExecutionRunning(false);
-            return;
-        }
+                // Läuft gerade -> pausieren.
+                if (routineExecutionTimer->isActive()) {
+                    setRoutineExecutionRunning(false);
+                    return;
+                }
 
-        if (item.durationSeconds <= 0)
-            return;
+                // Keine Dauer -> nichts tun.
+                if (item.durationSeconds <= 0)
+                    return;
 
-        // Nach Ablauf startet ein erneuter Klick wieder bei voller Zeit.
-        if (item.remainingMs <= 0)
-            item.remainingMs = item.durationSeconds * 1000;
+                // Wenn die Zeit schon abgelaufen ist, starten wir wieder
+                // von voller Zeit (nicht bei 0 stehen bleiben).
+                if (item.remainingMs <= 0)
+                    item.remainingMs = item.durationSeconds * 1000;
 
-        setRoutineExecutionRunning(true);
-    });
+                setRoutineExecutionRunning(true);
+            });
 
     connect(ui->routineExecutionStopButton, &QPushButton::clicked,
             this, [this]() {
@@ -392,21 +537,121 @@ MainWindow::MainWindow(QWidget *parent)
         finishRoutineExecution();
     });
 
+    // ── Übungs-Ausführung: Timer-Tick ────────────────────────────────────
+    connect(exerciseExecutionTimer, &QTimer::timeout, this, [this]() {
+
+        if (currentExecutionExerciseId == 0) {
+            setExerciseExecutionRunning(false);
+            return;
+        }
+
+        // Wenn keine Gesamtzeit gesetzt ist, gibt es nichts zu zählen.
+        if (exerciseExecutionTotalMs <= 0) {
+            setExerciseExecutionRunning(false);
+            return;
+        }
+
+        const int deltaMs = static_cast<int>(
+            std::min<qint64>(exerciseExecutionClock.restart(), 1000));
+
+        const int usedMs =
+            std::min(deltaMs, exerciseExecutionRemainingMs);
+
+        exerciseExecutionRemainingMs -= usedMs;
+        exerciseExecutionElapsedMs   += usedMs;
+        updateExerciseExecutionTimerDisplay();
+
+        if (exerciseExecutionRemainingMs <= 0) {
+            setExerciseExecutionRunning(false);
+
+            if (timerCompleteSound)
+                timerCompleteSound->play();
+
+            // Zeit abgelaufen -> Ausführung wird wie "Beenden" behandelt:
+            // Ergebnisse speichern und zur Übersicht zurück.
+            finishExerciseExecution();
+        }
+
+    });
+
+    // ── Übungs-Ausführung: Start/Pause ───────────────────────────────────
+    connect(ui->exerciseExecutionStartPauseButton, &QPushButton::clicked,
+            this, [this]() {
+
+                if (currentExecutionExerciseId == 0)
+                    return;
+
+                // Ohne gesetzte Zeit gibt es nichts zu starten.
+                if (exerciseExecutionTotalMs <= 0)
+                    return;
+
+                if (exerciseExecutionTimer->isActive()) {
+                    setExerciseExecutionRunning(false);
+                    return;
+                }
+
+                // Nach Ablauf startet ein erneuter Klick wieder bei voller Zeit.
+                if (exerciseExecutionRemainingMs <= 0) {
+                    exerciseExecutionRemainingMs = exerciseExecutionTotalMs;
+                    exerciseExecutionElapsedMs   = 0;
+                }
+
+                setExerciseExecutionRunning(true);
+            });
+
+    // ── Übungs-Ausführung: Stopp ─────────────────────────────────────────
+    connect(ui->exerciseExecutionStopButton, &QPushButton::clicked,
+            this, [this]() {
+
+                if (currentExecutionExerciseId == 0)
+                    return;
+
+                exerciseExecutionRemainingMs = exerciseExecutionTotalMs;
+                exerciseExecutionElapsedMs   = 0;
+                setExerciseExecutionRunning(false);
+            });
+
+    // ── Übungs-Ausführung: Back (nichts speichern) ───────────────────────
+    connect(ui->exerciseExecutionBackButton, &QPushButton::clicked,
+            this, [this]() {
+                leaveExerciseExecution();
+            });
+
+    // ── Übungs-Ausführung: Beenden (speichern) ───────────────────────────
+    connect(ui->exerciseExecutionFinishButton, &QPushButton::clicked,
+            this, [this]() {
+                finishExerciseExecution();
+            });
+
+    // ── Übungs-Ausführung: Wert merken ───────────────────────────────────
+    connect(ui->exerciseExecutionExerciseValueEdit, &QLineEdit::textEdited,
+            this, [this](const QString &text) {
+                exerciseExecutionData.enteredText = text;
+            });
+
+
     // Wechselt der Nutzer mitten in der Ausführung in einen anderen Bereich
     // (Dashboard, Einstellungen, anderer Hobby-Tab), wird die Ausführung
-    // sauber beendet: Timer stoppen, Seitenränder zurücksetzen.
-    auto leaveExecutionWhenPageHidden = [this]() {
+    // nur PAUSIERT - der Zustand bleibt erhalten. Wenn der Nutzer zum
+    // selben Tab zurückkehrt, erscheint die Ausführungsseite wieder.
+    auto pauseExecutionWhenPageHidden = [this]() {
 
         if (currentExecutionRoutineId != 0
             && !ui->routinesPage->isVisibleTo(this)) {
-            leaveRoutineExecution();
+            setRoutineExecutionRunning(false);
+        }
+
+        if (currentExecutionExerciseId != 0
+            && !ui->exerciseExecutionPage->isVisibleTo(this)) {
+            setExerciseExecutionRunning(false);
         }
     };
 
     connect(ui->hobbyPageStack, &QStackedWidget::currentChanged,
-            this, leaveExecutionWhenPageHidden);
+            this, pauseExecutionWhenPageHidden);
     connect(ui->pageStack, &QStackedWidget::currentChanged,
-            this, leaveExecutionWhenPageHidden);
+            this, pauseExecutionWhenPageHidden);
+
     // Die beiden Filter wechseln nur die sichtbare Seite
     // innerhalb des Routinen-Stacks.
     connect(
@@ -453,6 +698,12 @@ MainWindow::MainWindow(QWidget *parent)
         QUrl(QStringLiteral("qrc:/audio/goal-completed.wav"))
         );
     goalCompletedSound->setVolume(0.5);
+    timerCompleteSound = new QSoundEffect(this);
+    timerCompleteSound->setSource(
+        QUrl(QStringLiteral("qrc:/audio/timer_complete.wav"))
+        );
+    timerCompleteSound->setVolume(1);
+
 
     // ── Suchfelder: einheitliches Icon statt Emoji ──────────────────────────
     //
@@ -691,11 +942,28 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->routinesTab, &QToolButton::clicked, this, [this]() {
         ui->routinesTab->setChecked(true);
         ui->hobbyPageStack->setCurrentWidget(ui->routinesPage);
+
+        // Wenn eine Routine-Ausführung aktiv ist, zeigen wir sie wieder.
+        // Der pausierte Zustand bleibt erhalten.
+        if (currentExecutionRoutineId != 0) {
+            ui->routineViewStack->setCurrentWidget(
+                ui->routineExecutionPage
+                );
+        }
     });
 
 
     connect(ui->exercisesTab, &QToolButton::clicked, this, [this]() {
         ui->exercisesTab->setChecked(true);
+
+        // Wenn eine Übungs-Ausführung aktiv ist, zeigen wir sie wieder.
+        // Der pausierte Zustand bleibt erhalten.
+        if (currentExecutionExerciseId != 0) {
+            ui->hobbyPageStack->setCurrentWidget(
+                ui->exerciseExecutionPage
+                );
+            return;
+        }
 
         // Der Reiter "Übungen" zeigt immer zunächst die normale
         // Kartenübersicht - unabhängig davon, ob zuvor eine
@@ -895,9 +1163,15 @@ MainWindow::MainWindow(QWidget *parent)
         ui->dashboardButton->setChecked(false);
         ui->settingsButton->setChecked(false);
 
-        // Eine laufende Routine-Ausführung gehört zum bisherigen Hobby.
+        // Eine laufende Routine- oder Übungs-Ausführung gehört zum
+        // bisherigen Hobby. Beim Hobby-Wechsel wird sie komplett
+        // beendet (nicht nur pausiert), weil der Zustand nicht mit
+        // dem neuen Hobby vereinbar ist.
         if (currentExecutionRoutineId != 0)
             leaveRoutineExecution();
+
+        if (currentExecutionExerciseId != 0)
+            leaveExerciseExecution();
 
         currentHobby   = item->text();
         currentHobbyId = item->data(Qt::UserRole).toInt();
@@ -964,6 +1238,17 @@ MainWindow::MainWindow(QWidget *parent)
         QDialog dialog(this);
         Ui::ExerciseDialog dialogUi;
         dialogUi.setupUi(&dialog);
+
+        // Buttons auf Deutsch (Qt zeigt sonst "Save" / "Cancel").
+        if (auto *saveButton =
+            dialogUi.buttonBox->button(QDialogButtonBox::Save)) {
+            saveButton->setText("Erstellen");
+            saveButton->setDefault(true);
+        }
+        if (auto *cancelButton =
+            dialogUi.buttonBox->button(QDialogButtonBox::Cancel)) {
+            cancelButton->setText("Abbrechen");
+        }
 
         dialogUi.categoryComboBox->clear();
         dialogUi.categoryComboBox->addItem("– keine –", -1);
@@ -1140,8 +1425,30 @@ MainWindow::MainWindow(QWidget *parent)
 
         showExerciseOverview();
 
-        // Zurück zu der Seite, von der aus die Detailansicht geöffnet wurde.
-        // Fallback: Exercises-Seite, falls aus irgendeinem Grund nichts gemerkt wurde.
+        // ── Sonderfall: Fortschrittsseite wurde aus einer laufenden
+        //    Ausführung geöffnet. Zurück zur Ausführung.
+        if (progressReturnSource == ProgressReturnSource::RoutineExecution) {
+
+            progressReturnSource = ProgressReturnSource::None;
+
+            ui->routinesTab->setChecked(true);
+            ui->hobbyPageStack->setCurrentWidget(ui->routinesPage);
+            ui->routineViewStack->setCurrentWidget(ui->routineExecutionPage);
+
+            return;
+        }
+
+        if (progressReturnSource == ProgressReturnSource::ExerciseExecution) {
+
+            progressReturnSource = ProgressReturnSource::None;
+
+            ui->exercisesTab->setChecked(true);
+            ui->hobbyPageStack->setCurrentWidget(ui->exerciseExecutionPage);
+
+            return;
+        }
+
+        // ── Normalfall: Detailansicht wurde aus Übersicht/Verlauf geöffnet.
         QWidget *targetPage =
             exerciseDetailReturnPage
                 ? exerciseDetailReturnPage
@@ -1149,7 +1456,6 @@ MainWindow::MainWindow(QWidget *parent)
 
         ui->hobbyPageStack->setCurrentWidget(targetPage);
 
-        // Passenden Tab markieren.
         if (targetPage == ui->historyPage) {
             ui->historyTab->setChecked(true);
         } else if (targetPage == ui->goalsPage) {
@@ -1162,8 +1468,6 @@ MainWindow::MainWindow(QWidget *parent)
             ui->exercisesTab->setChecked(true);
         }
 
-        // Nach dem Zurückkehren zurücksetzen, damit der nächste
-        // Öffnen-Vorgang wieder frisch merkt.
         exerciseDetailReturnPage = nullptr;
     });
 
@@ -1179,51 +1483,31 @@ MainWindow::MainWindow(QWidget *parent)
     // angelegt wurde, und wird bewusst nicht im normalen
     // Übung-bearbeiten-Dialog verändert, sondern über diese kleine,
     // eigenständige Aktion direkt in der Fortschrittsansicht.
-    connect(
-        ui->exerciseDetailEditStartValueButton,
-        &QPushButton::clicked,
-        this,
-        [this]() {
+    // ── Übungs-Detailansicht: Startwert inline bearbeitbar machen ───────
+    //
+    // Der "Bearbeiten"-Button wird ausgeblendet; stattdessen wird der
+    // Startwert selbst klickbar. Ein QLineEdit wird zur Laufzeit erzeugt
+    // und nur während der Bearbeitung eingeblendet.
 
-            if (currentDetailExerciseId == 0)
-                return;
+    ui->exerciseDetailEditStartValueButton->setVisible(false);
 
-            Exercise exercise;
+    ui->exerciseDetailStartValueLabel->setCursor(Qt::PointingHandCursor);
+    ui->exerciseDetailStartValueLabel->installEventFilter(this);
 
-            if (!ExerciseRepository::getById(
-                    currentDetailExerciseId,
-                    exercise)) {
-                return;
-            }
-
-            bool ok = false;
-
-            const double newStartValue = QInputDialog::getDouble(
-                this,
-                "Startwert bearbeiten",
-                "Startwert:",
-                exercise.startValue,
-                -999999.0,
-                999999.0,
-                2,
-                &ok
-                );
-
-            if (!ok)
-                return;
-
-            if (ExerciseRepository::updateStartValue(
-                    currentDetailExerciseId,
-                    newStartValue)) {
-
-                loadExerciseDetail(currentDetailExerciseId);
-
-            } else {
-
-                qDebug() << "Startwert konnte nicht aktualisiert werden.";
-            }
-        }
+    // Das Edit-Feld wird als Kind des übergeordneten WIDGETS angelegt,
+    // nicht des Layouts. Dadurch zählt es nicht als Layout-Element und
+    // schiebt das Label nicht nach unten.
+    exerciseDetailStartValueEdit = new QLineEdit(
+        ui->exerciseDetailStartValueLabel->parentWidget()
         );
+
+    exerciseDetailStartValueEdit->setObjectName(
+        "exerciseDetailStartValueEdit"
+        );
+
+    exerciseDetailStartValueEdit->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    exerciseDetailStartValueEdit->setVisible(false);
+    exerciseDetailStartValueEdit->installEventFilter(this);
 
     // ── Ziele ────────────────────────────────────────────────────────────
 
@@ -1250,6 +1534,114 @@ MainWindow::MainWindow(QWidget *parent)
 }
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
+    // ── Routine-Timer inline bearbeiten ──────────────────────────────────
+    if (watched == ui->routineExecutionTimerLabel &&
+        event->type() == QEvent::MouseButtonRelease) {
+
+        auto *mouseEvent = static_cast<QMouseEvent *>(event);
+
+        if (mouseEvent->button() == Qt::LeftButton) {
+            startRoutineExecutionTimerEdit();
+            return true;
+        }
+    }
+
+    if (watched == routineExecutionTimerEdit) {
+
+        if (event->type() == QEvent::KeyPress) {
+
+            const int key = static_cast<QKeyEvent *>(event)->key();
+
+            if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+                commitRoutineExecutionTimerEdit();
+                return true;
+            }
+
+            if (key == Qt::Key_Escape) {
+                cancelRoutineExecutionTimerEdit();
+                return true;
+            }
+        }
+
+        if (event->type() == QEvent::FocusOut) {
+            commitRoutineExecutionTimerEdit();
+            return true;
+        }
+    }
+
+    // ── Übungs-Timer inline bearbeiten ───────────────────────────────────
+    if (watched == ui->exerciseExecutionTimerLabel &&
+        event->type() == QEvent::MouseButtonRelease) {
+
+        auto *mouseEvent = static_cast<QMouseEvent *>(event);
+
+        if (mouseEvent->button() == Qt::LeftButton) {
+            startExerciseExecutionTimerEdit();
+            return true;
+        }
+    }
+
+    if (watched == exerciseExecutionTimerEdit) {
+
+        if (event->type() == QEvent::KeyPress) {
+
+            const int key = static_cast<QKeyEvent *>(event)->key();
+
+            if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+                commitExerciseExecutionTimerEdit();
+                return true;
+            }
+
+            if (key == Qt::Key_Escape) {
+                cancelExerciseExecutionTimerEdit();
+                return true;
+            }
+        }
+
+        if (event->type() == QEvent::FocusOut) {
+            commitExerciseExecutionTimerEdit();
+            return true;
+        }
+    }
+
+    // ── Übungs-Detailansicht: Startwert inline bearbeiten ────────────────
+    //
+    // Klick auf das Startwert-Label öffnet das Edit-Feld an gleicher Stelle.
+    // Enter/Fokus-Verlust übernimmt den Wert, Escape verwirft ihn.
+    if (watched == ui->exerciseDetailStartValueLabel &&
+        event->type() == QEvent::MouseButtonRelease) {
+
+        auto *mouseEvent = static_cast<QMouseEvent *>(event);
+
+        if (mouseEvent->button() == Qt::LeftButton) {
+
+            startExerciseDetailStartValueEdit();
+            return true;
+        }
+    }
+
+    if (watched == exerciseDetailStartValueEdit) {
+
+        if (event->type() == QEvent::KeyPress) {
+
+            const int key = static_cast<QKeyEvent *>(event)->key();
+
+            if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+                commitExerciseDetailStartValueEdit();
+                return true;
+            }
+
+            if (key == Qt::Key_Escape) {
+                cancelExerciseDetailStartValueEdit();
+                return true;
+            }
+        }
+
+        if (event->type() == QEvent::FocusOut) {
+            commitExerciseDetailStartValueEdit();
+            return true;
+        }
+    }
 
     if (qobject_cast<QToolButton *>(watched)) {
 
@@ -1384,49 +1776,6 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         }
     }
 
-    // ── Routine-Cards: Hover für den Auswahl-Stern ─────────────────────────
-    //
-    // Ausgewählte Routinen zeigen ihren Stern dauerhaft.
-    // Bei nicht ausgewählten Routinen erscheint er nur beim Hover.
-
-    if (auto *card = qobject_cast<QFrame *>(watched)) {
-
-        const int routineId =
-            card->property("routineId").toInt();
-
-        if (routineId > 0) {
-
-            if (event->type() == QEvent::Enter) {
-
-                if (!card->property("routineIsCurrent").toBool()) {
-
-                    auto *favoriteButton =
-                        card->findChild<QToolButton *>(
-                            "routineFavoriteButton"
-                            );
-
-                    if (favoriteButton)
-                        favoriteButton->setVisible(true);
-                }
-            }
-
-            if (event->type() == QEvent::Leave) {
-
-                if (!card->property("routineIsCurrent").toBool()) {
-
-                    auto *favoriteButton =
-                        card->findChild<QToolButton *>(
-                            "routineFavoriteButton"
-                            );
-
-                    if (favoriteButton)
-                        favoriteButton->setVisible(false);
-                }
-            }
-        }
-    }
-
-
     // ── Ziel-Cards: Klick öffnet die Bearbeitung, offene Ziele lassen ───────
     // sich zusätzlich per Drag & Drop neu sortieren.
     if (auto *card = qobject_cast<QFrame *>(watched)) {
@@ -1517,6 +1866,32 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
                 }
 
                 goalDragCandidateId = 0;
+            }
+        }
+    }
+    // ── Übungskarten / History-Karten: Klick öffnet die Detailansicht ───────
+    if (event->type() == QEvent::MouseButtonRelease) {
+
+        auto *card = qobject_cast<QFrame *>(watched);
+
+        if (card) {
+            const int exerciseId =
+                card->property("exerciseId").toInt();
+
+            if (exerciseId > 0) {
+
+                // Wenn die Karte eine History-Karte ist, kehren wir
+                // später zur History-Seite zurück. Bei einer normalen
+                // Übungskarte bleibt der bisherige Rückkehrpunkt
+                // (exercisesPage) bestehen.
+                if (card->property("isHistoryCard").toBool()) {
+                    exerciseDetailReturnPage = ui->historyPage;
+                } else {
+                    exerciseDetailReturnPage = ui->exercisesPage;
+                }
+
+                showExerciseDetail(exerciseId);
+                return true;
             }
         }
     }
@@ -1882,21 +2257,9 @@ void MainWindow::loadExerciseCards()
             this,
             [this, exercise]() {
 
-                ExerciseExecutionDialog dialog(
-                    exercise,
-                    this
-                    );
-
-                // Der Dialog liefert Accepted zurück,
-                // wenn die Ausführung erfolgreich gespeichert wurde.
-                if (dialog.exec() == QDialog::Accepted) {
-
-                    loadExerciseCards();
-                    loadHistory();
-                    loadTimeline();
-                    loadRoutineCards();
-                    loadDashboardRoutineCards();
-                }
+                // Wechselt auf die Übungs-Ausführungsseite.
+                // Speichern passiert nur bei "Beenden" oder Zeitablauf.
+                showExerciseExecution(exercise.id);
             }
             );
 
@@ -1982,6 +2345,17 @@ void MainWindow::editExercise(int exerciseId)
     Ui::ExerciseDialog dialogUi;
     dialogUi.setupUi(&dialog);
     dialog.setWindowTitle("Übung bearbeiten");
+
+    // Buttons auf Deutsch (Qt zeigt sonst "Save" / "Cancel").
+    if (auto *saveButton =
+        dialogUi.buttonBox->button(QDialogButtonBox::Save)) {
+        saveButton->setText("Speichern");
+        saveButton->setDefault(true);
+    }
+    if (auto *cancelButton =
+        dialogUi.buttonBox->button(QDialogButtonBox::Cancel)) {
+        cancelButton->setText("Abbrechen");
+    }
 
     dialogUi.categoryComboBox->clear();
     dialogUi.categoryComboBox->addItem("– keine –", -1);
@@ -2210,6 +2584,12 @@ void MainWindow::showExerciseDetail(int exerciseId)
     currentDetailExerciseId = exerciseId;
     loadExerciseDetail(exerciseId);
     ui->exerciseViewStack->setCurrentWidget(ui->exerciseDetailPage);
+
+    // Die Detailansicht liegt innerhalb der Exercises-Seite.
+    // Damit sie sichtbar wird, muss der hobbyPageStack dorthin wechseln.
+    // (Sonst bleibt der Nutzer z. B. auf der History-Seite stehen
+    //  und sieht nichts von der Detailansicht.)
+    ui->hobbyPageStack->setCurrentWidget(ui->exercisesPage);
 }
 
 void MainWindow::loadExerciseDetail(int exerciseId)
@@ -2321,6 +2701,72 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         );
 
     // ── Statistik ────────────────────────────────────────────────────────
+    //
+    // Reihenfolge in der Karte:
+    //   1. Gesamtzeit
+    //   2. Ø Übungszeit
+    //   3. Erste Ausführung
+    //   4. Letzte Ausführung
+    //   5. Ausführungen
+    //   6. Beste Leistung
+    //   7. Ø Leistung
+    //   8. Fortschritt seit Start
+
+    // ── Gesamtzeit ───────────────────────────────────────────────────────
+    int totalDurationSeconds = 0;
+
+    for (const ExerciseLog &log : logs)
+        totalDurationSeconds += log.durationSeconds;
+
+    if (totalDurationSeconds > 0) {
+
+        const double totalHours = totalDurationSeconds / 3600.0;
+
+        ui->exerciseDetailTotalTimeLabel->setText(
+            QLocale::system().toString(totalHours, 'f', 1) + " h"
+            );
+
+    } else {
+
+        ui->exerciseDetailTotalTimeLabel->setText("–");
+    }
+
+    // ── Ø Übungszeit ─────────────────────────────────────────────────────
+    if (hasLogs && totalDurationSeconds > 0) {
+
+        const double avgSeconds =
+            totalDurationSeconds / double(logs.size());
+
+        const double avgMinutes = avgSeconds / 60.0;
+
+        ui->exerciseDetailAvgDurationLabel->setText(
+            QLocale::system().toString(avgMinutes, 'f', 1) + " min"
+            );
+
+    } else {
+
+        ui->exerciseDetailAvgDurationLabel->setText("–");
+    }
+
+    // ── Erste Ausführung ─────────────────────────────────────────────────
+    if (hasLogs) {
+
+        const QDateTime firstPerformedAt =
+            QDateTime::fromString(
+                logs.first().performedAt,
+                "yyyy-MM-dd HH:mm:ss"
+                ).toLocalTime();
+
+        ui->exerciseDetailFirstPerformedLabel->setText(
+            firstPerformedAt.toString("dd.MM.yyyy")
+            );
+
+    } else {
+
+        ui->exerciseDetailFirstPerformedLabel->setText("–");
+    }
+
+    // ── Letzte Ausführung ────────────────────────────────────────────────
     if (hasLogs) {
 
         const QDateTime lastPerformedAt =
@@ -2349,28 +2795,86 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         ui->exerciseDetailLastPerformedLabel->setText("–");
     }
 
+    // ── Ausführungen ─────────────────────────────────────────────────────
     ui->exerciseDetailExecutionCountLabel->setText(
         QString::number(logs.size())
         );
 
-    int totalDurationSeconds = 0;
+    // ── Beste Leistung ───────────────────────────────────────────────────
+    if (hasLogs) {
 
-    for (const ExerciseLog &log : logs)
-        totalDurationSeconds += log.durationSeconds;
+        double bestValue = logs.first().value;
 
-    if (totalDurationSeconds > 0) {
+        for (const ExerciseLog &log : logs) {
 
-        const double totalHours = totalDurationSeconds / 3600.0;
+            if (log.value > bestValue)
+                bestValue = log.value;
+        }
 
-        ui->exerciseDetailTotalTimeLabel->setText(
-            QLocale::system().toString(totalHours, 'f', 1) + " h"
-            );
+        QString bestText =
+            QString::number(bestValue, 'g', 15);
+
+        if (!exercise.unit.isEmpty())
+            bestText += " " + exercise.unit;
+
+        ui->exerciseDetailBestValueLabel->setText(bestText);
 
     } else {
 
-        ui->exerciseDetailTotalTimeLabel->setText("–");
+        ui->exerciseDetailBestValueLabel->setText("–");
     }
 
+    // ── Ø Leistung ───────────────────────────────────────────────────────
+    if (hasLogs) {
+
+        double sum = 0.0;
+
+        for (const ExerciseLog &log : logs)
+            sum += log.value;
+
+        const double avg = sum / logs.size();
+
+        // Ein Nachkommastelle, wenn der Wert nicht ganzzahlig ist.
+        // Sonst ohne Nachkommastelle.
+        QString avgText =
+            (qFuzzyCompare(avg, qRound(avg)))
+                ? QString::number(qRound(avg))
+                : QLocale::system().toString(avg, 'f', 1);
+
+        if (!exercise.unit.isEmpty())
+            avgText += " " + exercise.unit;
+
+        ui->exerciseDetailAvgValueLabel->setText(avgText);
+
+    } else {
+
+        ui->exerciseDetailAvgValueLabel->setText("–");
+    }
+
+    // ── Fortschritt seit Start ───────────────────────────────────────────
+    //
+    // Absolute Veränderung vom Startwert zum aktuellen Wert.
+    // Mit Vorzeichen (+/-), damit die Richtung erkennbar ist.
+    if (hasLogs) {
+
+        const double diff =
+            currentValue - exercise.startValue;
+
+        QString diffText = QString::number(diff, 'g', 15);
+
+        if (diff > 0.0) {
+            diffText.prepend("+");
+        }
+
+        if (!exercise.unit.isEmpty())
+            diffText += " " + exercise.unit;
+
+        ui->exerciseDetailProgressSinceStartLabel->setText(diffText);
+
+    } else {
+
+        ui->exerciseDetailProgressSinceStartLabel->setText("–");
+    }
     // ── Entwicklungsdiagramm ─────────────────────────────────────────────
     if (auto *chart =
         qobject_cast<ExerciseProgressChartWidget *>(
@@ -2687,6 +3191,7 @@ void MainWindow::loadHistory()
         card->setProperty("exerciseId", exercise.id);
         card->setProperty("isHistoryCard", true);
 
+
         // ── Karte ins Grid des aktuellen Tages einfügen ─────────────────────
         currentGrid->addWidget(
             card,
@@ -2753,7 +3258,6 @@ void MainWindow::loadTimeline()
         qobject_cast<TimelineBarWidget *>(ui->timelineBarWidget)) {
 
         timelineBar->setPhases(phases);
-        timelineBar->setHobbyColor(hobbyColor);
     }
 
     // Empty-State nur anzeigen, wenn keine Phasen vorhanden sind.
@@ -3213,7 +3717,31 @@ void MainWindow::loadGoalCards()
     // mit drei Cards pro Zeile dargestellt.
     constexpr int columnCount = 3;
 
+    // Bei aktiver Suche ohne Treffer zeigen wir - analog zur
+    // Übungsübersicht - ein "Keine Ziele gefunden"-Label im Grid
+    // statt des zentrierten Empty-State.
+    const bool isSearching = !searchText.isEmpty();
+
     // ── Offene Ziele ─────────────────────────────────────────────────────
+
+    if (isSearching && openGoals.isEmpty()) {
+
+        auto *emptyLabel =
+            new QLabel(
+                "Keine Ziele gefunden.",
+                ui->goalOpenCardsWidget
+                );
+
+        emptyLabel->setAlignment(Qt::AlignCenter);
+
+        ui->goalOpenCardsLayout->addWidget(
+            emptyLabel,
+            0,
+            0,
+            1,
+            columnCount
+            );
+    }
 
     for (int i = 0;
          i < openGoals.size();
@@ -3245,6 +3773,25 @@ void MainWindow::loadGoalCards()
 
     // ── Geschaffte Ziele ─────────────────────────────────────────────────
 
+    if (isSearching && doneGoals.isEmpty()) {
+
+        auto *emptyLabel =
+            new QLabel(
+                "Keine Ziele gefunden.",
+                ui->goalDoneCardsWidget
+                );
+
+        emptyLabel->setAlignment(Qt::AlignCenter);
+
+        ui->goalDoneCardsLayout->addWidget(
+            emptyLabel,
+            0,
+            0,
+            1,
+            columnCount
+            );
+    }
+
     for (int i = 0;
          i < doneGoals.size();
          ++i) {
@@ -3262,22 +3809,20 @@ void MainWindow::loadGoalCards()
             );
     }
 
-    // Scrollbereich nur anzeigen, wenn tatsächlich Cards vorhanden sind.
-    ui->goalsOpenEmptyLabel->setVisible(
-        openGoals.isEmpty()
-        );
+    // Der zentrierte Empty-State erscheint nur, wenn es wirklich
+    // keine Ziele gibt (nicht bei aktiver Suche). Bei einer Suche
+    // ohne Treffer übernimmt das Label im Grid (siehe oben).
+    const bool showOpenEmptyState =
+        openGoals.isEmpty() && !isSearching;
 
-    ui->goalsOpenScrollArea->setVisible(
-        !openGoals.isEmpty()
-        );
+    const bool showDoneEmptyState =
+        doneGoals.isEmpty() && !isSearching;
 
-    ui->goalsDoneEmptyLabel->setVisible(
-        doneGoals.isEmpty()
-        );
+    ui->goalsOpenEmptyLabel->setVisible(showOpenEmptyState);
+    ui->goalsOpenScrollArea->setVisible(!showOpenEmptyState);
 
-    ui->goalsDoneScrollArea->setVisible(
-        !doneGoals.isEmpty()
-        );
+    ui->goalsDoneEmptyLabel->setVisible(showDoneEmptyState);
+    ui->goalsDoneScrollArea->setVisible(!showDoneEmptyState);
 
     const int doneRowCount =
         (doneGoals.size() + columnCount - 1)
@@ -3326,6 +3871,11 @@ void MainWindow::openGoalDialog(int goalId)
         saveButton->setDefault(true);
     }
 
+    if (auto *cancelButton =
+        dialogUi.buttonBox->button(QDialogButtonBox::Cancel)) {
+        cancelButton->setText("Abbrechen");
+    }
+
     if (isNew) {
 
         dialogUi.hasDeadlineCheckBox->setChecked(false);
@@ -3346,8 +3896,8 @@ void MainWindow::openGoalDialog(int goalId)
 
         dialogUi.statusButton->setText(
             goal.isDone()
-                ? "Als nicht geschafft markieren"
-                : "Als geschafft markieren"
+                ? "Offen"
+                : "Geschafft"
             );
     }
 
@@ -4277,7 +4827,6 @@ void MainWindow::loadRoutineExecution()
     ui->routineExecutionExerciseDescriptionLabel->clear();
     ui->routineExecutionExerciseTargetLabel->clear();
     ui->routineExecutionExerciseCurrentValueLabel->clear();
-    ui->routineExecutionExerciseUnitLabel->clear();
     ui->routineExecutionExerciseValueEdit->clear();
     ui->routineExecutionExerciseValueEdit->setEnabled(false);
     ui->routineExecutionTimerLabel->setText(formatCountdown(0));
@@ -4330,6 +4879,11 @@ void MainWindow::leaveRoutineExecution()
     routineExecutionIndex = -1;
     currentExecutionRoutineId = 0;
 
+    // Falls die Fortschrittsseite aus dieser Ausführung geöffnet war,
+    // Merker zurücksetzen.
+    if (progressReturnSource == ProgressReturnSource::RoutineExecution)
+        progressReturnSource = ProgressReturnSource::None;
+
     // Ursprüngliche Seitenränder wiederherstellen.
     if (routineExecutionMarginsOverridden) {
         ui->hobbyPageStackLayout->setContentsMargins(
@@ -4342,6 +4896,8 @@ void MainWindow::leaveRoutineExecution()
         ui->routineOverviewPage
         );
 }
+
+
 
 void MainWindow::finishRoutineExecution()
 {
@@ -4444,11 +5000,11 @@ void MainWindow::selectRoutineExecutionExercise(int index)
 
     ui->routineExecutionExerciseNameLabel->setText(item.name);
     ui->routineExecutionExerciseDescriptionLabel->setText(item.description);
+
     ui->routineExecutionExerciseTargetLabel->setText(
         formatValueWithUnit(item.goal, item.unit));
     ui->routineExecutionExerciseCurrentValueLabel->setText(
         formatValueWithUnit(item.currentValue, item.unit));
-    ui->routineExecutionExerciseUnitLabel->setText(item.unit);
 
     ui->routineExecutionExerciseValueEdit->setEnabled(true);
     ui->routineExecutionExerciseValueEdit->setText(item.enteredText);
@@ -4499,15 +5055,10 @@ void MainWindow::updateRoutineExecutionTimerDisplay()
 
     ui->routineExecutionProgressBar->setValue(value);
 
-    ui->routineExecutionStartPauseButton->setEnabled(
-        item.durationSeconds > 0
-        );
-
-    ui->routineExecutionStopButton->setEnabled(
-        item.durationSeconds > 0
-        && (routineExecutionTimer->isActive()
-            || item.remainingMs != item.durationSeconds * 1000)
-        );
+    // Buttons bleiben immer aktiv.
+    // Ohne Zeit machen sie aber nichts (siehe Handler).
+    ui->routineExecutionStartPauseButton->setEnabled(true);
+    ui->routineExecutionStopButton->setEnabled(true);
 }
 
 void MainWindow::updateRoutineExecutionNavigation()
@@ -4534,10 +5085,15 @@ void MainWindow::setRoutineExecutionRunning(bool running)
         routineExecutionTimer->stop();
     }
 
-    ui->routineExecutionStartPauseButton->setText(
-        running ? "⏸" : "▶"
-        );
+    ui->routineExecutionStartPauseButton->setText(QString());
 
+    ui->routineExecutionStartPauseButton->setIcon(
+        QIcon(
+            running
+                ? QStringLiteral(":/icons/pause.svg")
+                : QStringLiteral(":/icons/play.svg")
+            )
+        );
     updateRoutineExecutionTimerDisplay();
 }
 
@@ -4991,6 +5547,590 @@ void MainWindow::loadDashboardRoutineCards()
     }
 }
 
+
+// ── Übungs-Ausführung: Übersicht ↔ Ausführung ───────────────────────────────
+//
+// Analog zur Routine-Ausführung: dieselbe Seite, nur ein anderer innerer
+// Zustand. Kein Dialogfenster, kein Popup.
+
+void MainWindow::showExerciseExecution(int exerciseId)
+{
+    if (exerciseId == 0)
+        return;
+
+    // Übungsdaten aus der Datenbank laden.
+    Exercise exercise;
+
+    if (!ExerciseRepository::getById(exerciseId, exercise)) {
+        qDebug() << "Übung konnte nicht geladen werden.";
+        return;
+    }
+
+    // Der aktuelle Wert entspricht dem letzten Log oder - wenn noch
+    // keine Ausführung existiert - dem ursprünglichen Übungswert.
+    ExerciseLog latestLog;
+
+    const bool hasLatestLog =
+        ExerciseLogRepository::getLatestForExercise(
+            exerciseId,
+            latestLog
+            );
+
+    exerciseExecutionData.exerciseId    = exercise.id;
+    exerciseExecutionData.name          = exercise.name;
+    exerciseExecutionData.description   = exercise.description;
+    exerciseExecutionData.unit          = exercise.unit;
+    exerciseExecutionData.currentValue  =
+        hasLatestLog ? latestLog.value : exercise.value;
+    exerciseExecutionData.goal          = exercise.goal;
+    exerciseExecutionData.enteredText.clear();
+
+    currentExecutionExerciseId = exerciseId;
+
+    // Die Hobby-Seiten haben seitlich Rand. Für die Ausführung wird er
+    // auf 0 gesetzt, damit der Inhalt die volle Breite nutzen kann.
+    if (!exerciseExecutionMarginsOverridden) {
+        exerciseExecutionSavedMargins =
+            ui->hobbyPageStackLayout->contentsMargins();
+        exerciseExecutionMarginsOverridden = true;
+    }
+
+    ui->hobbyPageStackLayout->setContentsMargins(
+        0,
+        exerciseExecutionSavedMargins.top(),
+        0,
+        exerciseExecutionSavedMargins.bottom()
+        );
+
+    // ── Anzeige befüllen ────────────────────────────────────────────────
+    ui->exerciseExecutionExerciseNameLabel->setText(
+        exerciseExecutionData.name
+        );
+
+
+    ui->exerciseExecutionExerciseDescriptionLabel->setText(
+        exerciseExecutionData.description
+        );
+
+    ui->exerciseExecutionExerciseDescriptionLabel->setVisible(
+        !exerciseExecutionData.description.trimmed().isEmpty()
+        );
+
+    ui->exerciseExecutionExerciseCurrentValueLabel->setText(
+        formatValueWithUnit(
+            exerciseExecutionData.currentValue,
+            exerciseExecutionData.unit
+            )
+        );
+
+    ui->exerciseExecutionExerciseTargetLabel->setText(
+        formatValueWithUnit(
+            exerciseExecutionData.goal,
+            exerciseExecutionData.unit
+            )
+        );
+
+
+    ui->exerciseExecutionExerciseValueEdit->clear();
+    ui->exerciseExecutionExerciseValueEdit->setEnabled(true);
+
+    // ── Timer zurücksetzen ──────────────────────────────────────────────
+    //
+    // Es gibt (noch) keine vorgegebene Dauer. Der Timer startet bei
+    // 00:00 und die Start/Pause/Stopp-Buttons sind deaktiviert, bis
+    // der Nutzer eine Zeit setzt (kommt später).
+    exerciseExecutionTotalMs     = 0;
+    exerciseExecutionRemainingMs = 0;
+    exerciseExecutionElapsedMs   = 0;
+
+    updateExerciseExecutionTimerDisplay();
+    setExerciseExecutionRunning(false);
+
+    // ── Auf die Seite wechseln ──────────────────────────────────────────
+    ui->hobbyPageStack->setCurrentWidget(
+        ui->exerciseExecutionPage
+        );
+}
+
+void MainWindow::leaveExerciseExecution()
+{
+    setExerciseExecutionRunning(false);
+
+    // Gemerkten Rückkehrpunkt zurücksetzen.
+    exerciseExecutionData = ExerciseExecutionData();
+    currentExecutionExerciseId = 0;
+
+    if (progressReturnSource == ProgressReturnSource::ExerciseExecution)
+        progressReturnSource = ProgressReturnSource::None;
+
+    // Ursprüngliche Seitenränder wiederherstellen.
+    if (exerciseExecutionMarginsOverridden) {
+        ui->hobbyPageStackLayout->setContentsMargins(
+            exerciseExecutionSavedMargins
+            );
+        exerciseExecutionMarginsOverridden = false;
+    }
+
+    // Zurück zur Übungsübersicht.
+    ui->exercisesTab->setChecked(true);
+    ui->hobbyPageStack->setCurrentWidget(ui->exercisesPage);
+    showExerciseOverview();
+}
+
+void MainWindow::finishExerciseExecution()
+{
+    setExerciseExecutionRunning(false);
+
+    const bool saved = saveExerciseExecutionResults();
+
+    leaveExerciseExecution();
+
+    // Nach dem Speichern alle Ansichten aktualisieren, die Logs anzeigen.
+    if (saved) {
+        loadExerciseCards();
+        loadHistory();
+        loadTimeline();
+        loadRoutineCards();
+        loadDashboardRoutineCards();
+    }
+}
+
+bool MainWindow::saveExerciseExecutionResults()
+{
+    if (currentExecutionExerciseId == 0)
+        return false;
+
+    // Komma und Punkt werden beide akzeptiert.
+    QString text = exerciseExecutionData.enteredText.trimmed();
+    text.replace(',', '.');
+
+    bool ok = false;
+    const double newValue = text.toDouble(&ok);
+
+    // Ohne gültigen Wert wird nichts gespeichert.
+    if (!ok)
+        return false;
+
+    const int elapsedSeconds = exerciseExecutionElapsedMs / 1000;
+
+    int logId = 0;
+
+    if (!ExerciseLogRepository::add(
+            currentExecutionExerciseId,
+            newValue,
+            exerciseExecutionData.unit,
+            elapsedSeconds,
+            logId)) {
+
+        qDebug() << "Übungs-Log konnte nicht gespeichert werden.";
+        return false;
+    }
+
+    return true;
+}
+
+void MainWindow::updateExerciseExecutionTimerDisplay()
+{
+    if (currentExecutionExerciseId == 0)
+        return;
+
+    // Aufrunden: "00:01" bleibt sichtbar, bis wirklich 0 erreicht ist.
+    ui->exerciseExecutionTimerLabel->setText(
+        formatCountdown((exerciseExecutionRemainingMs + 999) / 1000)
+        );
+
+    // 1000 = volle Zeit verbleibt, 0 = 00:00.
+    const int value = exerciseExecutionTotalMs > 0
+                          ? qRound(1000.0 * exerciseExecutionRemainingMs / exerciseExecutionTotalMs)
+                          : 0;
+
+    ui->exerciseExecutionProgressBar->setValue(value);
+
+    // Buttons bleiben immer aktiv.
+    // Ohne Zeit machen sie aber nichts (siehe Handler).
+    ui->exerciseExecutionStartPauseButton->setEnabled(true);
+    ui->exerciseExecutionStopButton->setEnabled(true);
+}
+
+void MainWindow::setExerciseExecutionRunning(bool running)
+{
+    if (running) {
+        exerciseExecutionClock.start();
+        exerciseExecutionTimer->start();
+    } else {
+        exerciseExecutionTimer->stop();
+    }
+    ui->exerciseExecutionStartPauseButton->setText(QString());
+
+    ui->exerciseExecutionStartPauseButton->setIcon(
+        QIcon(
+            running
+                ? QStringLiteral(":/icons/pause.svg")
+                : QStringLiteral(":/icons/play.svg")
+            )
+        );
+
+    updateExerciseExecutionTimerDisplay();
+}
+
+// ── Übungs-Detailansicht: Startwert inline bearbeiten ───────────────────────
+
+void MainWindow::startExerciseDetailStartValueEdit()
+{
+    if (currentDetailExerciseId == 0)
+        return;
+
+    if (!exerciseDetailStartValueEdit)
+        return;
+
+    Exercise exercise;
+
+    if (!ExerciseRepository::getById(
+            currentDetailExerciseId,
+            exercise)) {
+        return;
+    }
+
+    exerciseDetailStartValueEditing = true;
+
+    // Der Startwert wird als reine Zahl (ohne Einheit) im Feld angezeigt.
+    // Nur Zahlen mit Punkt oder Komma.
+    exerciseDetailStartValueEdit->setValidator(
+        new QRegularExpressionValidator(
+            QRegularExpression(QStringLiteral("-?[0-9]*[.,]?[0-9]*")),
+            exerciseDetailStartValueEdit));
+
+    exerciseDetailStartValueEdit->setText(
+        QString::number(exercise.startValue, 'g', 15));
+
+    // Größe und Position exakt an das Label angleichen.
+    // Die Geometrie des Labels ist relativ zu seinem Parent -
+    // deshalb mappen wir die Position in das Koordinatensystem
+    // des Edit-Feld-Parents.
+    const QPoint labelPos =
+        ui->exerciseDetailStartValueLabel->mapTo(
+            exerciseDetailStartValueEdit->parentWidget(),
+            QPoint(0, 0));
+
+    exerciseDetailStartValueEdit->setGeometry(
+        labelPos.x(),
+        labelPos.y(),
+        ui->exerciseDetailStartValueLabel->width(),
+        ui->exerciseDetailStartValueLabel->height());
+
+    // Das Edit-Feld über das Label legen, aber das Label NICHT
+    // ausblenden - es bleibt an seiner Position sichtbar.
+    // (Sonst würde das Layout es "zusammenklappen".)
+    exerciseDetailStartValueEdit->setVisible(true);
+    exerciseDetailStartValueEdit->raise();
+    exerciseDetailStartValueEdit->setFocus();
+
+    // Cursor ans Ende setzen.
+    exerciseDetailStartValueEdit->setCursorPosition(
+        exerciseDetailStartValueEdit->text().length());
+}
+
+void MainWindow::commitExerciseDetailStartValueEdit()
+{
+    if (!exerciseDetailStartValueEditing)
+        return;
+
+    exerciseDetailStartValueEditing = false;
+
+    if (!exerciseDetailStartValueEdit)
+        return;
+
+    QString text = exerciseDetailStartValueEdit->text().trimmed();
+    text.replace(',', '.');
+
+    bool ok = false;
+    const double newValue = text.toDouble(&ok);
+
+    // Ungültige Eingabe: still verwerfen (Variante 3a).
+    // Keine Fehlermeldung, alter Wert bleibt.
+    if (ok && newValue >= -999.0 && newValue <= 999.0) {
+
+        ExerciseRepository::updateStartValue(
+            currentDetailExerciseId,
+            newValue);
+    }
+
+    exerciseDetailStartValueEdit->setVisible(false);
+
+    // Detailansicht neu laden, damit das Label den neuen Wert zeigt.
+    loadExerciseDetail(currentDetailExerciseId);
+}
+
+void MainWindow::cancelExerciseDetailStartValueEdit()
+{
+    if (!exerciseDetailStartValueEditing)
+        return;
+
+    exerciseDetailStartValueEditing = false;
+
+    if (!exerciseDetailStartValueEdit)
+        return;
+
+    exerciseDetailStartValueEdit->setVisible(false);
+}
+
+
+// ── Timer inline bearbeiten: Hilfsfunktion ──────────────────────────────────
+
+namespace {
+
+// Parst eine Zeitangabe im flexiblen Format MM:SS oder MMSS oder M.
+// Liefert die Sekunden zurück, oder -1 bei ungültiger Eingabe.
+int parseTimerInput(const QString &raw)
+{
+    QString text = raw.trimmed();
+
+    if (text.isEmpty())
+        return -1;
+
+    // Falls ein Doppelpunkt vorhanden ist:
+    //   "MM:SS" oder "M:SS" oder "MM:S" usw.
+    if (text.contains(':')) {
+
+        const QStringList parts = text.split(':');
+
+        if (parts.size() != 2)
+            return -1;
+
+        bool minOk = false;
+        bool secOk = false;
+
+        const int minutes = parts[0].toInt(&minOk);
+        const int seconds = parts[1].toInt(&secOk);
+
+        if (!minOk || !secOk)
+            return -1;
+
+        if (minutes < 0 || seconds < 0)
+            return -1;
+
+        if (seconds >= 60)
+            return -1;
+
+        return minutes * 60 + seconds;
+    }
+
+    // Ohne Doppelpunkt:
+    //   5    -> 5 Sekunden? Nein, interpretieren wir als Minuten.
+    //   530  -> 5 Minuten 30 Sekunden (MMSS).
+    //   1230 -> 12 Minuten 30 Sekunden.
+    //
+    // Wir folgen dem alten Verhalten: von rechts auffüllen auf MMSS.
+    QString digits = text;
+
+    // Nur Ziffern behalten (Komma/Punkt ignorieren wir hier).
+    digits.remove(QRegularExpression("[^0-9]"));
+
+    if (digits.isEmpty())
+        return -1;
+
+    if (digits.length() > 4)
+        digits = digits.right(4);
+
+    digits = digits.rightJustified(4, '0');
+
+    const int minutes = digits.left(2).toInt();
+    const int seconds = digits.right(2).toInt();
+
+    if (seconds >= 60)
+        return -1;
+
+    return minutes * 60 + seconds;
+}
+
+} // namespace
+
+// ── Routine-Timer inline bearbeiten ─────────────────────────────────────────
+
+void MainWindow::startRoutineExecutionTimerEdit()
+{
+    if (routineExecutionIndex < 0
+        || routineExecutionIndex >= routineExecutionItems.size())
+        return;
+
+    if (!routineExecutionTimerEdit)
+        return;
+
+    // Timer pausieren, damit während der Eingabe nichts weiterläuft.
+    setRoutineExecutionRunning(false);
+
+    routineExecutionTimerEditing = true;
+
+    const RoutineExecutionItem &item =
+        routineExecutionItems.at(routineExecutionIndex);
+
+    // Aktuelle Restzeit als MM:SS vorbefüllen.
+    routineExecutionTimerEdit->setValidator(
+        new QRegularExpressionValidator(
+            QRegularExpression(QStringLiteral("[0-9:]*")),
+            routineExecutionTimerEdit));
+
+    const int remainingSeconds = (item.remainingMs + 999) / 1000;
+
+    routineExecutionTimerEdit->setText(
+        formatCountdown(remainingSeconds));
+
+    // Geometrie an das Label angleichen.
+    const QPoint labelPos =
+        ui->routineExecutionTimerLabel->mapTo(
+            routineExecutionTimerEdit->parentWidget(),
+            QPoint(0, 0));
+
+    routineExecutionTimerEdit->setGeometry(
+        labelPos.x(),
+        labelPos.y(),
+        ui->routineExecutionTimerLabel->width(),
+        ui->routineExecutionTimerLabel->height());
+
+    routineExecutionTimerEdit->setVisible(true);
+    routineExecutionTimerEdit->raise();
+    routineExecutionTimerEdit->setFocus();
+    routineExecutionTimerEdit->setCursorPosition(
+        routineExecutionTimerEdit->text().length());
+}
+
+void MainWindow::commitRoutineExecutionTimerEdit()
+{
+    if (!routineExecutionTimerEditing)
+        return;
+
+    routineExecutionTimerEditing = false;
+
+    if (!routineExecutionTimerEdit)
+        return;
+
+    if (routineExecutionIndex >= 0
+        && routineExecutionIndex < routineExecutionItems.size()) {
+
+        const int seconds =
+            parseTimerInput(routineExecutionTimerEdit->text());
+
+        if (seconds >= 0) {
+
+            RoutineExecutionItem &item =
+                routineExecutionItems[routineExecutionIndex];
+
+            // Temporär für diese Sitzung ändern.
+            // Nicht in der Datenbank speichern.
+            item.durationSeconds = seconds;
+
+            // Volle Zeit auf den neuen Wert setzen.
+            item.remainingMs = seconds * 1000;
+            item.elapsedMs   = 0;
+        }
+    }
+
+    routineExecutionTimerEdit->setVisible(false);
+
+    updateRoutineExecutionTimerDisplay();
+}
+
+void MainWindow::cancelRoutineExecutionTimerEdit()
+{
+    if (!routineExecutionTimerEditing)
+        return;
+
+    routineExecutionTimerEditing = false;
+
+    if (!routineExecutionTimerEdit)
+        return;
+
+    routineExecutionTimerEdit->setVisible(false);
+
+    updateRoutineExecutionTimerDisplay();
+}
+
+// ── Übungs-Timer inline bearbeiten ──────────────────────────────────────────
+
+void MainWindow::startExerciseExecutionTimerEdit()
+{
+    if (currentExecutionExerciseId == 0)
+        return;
+
+    if (!exerciseExecutionTimerEdit)
+        return;
+
+    // Timer pausieren.
+    setExerciseExecutionRunning(false);
+
+    exerciseExecutionTimerEditing = true;
+
+    exerciseExecutionTimerEdit->setValidator(
+        new QRegularExpressionValidator(
+            QRegularExpression(QStringLiteral("[0-9:]*")),
+            exerciseExecutionTimerEdit));
+
+    const int remainingSeconds =
+        (exerciseExecutionRemainingMs + 999) / 1000;
+
+    exerciseExecutionTimerEdit->setText(
+        formatCountdown(remainingSeconds));
+
+    const QPoint labelPos =
+        ui->exerciseExecutionTimerLabel->mapTo(
+            exerciseExecutionTimerEdit->parentWidget(),
+            QPoint(0, 0));
+
+    exerciseExecutionTimerEdit->setGeometry(
+        labelPos.x(),
+        labelPos.y(),
+        ui->exerciseExecutionTimerLabel->width(),
+        ui->exerciseExecutionTimerLabel->height());
+
+    exerciseExecutionTimerEdit->setVisible(true);
+    exerciseExecutionTimerEdit->raise();
+    exerciseExecutionTimerEdit->setFocus();
+    exerciseExecutionTimerEdit->setCursorPosition(
+        exerciseExecutionTimerEdit->text().length());
+}
+
+void MainWindow::commitExerciseExecutionTimerEdit()
+{
+    if (!exerciseExecutionTimerEditing)
+        return;
+
+    exerciseExecutionTimerEditing = false;
+
+    if (!exerciseExecutionTimerEdit)
+        return;
+
+    if (currentExecutionExerciseId != 0) {
+
+        const int seconds =
+            parseTimerInput(exerciseExecutionTimerEdit->text());
+
+        if (seconds >= 0) {
+
+            exerciseExecutionTotalMs     = seconds * 1000;
+            exerciseExecutionRemainingMs = seconds * 1000;
+            exerciseExecutionElapsedMs   = 0;
+        }
+    }
+
+    exerciseExecutionTimerEdit->setVisible(false);
+
+    updateExerciseExecutionTimerDisplay();
+}
+
+void MainWindow::cancelExerciseExecutionTimerEdit()
+{
+    if (!exerciseExecutionTimerEditing)
+        return;
+
+    exerciseExecutionTimerEditing = false;
+
+    if (!exerciseExecutionTimerEdit)
+        return;
+
+    exerciseExecutionTimerEdit->setVisible(false);
+
+    updateExerciseExecutionTimerDisplay();
+}
 
 MainWindow::~MainWindow()
 {

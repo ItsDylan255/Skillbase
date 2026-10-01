@@ -22,6 +22,7 @@
 #include <QStringListModel>
 #include <QStyle>
 #include <QTimer>
+#include <QToolButton>
 
 namespace {
 
@@ -145,6 +146,8 @@ RoutineDialog::RoutineDialog(
 {
 
     ui->setupUi(this);
+
+
 
     if (routineId > 0) {
         setWindowTitle("Routine bearbeiten");
@@ -619,6 +622,8 @@ void RoutineDialog::addSelectedExercise(int exerciseId)
     ui->selectedExercisesStack->setCurrentWidget(
         ui->selectedExercisesList
         );
+
+    updateMoveButtonVisibility();
 }
 
 void RoutineDialog::createSelectedExerciseRow(
@@ -676,6 +681,19 @@ void RoutineDialog::createSelectedExerciseRow(
                 moveSelectedExerciseRow(row, +1);
             }
             );
+        // Ausgeblendete Pfeile behalten ihren Platz, damit die Zeile
+        // beim Ausblenden nicht seitlich springt.
+        for (QToolButton *arrow : {
+                 rowUi.selectedExerciseMoveUpButton,
+                 rowUi.selectedExerciseMoveDownButton
+             }) {
+            if (!arrow)
+                continue;
+
+            QSizePolicy policy = arrow->sizePolicy();
+            policy.setRetainSizeWhenHidden(true);
+            arrow->setSizePolicy(policy);
+        }
 
         QListWidgetItem *item =
             new QListWidgetItem();
@@ -719,6 +737,8 @@ void RoutineDialog::removeSelectedExerciseRow(QWidget *row)
             ui->selectedExercisesEmptyPage
             );
     }
+
+    updateMoveButtonVisibility();
 }
 
 void RoutineDialog::moveSelectedExerciseRow(QWidget *row, int delta)
@@ -767,6 +787,8 @@ void RoutineDialog::moveSelectedExerciseRow(QWidget *row, int delta)
     selectedExerciseIds[other] = idA;
 
     ui->selectedExercisesList->setCurrentRow(to);
+
+    updateMoveButtonVisibility();
 }
 
 void RoutineDialog::updateSelectedExerciseIds()
@@ -852,6 +874,45 @@ void RoutineDialog::loadRoutineForEditing()
         ui->selectedExercisesStack->setCurrentWidget(
             ui->selectedExercisesEmptyPage
             );
+    }
+
+    updateMoveButtonVisibility();
+}
+
+void RoutineDialog::updateMoveButtonVisibility()
+{
+    const int count = ui->selectedExercisesList->count();
+
+    for (int i = 0; i < count; ++i) {
+
+        QListWidgetItem *item =
+            ui->selectedExercisesList->item(i);
+
+        QWidget *row =
+            ui->selectedExercisesList->itemWidget(item);
+
+        if (!row)
+            continue;
+
+        auto *upButton =
+            row->findChild<QToolButton *>(
+                "selectedExerciseMoveUpButton"
+                );
+
+        auto *downButton =
+            row->findChild<QToolButton *>(
+                "selectedExerciseMoveDownButton"
+                );
+
+        if (upButton) {
+            // Bei der ersten Zeile gibt es nichts nach oben.
+            upButton->setVisible(i > 0);
+        }
+
+        if (downButton) {
+            // Bei der letzten Zeile gibt es nichts nach unten.
+            downButton->setVisible(i < count - 1);
+        }
     }
 }
 

@@ -25,10 +25,6 @@ public:
         const QList<TimelinePhase> &phases
         );
 
-    // Setzt die Grundfarbe des Hobbys.
-    void setHobbyColor(
-        const QColor &color
-        );
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -86,7 +82,6 @@ private:
     static constexpr int DefaultMonthPixelWidth = 64;
 
     QList<TimelinePhase> phases;
-    QColor hobbyColor;
 
     // Tatsächliche Breite des sichtbaren Bereichs der QScrollArea.
     int viewportWidth = 0;

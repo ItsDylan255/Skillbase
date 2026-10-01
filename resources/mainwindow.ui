@@ -527,7 +527,7 @@
              <item>
               <widget class="QStackedWidget" name="hobbyPageStack">
                <property name="currentIndex">
-                <number>0</number>
+                <number>4</number>
                </property>
                <widget class="QWidget" name="dashboardHobbyPage">
                 <layout class="QVBoxLayout" name="hobbyDashboardLayout">
@@ -730,7 +730,7 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                   <layout class="QGridLayout" name="hobbyCurrentRoutinesLayout" columnstretch="1,1,1">
+                   <layout class="QGridLayout" name="hobbyCurrentRoutinesLayout" columnstretch="1">
                     <property name="leftMargin">
                      <number>0</number>
                     </property>
@@ -1177,31 +1177,62 @@
                   <number>12</number>
                  </property>
                  <property name="leftMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
                   <number>12</number>
                  </property>
                  <property name="rightMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
                   <number>12</number>
                  </property>
-                 <item alignment="Qt::AlignmentFlag::AlignLeft">
-                  <widget class="QPushButton" name="timelineBackButton">
-                   <property name="toolTip">
-                    <string>Zurück zur Hobby-Übersicht</string>
+                 <item>
+                  <layout class="QHBoxLayout" name="timelineBackButtonRow">
+                   <property name="spacing">
+                    <number>0</number>
                    </property>
-                   <property name="text">
-                    <string>←  Zurück</string>
+                   <property name="leftMargin">
+                    <number>12</number>
                    </property>
-                  </widget>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item alignment="Qt::AlignmentFlag::AlignLeft">
+                    <widget class="QPushButton" name="timelineBackButton">
+                     <property name="toolTip">
+                      <string>Zurück zur Hobby-Übersicht</string>
+                     </property>
+                     <property name="text">
+                      <string>←  Zurück</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <layout class="QHBoxLayout" name="timelineHeaderLayout">
                    <property name="spacing">
                     <number>12</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
                    </property>
                    <item>
                     <layout class="QVBoxLayout" name="timelineHeaderTextLayout">
@@ -1247,7 +1278,73 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QScrollArea" name="timelineBarScrollArea">
+                  <layout class="QHBoxLayout" name="timelineBarRow">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QScrollArea" name="timelineBarScrollArea">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>96</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>96</height>
+                      </size>
+                     </property>
+                     <property name="frameShape">
+                      <enum>QFrame::Shape::NoFrame</enum>
+                     </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                     </property>
+                     <property name="horizontalScrollBarPolicy">
+                      <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+                     </property>
+                     <property name="widgetResizable">
+                      <bool>false</bool>
+                     </property>
+                     <widget class="TimelineBarWidget" name="timelineBarWidget">
+                      <property name="geometry">
+                       <rect>
+                        <x>0</x>
+                        <y>0</y>
+                        <width>0</width>
+                        <height>0</height>
+                       </rect>
+                      </property>
+                      <property name="toolTip">
+                       <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
+                      </property>
+                     </widget>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="timelineSeparator">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1257,57 +1354,57 @@
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
-                     <height>96</height>
+                     <height>1</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
-                     <height>96</height>
+                     <height>1</height>
                     </size>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::Shape::NoFrame</enum>
+                    <enum>QFrame::Shape::HLine</enum>
                    </property>
-                   <property name="verticalScrollBarPolicy">
-                    <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                   <property name="frameShadow">
+                    <enum>QFrame::Shadow::Plain</enum>
                    </property>
-                   <property name="horizontalScrollBarPolicy">
-                    <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
-                   </property>
-                   <property name="widgetResizable">
-                    <bool>false</bool>
-                   </property>
-                   <widget class="TimelineBarWidget" name="timelineBarWidget">
-                    <property name="geometry">
-                     <rect>
-                      <x>0</x>
-                      <y>0</y>
-                      <width>0</width>
-                      <height>0</height>
-                     </rect>
-                    </property>
-                    <property name="toolTip">
-                     <string>Lernphasen chronologisch, Breite entspricht der Dauer · Lücken zeigen Pausen · Farbe entspricht dem Hobby</string>
-                    </property>
-                   </widget>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="timelineEmptyLabel">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                  <layout class="QHBoxLayout" name="timelineEmptyRow">
+                   <property name="spacing">
+                    <number>0</number>
                    </property>
-                   <property name="text">
-                    <string>Noch keine Lernphasen geplant.</string>
+                   <property name="leftMargin">
+                    <number>12</number>
                    </property>
-                   <property name="alignment">
-                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                   <property name="topMargin">
+                    <number>0</number>
                    </property>
-                  </widget>
+                   <property name="rightMargin">
+                    <number>12</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="timelineEmptyLabel">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>Noch keine Lernphasen geplant.</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <spacer name="timelinePageSpacer">
@@ -1681,7 +1778,7 @@
                            <number>8</number>
                           </property>
                           <item>
-                           <widget class="QLabel" name="routineExecutionExerciseNameLabel">
+                           <widget class="ClickableLabel" name="routineExecutionExerciseNameLabel">
                             <property name="minimumSize">
                              <size>
                               <width>0</width>
@@ -1932,13 +2029,6 @@
                                  <set>Qt::AlignmentFlag::AlignCenter</set>
                                 </property>
                                 <property name="placeholderText">
-                                 <string>Wert</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLabel" name="routineExecutionExerciseUnitLabel">
-                                <property name="text">
                                  <string/>
                                 </property>
                                </widget>
@@ -2109,7 +2199,7 @@
                            <rect>
                             <x>0</x>
                             <y>0</y>
-                            <width>16</width>
+                            <width>691</width>
                             <height>36</height>
                            </rect>
                           </property>
@@ -2259,7 +2349,7 @@
                        <number>8</number>
                       </property>
                       <item>
-                       <widget class="QLabel" name="exerciseExecutionExerciseNameLabel">
+                       <widget class="ClickableLabel" name="exerciseExecutionExerciseNameLabel">
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
@@ -2516,13 +2606,6 @@
                              <set>Qt::AlignmentFlag::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>Wert</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QLabel" name="exerciseExecutionExerciseUnitLabel">
-                            <property name="text">
                              <string/>
                             </property>
                            </widget>
@@ -2968,42 +3051,112 @@
                          </property>
                          <layout class="QFormLayout" name="exerciseDetailStatisticsCardLayout">
                           <item row="0" column="0">
-                           <widget class="QLabel" name="exerciseDetailLastPerformedHeaderLabel">
+                           <widget class="QLabel" name="exerciseDetailTotalTimeHeaderLabel">
                             <property name="text">
-                             <string>Letzte Ausführung</string>
+                             <string>Gesamtzeit</string>
                             </property>
                            </widget>
                           </item>
                           <item row="0" column="1">
-                           <widget class="QLabel" name="exerciseDetailLastPerformedLabel">
+                           <widget class="QLabel" name="exerciseDetailTotalTimeLabel">
                             <property name="text">
                              <string>–</string>
                             </property>
                            </widget>
                           </item>
                           <item row="1" column="0">
+                           <widget class="QLabel" name="exerciseDetailAvgDurationHeaderLabel">
+                            <property name="text">
+                             <string>Ø Übungszeit</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="1" column="1">
+                           <widget class="QLabel" name="exerciseDetailAvgDurationLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="0">
+                           <widget class="QLabel" name="exerciseDetailFirstPerformedHeaderLabel">
+                            <property name="text">
+                             <string>Erste Ausführung</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="1">
+                           <widget class="QLabel" name="exerciseDetailFirstPerformedLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="3" column="0">
+                           <widget class="QLabel" name="exerciseDetailLastPerformedHeaderLabel">
+                            <property name="text">
+                             <string>Letzte Ausführung</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="3" column="1">
+                           <widget class="QLabel" name="exerciseDetailLastPerformedLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="4" column="0">
                            <widget class="QLabel" name="exerciseDetailExecutionCountHeaderLabel">
                             <property name="text">
                              <string>Ausführungen</string>
                             </property>
                            </widget>
                           </item>
-                          <item row="1" column="1">
+                          <item row="4" column="1">
                            <widget class="QLabel" name="exerciseDetailExecutionCountLabel">
                             <property name="text">
                              <string>0</string>
                             </property>
                            </widget>
                           </item>
-                          <item row="2" column="0">
-                           <widget class="QLabel" name="exerciseExecutionTotalTimeHeaderLabel">
+                          <item row="5" column="0">
+                           <widget class="QLabel" name="exerciseDetailBestValueHeaderLabel">
                             <property name="text">
-                             <string>Übungszeit</string>
+                             <string>Beste Leistung</string>
                             </property>
                            </widget>
                           </item>
-                          <item row="2" column="1">
-                           <widget class="QLabel" name="exerciseDetailTotalTimeLabel">
+                          <item row="5" column="1">
+                           <widget class="QLabel" name="exerciseDetailBestValueLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="6" column="0">
+                           <widget class="QLabel" name="exerciseDetailAvgValueHeaderLabel">
+                            <property name="text">
+                             <string>Ø Leistung</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="6" column="1">
+                           <widget class="QLabel" name="exerciseDetailAvgValueLabel">
+                            <property name="text">
+                             <string>–</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="7" column="0">
+                           <widget class="QLabel" name="exerciseDetailProgressSinceStartHeaderLabel">
+                            <property name="text">
+                             <string>Fortschritt seit Start</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="7" column="1">
+                           <widget class="QLabel" name="exerciseDetailProgressSinceStartLabel">
                             <property name="text">
                              <string>–</string>
                             </property>
@@ -3289,8 +3442,8 @@ Leg mit &quot;+ Ziel hinzufügen&quot; dein erstes Ziel für dieses Hobby an.</s
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>835</width>
-                          <height>475</height>
+                          <width>62</width>
+                          <height>16</height>
                          </rect>
                         </property>
                         <layout class="QGridLayout" name="goalOpenCardsLayout">
@@ -3469,6 +3622,11 @@ Sobald du ein Ziel als geschafft markierst, landet es hier im Archiv.</string>
    <extends>QWidget</extends>
    <header location="global">timelinebarwidget.h</header>
    <container>1</container>
+  </customwidget>
+    <customwidget>
+   <class>ClickableLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">clickablelabel.h</header>
   </customwidget>
   <customwidget>
    <class>ExerciseProgressChartWidget</class>
