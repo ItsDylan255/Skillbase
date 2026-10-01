@@ -6,6 +6,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QApplication>
+#include <functional>
 
 namespace {
 
@@ -59,6 +60,64 @@ bool hasVisibleChildren(const QTreeView *view, const QModelIndex &index)
             return true;
     }
     return false;
+}
+
+// true, wenn `index` das letzte sichtbare Item seines Top-Level-Blocks ist.
+// Ein Top-Level-Block ist das Top-Level-Item plus alle sichtbaren
+// Nachkommen. Das letzte sichtbare Item ist entweder das Top-Level-Item
+// selbst (wenn eingeklappt oder ohne Kinder) oder rekursiv das letzte
+// sichtbare Kind.
+bool isLastVisibleOfTopLevelBlock(
+    const QTreeView *view,
+    const QModelIndex &index
+    )
+{
+    if (!index.isValid())
+        return false;
+
+    // Das Top-Level-Item dieses Index ermitteln.
+    QModelIndex top = index;
+
+    while (top.parent().isValid())
+        top = top.parent();
+
+    // Rekursive Hilfsfunktion: liefert das letzte sichtbare Item
+    // im Teilbaum von `current`.
+    std::function<QModelIndex(const QModelIndex &)> lastVisible =
+        [&](const QModelIndex &current) -> QModelIndex {
+
+        const int childCount = current.model()->rowCount(current);
+
+        if (childCount == 0)
+            return current;
+
+        // Ist das Item expandiert?
+        bool expanded = false;
+
+        if (auto *tree = qobject_cast<const QTreeWidget *>(
+                current.model()->parent())) {
+
+            if (auto *item = tree->itemFromIndex(current))
+                expanded = item->isExpanded();
+        }
+
+        if (!expanded)
+            return current;
+
+        // Letztes sichtbares Kind finden.
+        for (int r = childCount - 1; r >= 0; --r) {
+
+            if (view && view->isRowHidden(r, current))
+                continue;
+
+            return lastVisible(current.model()->index(r, 0, current));
+        }
+
+        // Alle Kinder ausgeblendet → das Item selbst.
+        return current;
+    };
+
+    return lastVisible(top) == index;
 }
 
 } // namespace
@@ -347,4 +406,24 @@ void RoadmapTreeDelegate::paint(
         );
 
     painter->restore();
+
+    // ── Trennlinie unter dem letzten sichtbaren Item eines Blocks ────────
+    //
+    // Wird live berechnet, damit die Linie auch bei aktivem Suchfilter
+    // korrekt sitzt. Antialiasing bleibt an — die Linie liegt auf einem
+    // ganzen Pixel, ist also genauso scharf wie die restlichen Elemente.
+
+    if (isLastVisibleOfTopLevelBlock(view, index)) {
+
+        painter->setPen(QPen(QColor("#29292d"), 1));
+
+        const int lineY = option.rect.bottom() - 1;
+
+        painter->drawLine(
+            option.rect.left(),
+            lineY,
+            option.rect.right(),
+            lineY
+            );
+    }
 }

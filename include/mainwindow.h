@@ -114,6 +114,13 @@ private:
     void onRoadmapRenameSelectedStep();
     void onRoadmapToggleSelectedStepDone();
     void onRoadmapDeleteSelectedStep();
+    // Neuer Step direkt unter dem Root der aktuell geöffneten Roadmap.
+    // Wird vom "+ Step"-Button in der Detail-Ansicht ausgelöst.
+    void onRoadmapAddChildOfRootStep();
+
+    // Aktualisiert die Sichtbarkeit des Empty-State-Labels in der
+    // Detail-Ansicht, abhängig davon, ob der Suchfilter Treffer hat.
+    void updateRoadmapDetailEmptyState();
 
     // Baut rekursiv einen Tree-Zweig in der Detail-Ansicht auf.
     void buildRoadmapTreeItem(

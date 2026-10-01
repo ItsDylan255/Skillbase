@@ -520,6 +520,7 @@ QPushButton#addExerciseButton,
 QPushButton#addRoutineButton,
 QPushButton#addGoalButton,
 QPushButton#addRoadmapGoalButton,
+QPushButton#addRoadmapChildStepButton,
 QPushButton#addTimelinePhaseButton,
 QPushButton#addButton,
 QPushButton#routineExecutionStartPauseButton,
@@ -534,6 +535,7 @@ QPushButton#addExerciseButton:hover,
 QPushButton#addRoutineButton:hover,
 QPushButton#addGoalButton:hover,
 QPushButton#addRoadmapGoalButton:hover,
+QPushButton#addRoadmapChildStepButton:hover,
 QPushButton#addTimelinePhaseButton:hover,
 QPushButton#addButton:hover,
 QPushButton#routineExecutionStartPauseButton:hover,
@@ -546,6 +548,7 @@ QPushButton#addExerciseButton:pressed,
 QPushButton#addRoutineButton:pressed,
 QPushButton#addGoalButton:pressed,
 QPushButton#addRoadmapGoalButton:pressed,
+QPushButton#addRoadmapChildStepButton:pressed,
 QPushButton#addTimelinePhaseButton:pressed,
 QPushButton#addButton:pressed,
 QPushButton#routineExecutionStartPauseButton:pressed,
@@ -1078,9 +1081,8 @@ QToolButton#roadmapRowDeleteButton:disabled {
     border-color: #29292d;
 }
 
-/* Detail-Ansicht: Toggle zwischen Hierarchy und Tree. */
-QToolButton#roadmapHierarchyViewButton,
-QToolButton#roadmapTreeViewButton {
+/* Detail-Ansicht: "Schließen" ist ein normaler sekundärer Button. */
+QToolButton#roadmapCollapseAllButton {
     background-color: #19191c;
     color: #eaeaec;
     border: 1px solid #29292d;
@@ -1091,19 +1093,39 @@ QToolButton#roadmapTreeViewButton {
     border-bottom: 1px solid #29292d;
 }
 
-QToolButton#roadmapHierarchyViewButton:hover,
-QToolButton#roadmapTreeViewButton:hover {
+/* Detail-Ansicht: "Öffnen" ist ein Primary-Button (wie "+ Step"). */
+QToolButton#roadmapExpandAllButton {
+    background-color: #ff6f61;
+    color: #171012;
+    border: 1px solid #ff6f61;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 1px solid #ff6f61;
+}
+
+QToolButton#roadmapCollapseAllButton:hover {
     background-color: #212124;
     border-color: #333338;
 }
 
-QToolButton#roadmapHierarchyViewButton:pressed,
-QToolButton#roadmapTreeViewButton:pressed {
+QToolButton#roadmapExpandAllButton:hover {
+    background-color: #ff8677;
+    border-color: #ff8677;
+}
+
+QToolButton#roadmapCollapseAllButton:pressed {
     background-color: #29292d;
 }
 
-QToolButton#roadmapHierarchyViewButton:checked,
-QToolButton#roadmapTreeViewButton:checked {
+QToolButton#roadmapExpandAllButton:pressed {
+    background-color: #e85c4e;
+    border-color: #e85c4e;
+}
+
+QToolButton#roadmapExpandAllButton:checked,
+QToolButton#roadmapCollapseAllButton:checked {
     background-color: #ff6f61;
     color: #171012;
     border: 1px solid #ff6f61;
@@ -1111,18 +1133,13 @@ QToolButton#roadmapTreeViewButton:checked {
     font-weight: 600;
 }
 
-QToolButton#roadmapHierarchyViewButton:checked:hover,
-QToolButton#roadmapTreeViewButton:checked:hover {
+QToolButton#roadmapExpandAllButton:checked:hover,
+QToolButton#roadmapCollapseAllButton:checked:hover {
     background-color: #ff8677;
     border-color: #ff8677;
     border-bottom: 1px solid #ff8677;
 }
 
-/* Platzhalter für die Diagramm-Ansicht. */
-QLabel#roadmapTreePlaceholderLabel {
-    color: #6d6d73;
-    font-size: 13px;
-}
 
 
 /* Der "+ Neuer Step"-Button ist der Primary-Button der Roadmap. */
@@ -1170,6 +1187,11 @@ QLabel#roadmapCardMetaHeaderLabel {
 QLabel#roadmapCardStatLabel {
     font-size: 11px;
     color: #9a9aa0;
+}
+
+QLabel#roadmapDetailEmptyLabel {
+    color: #6d6d73;
+    font-size: 13px;
 }
 
 /* Mini-Baum in der Card: Root-Step (●) */
@@ -1258,11 +1280,10 @@ QToolButton#roadmapFilterArchiveButton:checked:hover {
     border-bottom: 1px solid #ff8677;
 }
 
-/* Detail-Seite: Back-Button */
 QPushButton#roadmapDetailBackButton {
     background-color: transparent;
     color: #9a9aa0;
-    border: 1px solid transparent;
+    border: 1px solid #29292d;
     border-radius: 6px;
     padding: 7px 10px;
     font-size: 13px;
@@ -1329,7 +1350,7 @@ QToolButton#goalsFilterOpenButton:hover,
 QToolButton#goalsFilterDoneButton:hover,
 QToolButton#routinesFilterActiveButton:hover,
 QToolButton#routinesFilterArchiveButton:hover,
-QToolButton#roadmapTreeViewButton:hover,
+QToolButton#roadmapCollapseAllButton:hover,
 QToolButton#roadmapDiagramViewButton:hover {
     background-color: #212124;
     border-color: #333338;

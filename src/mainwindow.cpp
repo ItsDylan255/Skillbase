@@ -727,11 +727,13 @@ MainWindow::MainWindow(QWidget *parent)
                  ui->exerciseSearchLineEdit,
                  ui->historySearchLineEdit,
                  ui->goalSearchLineEdit,
+                 ui->routineSearchLineEdit,
+                 ui->roadmapSearchLineEdit,
+                 ui->roadmapDetailSearchLineEdit,
              }) {
             searchField->addAction(searchIcon, QLineEdit::LeadingPosition);
         }
     }
-
     // ── Dashboard: Phase und Ziel klickbar machen ─────────────────────────────
     //
     // Die Bereiche sind QFrames und keine QPushButtons.
@@ -1183,26 +1185,33 @@ MainWindow::MainWindow(QWidget *parent)
         }
         );
 
-    // Toggle: Hierarchy View ↔ Tree View.
+    // Detail-Ansicht: Alle Steps auf- bzw. zuklappen.
     connect(
-        ui->roadmapHierarchyViewButton,
+        ui->roadmapExpandAllButton,
         &QToolButton::clicked,
         this,
         [this]() {
-            ui->roadmapDetailViewStack->setCurrentWidget(
-                ui->roadmapHierarchyPage
-                );
+            ui->roadmapTreeWidget->expandAll();
         }
         );
 
     connect(
-        ui->roadmapTreeViewButton,
+        ui->roadmapCollapseAllButton,
         &QToolButton::clicked,
         this,
         [this]() {
-            ui->roadmapDetailViewStack->setCurrentWidget(
-                ui->roadmapTreePage
-                );
+            ui->roadmapTreeWidget->collapseAll();
+        }
+        );
+
+    // Detail-Ansicht: "+ Step" erstellt einen neuen Step direkt unter
+    // dem Root der aktuell geöffneten Roadmap.
+    connect(
+        ui->addRoadmapChildStepButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            onRoadmapAddChildOfRootStep();
         }
         );
 
@@ -6650,8 +6659,27 @@ void MainWindow::loadRoadmapCards()
     }
 
     // Empty-State / Sichtbarkeit.
-    ui->roadmapActiveEmptyLabel->setVisible(activeRoots.isEmpty());
-    ui->roadmapActiveScrollArea->setVisible(!activeRoots.isEmpty());
+    //
+    // Wenn ein Suchtext aktiv ist und keine Treffer liefert, zeigen wir
+    // einen anderen Text als bei komplett leeren Roadmaps.
+    const bool isSearching =
+        !ui->roadmapSearchLineEdit->text().trimmed().isEmpty();
+
+    const bool showEmptyState = activeRoots.isEmpty();
+
+    if (showEmptyState && isSearching) {
+        ui->roadmapActiveEmptyLabel->setText(
+            "Keine Roadmaps gefunden."
+            );
+    } else {
+        ui->roadmapActiveEmptyLabel->setText(
+            "Noch keine aktiven Roadmaps\n\n"
+            "Leg mit \"+ Roadmap\" deine erste Roadmap an."
+            );
+    }
+
+    ui->roadmapActiveEmptyLabel->setVisible(showEmptyState);
+    ui->roadmapActiveScrollArea->setVisible(!showEmptyState);
 
     // Row-Stretch: Der restliche vertikale Platz wandert in eine
     // leere Zeile unter den Cards. Dadurch bleiben die Cards oben.
@@ -6805,8 +6833,37 @@ void MainWindow::loadRoadmapDetail(int rootId)
 
     updateRoadmapRowButtonsState();
     updateRoadmapRowButtons();
+    updateRoadmapDetailEmptyState();
 }
+void MainWindow::updateRoadmapDetailEmptyState()
+{
+    // Wenn ein Filter aktiv ist, prüfen wir, ob überhaupt ein Item
+    // sichtbar ist. Wenn nicht, zeigen wir das Empty-State-Label
+    // "Keine Steps gefunden." an und blenden den Tree aus.
+    if (roadmapDetailFilterText.isEmpty()) {
+        ui->roadmapDetailEmptyLabel->setVisible(false);
+        ui->roadmapTreeWidget->setVisible(true);
+        return;
+    }
 
+    bool anyVisible = false;
+
+    std::function<void(QTreeWidgetItem *)> checkVisible =
+        [&](QTreeWidgetItem *item) {
+
+            if (!item->isHidden())
+                anyVisible = true;
+
+            for (int i = 0; i < item->childCount(); ++i)
+                checkVisible(item->child(i));
+        };
+
+    for (int i = 0; i < ui->roadmapTreeWidget->topLevelItemCount(); ++i)
+        checkVisible(ui->roadmapTreeWidget->topLevelItem(i));
+
+    ui->roadmapDetailEmptyLabel->setVisible(!anyVisible);
+    ui->roadmapTreeWidget->setVisible(anyVisible);
+}
 void MainWindow::buildRoadmapTreeItem(
     QTreeWidgetItem *parentItem,
     int parentId,
@@ -6873,29 +6930,9 @@ void MainWindow::showRoadmapDetail(int rootId)
 
 void MainWindow::updateRoadmapRowButtons()
 {
-    // Wenn keine Roadmap geladen ist, gibt's nichts zu tun.
-    if (currentRoadmapDetailRootId == 0)
-        return;
-
     // Wenn die Buttons nicht existieren, gibt's nichts zu tun.
     if (!roadmapRowAddChildButton)
         return;
-
-    // Nur in der Hierarchie-Ansicht anzeigen.
-    if (ui->roadmapDetailViewStack->currentWidget()
-        != ui->roadmapHierarchyPage) {
-
-        for (QToolButton *b : {
-                 roadmapRowAddChildButton,
-                 roadmapRowRenameButton,
-                 roadmapRowToggleDoneButton,
-                 roadmapRowDeleteButton
-             }) {
-            if (b)
-                b->setVisible(false);
-        }
-        return;
-    }
 
     // Ausgewähltes Item ermitteln.
     QTreeWidgetItem *item = ui->roadmapTreeWidget->currentItem();
@@ -7068,6 +7105,46 @@ void MainWindow::onRoadmapAddRootStep()
     }
 
     loadRoadmapCards();
+}
+
+void MainWindow::onRoadmapAddChildOfRootStep()
+{
+    if (currentHobbyId == 0 || currentRoadmapDetailRootId <= 0)
+        return;
+
+    bool ok = false;
+
+    const QString name = QInputDialog::getText(
+                             this,
+                             "Neuer Step",
+                             "Name:",
+                             QLineEdit::Normal,
+                             "",
+                             &ok
+                             ).trimmed();
+
+    if (!ok || name.isEmpty())
+        return;
+
+    int newId = 0;
+
+    // parentId = currentRoadmapDetailRootId → direkt unter dem Root.
+    if (!RoadmapRepository::add(
+            currentHobbyId,
+            currentRoadmapDetailRootId,
+            name,
+            newId)) {
+
+        QMessageBox::warning(
+            this,
+            "Fehler",
+            "Der Step konnte nicht erstellt werden."
+            );
+
+        return;
+    }
+
+    loadRoadmapDetail(currentRoadmapDetailRootId);
 }
 
 void MainWindow::onRoadmapAddChildStep()

@@ -966,7 +966,7 @@
                        <item>
                         <widget class="QPushButton" name="addRoadmapGoalButton">
                          <property name="text">
-                          <string>+ Neuer Step</string>
+                          <string>+ Roadmap</string>
                          </property>
                         </widget>
                        </item>
@@ -1039,7 +1039,7 @@
                            <property name="text">
                             <string>Noch keine aktiven Roadmaps
 
-Leg mit &quot;+ Neuer Step&quot; deine erste Roadmap an.</string>
+Leg mit &quot;+ Roadmap&quot; deine erste Roadmap an.</string>
                            </property>
                            <property name="alignment">
                             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1205,11 +1205,35 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                       </layout>
                      </item>
                      <item>
-                      <widget class="QLabel" name="roadmapDetailTitleLabel">
-                       <property name="text">
-                        <string>Roadmap</string>
-                       </property>
-                      </widget>
+                      <layout class="QHBoxLayout" name="roadmapDetailTitleRow">
+                       <item>
+                        <widget class="QLabel" name="roadmapDetailTitleLabel">
+                         <property name="text">
+                          <string>Roadmap</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="roadmapDetailTitleSpacer">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>0</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="addRoadmapChildStepButton">
+                         <property name="text">
+                          <string>+ Step</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
                      </item>
                      <item>
                       <layout class="QHBoxLayout" name="roadmapDetailToolbarLayout">
@@ -1224,98 +1248,47 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                         </widget>
                        </item>
                        <item>
-                        <widget class="QToolButton" name="roadmapHierarchyViewButton">
+                        <widget class="QToolButton" name="roadmapExpandAllButton">
                          <property name="text">
-                          <string>Hierarchie</string>
-                         </property>
-                         <property name="checkable">
-                          <bool>true</bool>
-                         </property>
-                         <property name="checked">
-                          <bool>true</bool>
-                         </property>
-                         <property name="autoExclusive">
-                          <bool>true</bool>
+                          <string>Öffnen</string>
                          </property>
                         </widget>
                        </item>
                        <item>
-                        <widget class="QToolButton" name="roadmapTreeViewButton">
+                        <widget class="QToolButton" name="roadmapCollapseAllButton">
                          <property name="text">
-                          <string>Tree</string>
-                         </property>
-                         <property name="checkable">
-                          <bool>true</bool>
-                         </property>
-                         <property name="autoExclusive">
-                          <bool>true</bool>
+                          <string>Schließen</string>
                          </property>
                         </widget>
                        </item>
                       </layout>
                      </item>
                      <item>
-                      <widget class="QStackedWidget" name="roadmapDetailViewStack">
-                       <property name="currentIndex">
-                        <number>0</number>
+                      <widget class="QLabel" name="roadmapDetailEmptyLabel">
+                       <property name="text">
+                        <string>Keine Steps gefunden.</string>
                        </property>
-                       <widget class="QWidget" name="roadmapHierarchyPage">
-                        <layout class="QVBoxLayout" name="roadmapHierarchyPageLayout">
-                         <property name="spacing">
-                          <number>0</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="RoadmapTreeWidget" name="roadmapTreeWidget">
-                           <property name="headerHidden">
-                            <bool>true</bool>
-                           </property>
-                           <column>
-                            <property name="text">
-                             <string>Step</string>
-                            </property>
-                           </column>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                       <widget class="QWidget" name="roadmapTreePage">
-                        <layout class="QVBoxLayout" name="roadmapTreePageLayout">
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="roadmapTreePlaceholderLabel">
-                           <property name="text">
-                            <string>Diagramm-Ansicht folgt in Kürze.</string>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
+                       <property name="visible">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="RoadmapTreeWidget" name="roadmapTreeWidget">
+                       <property name="headerHidden">
+                        <bool>true</bool>
+                       </property>
+                       <column>
+                        <property name="text">
+                         <string>Step</string>
+                        </property>
+                       </column>
                       </widget>
                      </item>
                     </layout>
@@ -1638,7 +1611,7 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                        <item>
                         <widget class="QPushButton" name="addRoutineButton">
                          <property name="text">
-                          <string>+ Routine hinzufügen</string>
+                          <string>+ Routine</string>
                          </property>
                         </widget>
                        </item>
@@ -1711,7 +1684,7 @@ Sobald du alle Steps einer Roadmap erledigt hast, landet sie hier im Archiv.</st
                            <property name="text">
                             <string>Noch keine aktiven Routinen
     
-    Leg mit &quot;+ Routine hinzufügen&quot; deine erste Routine für dieses Hobby an.</string>
+    Leg mit &quot;+ Routine&quot; deine erste Routine für dieses Hobby an.</string>
                            </property>
                            <property name="alignment">
                             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -3499,7 +3472,7 @@ Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
                    <item>
                     <widget class="QPushButton" name="addGoalButton">
                      <property name="text">
-                      <string>+ Ziel hinzufügen</string>
+                      <string>+ Ziel</string>
                      </property>
                     </widget>
                    </item>
@@ -3572,7 +3545,7 @@ Sobald du eine Übung oder Routine ausführst, erscheint sie hier.</string>
                        <property name="text">
                         <string>Noch keine offenen Ziele
 
-Leg mit &quot;+ Ziel hinzufügen&quot; dein erstes Ziel für dieses Hobby an.</string>
+Leg mit &quot;+ Ziel&quot; dein erstes Ziel für dieses Hobby an.</string>
                        </property>
                        <property name="alignment">
                         <set>Qt::AlignmentFlag::AlignCenter</set>
