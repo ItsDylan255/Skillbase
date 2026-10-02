@@ -4,6 +4,7 @@
 #include "ui_exercise_dialog.h"
 #include "ui_goal_dialog.h"
 
+#include "cardhelpers.h"
 #include "categoryrepository.h"
 #include "clickablelabel.h"
 #include "exerciselogrepository.h"
@@ -2407,14 +2408,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 void MainWindow::loadExerciseCards()
 {
     // Alle bisherigen Cards entfernen
-    while (ui->exerciseCardsLayout->count() > 0) {
-        QLayoutItem *layoutItem = ui->exerciseCardsLayout->takeAt(0);
-
-        if (layoutItem->widget())
-            layoutItem->widget()->deleteLater();
-
-        delete layoutItem;
-    }
+    CardUi::clearLayout(ui->exerciseCardsLayout);
 
     if (currentHobbyId == 0)
         return;
@@ -2474,27 +2468,17 @@ void MainWindow::loadExerciseCards()
         }
 
         // ── Card ────────────────────────────────────────────────────────────
-        auto *card = new QFrame(ui->exerciseCardsWidget);
-
-        card->setObjectName("exerciseCard");
-        card->setFrameShape(QFrame::StyledPanel);
-
         // Alle Übungskarten haben dieselbe feste Höhe wie die Zielkarten.
         // Dadurch bleiben die Karten im 3-Spalten-Grid einheitlich.
-        card->setFixedHeight(176);
-
-        card->setSizePolicy(
-            QSizePolicy::Expanding,
-            QSizePolicy::Fixed
+        auto *card = CardUi::makeCard(
+            ui->exerciseCardsWidget,
+            QStringLiteral("exerciseCard"),
+            176
             );
-
-        card->setCursor(Qt::PointingHandCursor);
 
         // Das Layout wird bewusst kompakt gehalten, damit alle Informationen
         // inklusive der beiden Buttons innerhalb der festen Kartenhöhe Platz haben.
-        auto *cardLayout = new QVBoxLayout(card);
-        cardLayout->setSpacing(2);
-        cardLayout->setContentsMargins(12, 10, 12, 10);
+        auto *cardLayout = CardUi::makeCardLayout(card, 2, 12, 10, 12, 10);
 
         // ── Name ────────────────────────────────────────────────────────────
         auto *nameLabel = new QLabel(exercise.name, card);
@@ -2513,11 +2497,6 @@ void MainWindow::loadExerciseCards()
                 );
 
         // ── Wert ────────────────────────────────────────────────────────────
-        auto *wertRow = new QHBoxLayout();
-
-        wertRow->addWidget(new QLabel("Wert", card));
-        wertRow->addStretch();
-
         // Der angezeigte Wert entspricht immer dem zuletzt gespeicherten Wert.
         // Wenn noch keine Ausführung existiert, wird der aktuelle Übungswert verwendet.
         QString wertText;
@@ -2549,15 +2528,11 @@ void MainWindow::loadExerciseCards()
             wertText = "–";
         }
 
-        wertRow->addWidget(new QLabel(wertText, card));
-        cardLayout->addLayout(wertRow);
+        cardLayout->addLayout(
+            CardUi::makeMetaRow(card, QStringLiteral("Wert"), wertText)
+            );
 
         // ── Ziel ────────────────────────────────────────────────────────────
-        auto *goalRow = new QHBoxLayout();
-
-        goalRow->addWidget(new QLabel("Ziel", card));
-        goalRow->addStretch();
-
         QString goalText;
 
         if (exercise.goal != 0.0) {
@@ -2573,8 +2548,9 @@ void MainWindow::loadExerciseCards()
             goalText = "–";
         }
 
-        goalRow->addWidget(new QLabel(goalText, card));
-        cardLayout->addLayout(goalRow);
+        cardLayout->addLayout(
+            CardUi::makeMetaRow(card, QStringLiteral("Ziel"), goalText)
+            );
 
         // ── Letzte Ausführung ───────────────────────────────────────────────
         // ── Kategorie-Tag ───────────────────────────────────────────────────
@@ -3704,20 +3680,8 @@ void MainWindow::loadGoalCards()
     // Entfernt alle bisher erzeugten Cards aus einem Layout.
     // Die Layout-Struktur selbst bleibt bestehen und kann anschließend
     // wieder mit neuen Cards befüllt werden.
-    auto clearLayout = [](QLayout *layout) {
-
-        while (layout->count() > 0) {
-            QLayoutItem *item = layout->takeAt(0);
-
-            if (item->widget())
-                item->widget()->deleteLater();
-
-            delete item;
-        }
-    };
-
-    clearLayout(ui->goalOpenCardsLayout);
-    clearLayout(ui->goalDoneCardsLayout);
+    CardUi::clearLayout(ui->goalOpenCardsLayout);
+    CardUi::clearLayout(ui->goalDoneCardsLayout);
 
     ui->goalOpenCardsLayout->setRowStretch(0, 0);
     ui->goalDoneCardsLayout->setRowStretch(0, 0);
@@ -4427,22 +4391,8 @@ void MainWindow::loadRoutineCards()
     // Entfernt alle bisher erzeugten Cards aus einem Layout.
     // Das Layout selbst bleibt bestehen und kann danach wieder
     // mit neuen Cards gefüllt werden.
-    auto clearLayout = [](QLayout *layout) {
-
-        while (layout->count() > 0) {
-
-            QLayoutItem *item =
-                layout->takeAt(0);
-
-            if (item->widget())
-                item->widget()->deleteLater();
-
-            delete item;
-        }
-    };
-
-    clearLayout(ui->routineActiveCardsLayout);
-    clearLayout(ui->routineArchiveCardsLayout);
+    CardUi::clearLayout(ui->routineActiveCardsLayout);
+    CardUi::clearLayout(ui->routineArchiveCardsLayout);
 
     ui->routineActiveCardsLayout->setRowStretch(0, 0);
     ui->routineArchiveCardsLayout->setRowStretch(0, 0);
@@ -5535,16 +5485,7 @@ void MainWindow::loadDashboardRoutineCards()
 {
     // Der Container wird bei jedem Laden komplett neu aufgebaut.
     // Dadurch stimmt der Inhalt immer mit dem aktuell ausgewählten Hobby überein.
-    while (ui->hobbyCurrentRoutinesLayout->count() > 0) {
-
-        QLayoutItem *item =
-            ui->hobbyCurrentRoutinesLayout->takeAt(0);
-
-        if (item->widget())
-            item->widget()->deleteLater();
-
-        delete item;
-    }
+    CardUi::clearLayout(ui->hobbyCurrentRoutinesLayout);
 
     if (currentHobbyId == 0)
         return;
@@ -6571,21 +6512,8 @@ void MainWindow::cancelExerciseExecutionTimerEdit()
 void MainWindow::loadRoadmapCards()
 {
     // Beide Cards-Container leeren.
-    auto clearLayout = [](QLayout *layout) {
-
-        while (layout->count() > 0) {
-
-            QLayoutItem *item = layout->takeAt(0);
-
-            if (item->widget())
-                item->widget()->deleteLater();
-
-            delete item;
-        }
-    };
-
-    clearLayout(ui->roadmapActiveCardsLayout);
-    clearLayout(ui->roadmapArchiveCardsLayout);
+    CardUi::clearLayout(ui->roadmapActiveCardsLayout);
+    CardUi::clearLayout(ui->roadmapArchiveCardsLayout);
 
     // Spalten-Stretch: 3 gleiche Spalten (1,1,1).
     // Damit nimmt jede Karte auch bei nur 1-2 Karten genau 1/3 ein.

@@ -99,6 +99,7 @@ qt_add_executable(Skillbase
     src/roadmaptreewidget.cpp
     include/roadmaptreedelegate.h
     src/roadmaptreedelegate.cpp
+    include/cardhelpers.h
 
 
 )
