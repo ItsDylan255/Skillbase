@@ -13,7 +13,13 @@
    --border-light  #333338   Etwas hellere Border (Hover/Focus-Trenner)
    --text-primary  #eaeaec   Haupttext
    --text-secondary#9a9aa0   Sekundärtext
-   --text-muted    #6d6d73   Metadaten / Platzhalter
+   --text-muted    #82828a   Metadaten / Platzhalter (4,6:1 auf Surface)
+   --text-disabled #55555a   Deaktivierter Text
+   --text-on-accent#171012   Text auf Accent-Flächen
+   --surface-elev  #212124   Surface Elevated (= Hover-Fläche)
+   --border-strong #333338   Border Strong (= hellere Border)
+   --disabled-bg   #17171a   Deaktivierte Fläche
+   --scroll-hover  #45454b   Scrollbar-Handle Hover
    --accent        #ff6f61   Skillbase-Orange
    --accent-hover  #ff8677
    --accent-pressed#e85c4e
@@ -64,6 +70,14 @@ QLabel {
     background-color: transparent;
 }
 
+/* Horizontale Trennlinien (QFrame::HLine) - ersetzt die Qt-Standardlinie
+   für alle Linien, auch für Code-erzeugte (routineCardSeparator, ...). */
+QFrame[frameShape="4"] {
+    background-color: #29292d;
+    border: none;
+    max-height: 1px;
+}
+
 QWidget:disabled {
     color: #55555a;
 }
@@ -99,7 +113,7 @@ QLabel#sidebarHobbySectionLabel {
     font-size: 13px;
     font-weight: 500;
     color: #eaeaec;
-    padding: 22px 16px 10px 16px;
+    padding: 24px 16px 8px 16px;
     border-bottom: 2px solid #29292d;
 }
 
@@ -208,10 +222,11 @@ QLabel#hobbyPhaseSectionLabel,
 QLabel#hobbyGoalSectionLabel,
 QLabel#hobbyRoutinesSectionLabel,
 QLabel#hobbyNoteSectionLabel,
+QLabel#hobbyRoadmapSectionLabel,
 QLabel#hobbyStatsSectionLabel {
     font-size: 11px;
     font-weight: 600;
-    color: #6d6d73;
+    color: #82828a;
     padding-top: 8px;
 }
 
@@ -305,8 +320,8 @@ QLabel#hobbyStatRoadmapCaptionLabel {
 /* Kategorie-Tag im Kopfbereich der Detailansicht (gleiche Optik wie
    die Kategorie-Tags auf den Übungskarten). */
 QLabel#exerciseDetailCategoryTagLabel {
-    background-color: #2a2a2a;
-    color: #aaaaaa;
+    background-color: #212124;
+    color: #9a9aa0;
     border-radius: 4px;
     padding: 2px 8px;
     font-size: 11px;
@@ -321,7 +336,7 @@ QPushButton#exerciseDetailEditStartValueButton {
     color: #9a9aa0;
     font-size: 11px;
     font-weight: 500;
-    padding: 2px 6px;
+    padding: 2px 8px;
 }
 /* Inline-Bearbeitung des Startwerts: ersetzt das Label während der Bearbeitung */
 QLineEdit#exerciseDetailStartValueEdit {
@@ -382,15 +397,15 @@ QFrame#timelineSeparator {
    angeordnete, klickbare Cards - gleiche Card-Sprache wie exerciseCard/
    goalCard (Surface, dünne Border, 6px Radius), Hover nur über die Border. */
 QFrame#hobbyPhaseSection,
-QFrame#hobbyGoalSection {
+QFrame#hobbyRoadmapSection {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 QFrame#hobbyPhaseSection:hover,
-QFrame#hobbyGoalSection:hover {
-    background-color: #1c1c1f;
+QFrame#hobbyRoadmapSection:hover {
+    background-color: #212124;
     border: 1px solid #333338;
 }
 
@@ -421,8 +436,8 @@ QPushButton#hobbyRoutinesAddButton {
 QGroupBox {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
-    margin-top: 14px;
+    border-radius: 8px;
+    margin-top: 16px;
     padding: 16px 12px 12px 12px;
     font-size: 13px;
     font-weight: 600;
@@ -444,7 +459,7 @@ QGroupBox::title {
 QToolButton {
     border: none;
     background: transparent;
-    padding: 8px 14px;
+    padding: 8px 16px;
     color: #9a9aa0;
     font-size: 13px;
     font-weight: 500;
@@ -489,7 +504,7 @@ QPushButton {
     color: #eaeaec;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
 }
@@ -568,26 +583,34 @@ QPushButton#exerciseExecutionStartPauseButton:pressed {
 
 /* Destruktive Aktionen: dezent über Textfarbe, keine Fläche */
 QPushButton#deleteButton,
-QPushButton#deletePhaseButton {
+QPushButton#deletePhaseButton,
+QPushButton#routineDeleteButton,
+QPushButton#hobbySettingsDeleteButton {
     color: #e5484d;
     border-color: #29292d;
     background-color: transparent;
 }
 
 QPushButton#deleteButton:hover,
-QPushButton#deletePhaseButton:hover {
+QPushButton#deletePhaseButton:hover,
+QPushButton#routineDeleteButton:hover,
+QPushButton#hobbySettingsDeleteButton:hover {
     background-color: rgba(229, 72, 77, 0.12);
     border-color: rgba(229, 72, 77, 0.35);
 }
 
 QPushButton#deleteButton:pressed,
-QPushButton#deletePhaseButton:pressed {
+QPushButton#deletePhaseButton:pressed,
+QPushButton#routineDeleteButton:pressed,
+QPushButton#hobbySettingsDeleteButton:pressed {
     background-color: rgba(229, 72, 77, 0.20);
     border-color: rgba(229, 72, 77, 0.50);
 }
 
 QPushButton#deleteButton:disabled,
-QPushButton#deletePhaseButton:disabled {
+QPushButton#deletePhaseButton:disabled,
+QPushButton#routineDeleteButton:disabled,
+QPushButton#hobbySettingsDeleteButton:disabled {
     color: #55555a;
     border-color: #212124;
     background-color: transparent;
@@ -629,7 +652,7 @@ QLineEdit, QPlainTextEdit, QTextEdit {
     background-color: #19191c;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 10px;
+    padding: 8px 12px;
     color: #eaeaec;
     selection-background-color: #ff6f61;
     selection-color: #171012;
@@ -662,7 +685,7 @@ QLabel#routineSelectedChipLabel {
     color: #eaeaec;
     font-size: 13px;
     font-weight: 500;
-    padding: 0px 10px;
+    padding: 0px 8px;
     border-radius: 4px;
 }
 
@@ -670,7 +693,7 @@ QComboBox {
     background-color: #19191c;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     color: #eaeaec;
 }
 
@@ -716,7 +739,7 @@ QDateEdit {
     background-color: #19191c;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     color: #eaeaec;
     selection-background-color: #ff6f61;
     selection-color: #171012;
@@ -761,7 +784,7 @@ QListWidget#hobbyList {
 QListWidget, QTreeWidget {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 4px;
     color: #eaeaec;
     outline: none;
@@ -810,7 +833,7 @@ QLabel[role="secondary"] {
 }
 
 QLabel[role="muted"] {
-    color: #6d6d73;
+    color: #82828a;
 }
 
 QLabel[role="accent"] {
@@ -838,7 +861,7 @@ HistoryDateHeaderWidget {
 HistoryDateHeaderWidget QLabel#dateLabel {
     font-size: 11px;
     font-weight: 600;
-    color: #6d6d73;
+    color: #82828a;
 }
 
 /* Eintragstitel im Verlauf (fett, wie jeder andere Primary-Body-Text) */
@@ -874,17 +897,20 @@ QLabel#entryTypeIconLabel[role="secondary"] {
 }
 
 QLabel#entryTypeIconLabel[role="muted"] {
-    background-color: #6d6d73;
+    background-color: #82828a;
 }
 
 /* ---------- Exercise Card & Goal Card ----------
    Gleiche Card-Sprache wie QGroupBox (Surface/Border/Radius),
    aber ohne Titel-Notch, da der Name als eigenes Label geführt wird. */
 QFrame#exerciseCard,
-QFrame#goalCard {
+QFrame#goalCard,
+QFrame#routineCard,
+QFrame#dashboardRoutineCard,
+QFrame#historyCard {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 QLabel#routineCardNameLabel {
     font-size: 13px;
@@ -892,7 +918,10 @@ QLabel#routineCardNameLabel {
 }
 
 QFrame#exerciseCard:hover,
-QFrame#goalCard:hover {
+QFrame#goalCard:hover,
+QFrame#routineCard:hover,
+QFrame#dashboardRoutineCard:hover,
+QFrame#historyCard:hover {
     border: 1px solid #333338;
 }
 
@@ -1010,7 +1039,7 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
 /* ---------- Statusbar ---------- */
 QStatusBar {
     background-color: #0e0e10;
-    color: #6d6d73;
+    color: #82828a;
     border-top: 1px solid #29292d;
 }
 
@@ -1106,22 +1135,23 @@ QToolButton#roadmapCollapseAllButton {
     color: #eaeaec;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
     border-bottom: 1px solid #29292d;
 }
 
-/* Detail-Ansicht: "Öffnen" ist ein Primary-Button (wie "+ Step"). */
+/* Detail-Ansicht: "Öffnen" ist wie "Schließen" ein sekundärer Button
+   (der Primary der Seite ist "+ Step"). */
 QToolButton#roadmapExpandAllButton {
-    background-color: #ff6f61;
-    color: #171012;
-    border: 1px solid #ff6f61;
+    background-color: #19191c;
+    color: #eaeaec;
+    border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     font-size: 13px;
-    font-weight: 600;
-    border-bottom: 1px solid #ff6f61;
+    font-weight: 500;
+    border-bottom: 1px solid #29292d;
 }
 
 QToolButton#roadmapCollapseAllButton:hover {
@@ -1130,8 +1160,8 @@ QToolButton#roadmapCollapseAllButton:hover {
 }
 
 QToolButton#roadmapExpandAllButton:hover {
-    background-color: #ff8677;
-    border-color: #ff8677;
+    background-color: #212124;
+    border-color: #333338;
 }
 
 QToolButton#roadmapCollapseAllButton:pressed {
@@ -1139,24 +1169,23 @@ QToolButton#roadmapCollapseAllButton:pressed {
 }
 
 QToolButton#roadmapExpandAllButton:pressed {
-    background-color: #e85c4e;
-    border-color: #e85c4e;
+    background-color: #29292d;
 }
 
 QToolButton#roadmapExpandAllButton:checked,
 QToolButton#roadmapCollapseAllButton:checked {
-    background-color: #ff6f61;
-    color: #171012;
-    border: 1px solid #ff6f61;
-    border-bottom: 1px solid #ff6f61;
+    background-color: #29292d;
+    color: #eaeaec;
+    border: 1px solid #333338;
+    border-bottom: 1px solid #333338;
     font-weight: 600;
 }
 
 QToolButton#roadmapExpandAllButton:checked:hover,
 QToolButton#roadmapCollapseAllButton:checked:hover {
-    background-color: #ff8677;
-    border-color: #ff8677;
-    border-bottom: 1px solid #ff8677;
+    background-color: #333338;
+    border-color: #333338;
+    border-bottom: 1px solid #333338;
 }
 
 
@@ -1183,7 +1212,7 @@ QPushButton#addRoadmapGoalButton:pressed {
 QFrame#roadmapCard {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 QFrame#roadmapCard:hover {
@@ -1199,7 +1228,7 @@ QLabel#roadmapCardNameLabel {
 QLabel#roadmapCardMetaHeaderLabel {
     font-size: 11px;
     font-weight: 600;
-    color: #6d6d73;
+    color: #82828a;
     padding-top: 8px;
 }
 
@@ -1209,7 +1238,7 @@ QLabel#roadmapCardStatLabel {
 }
 
 QLabel#roadmapDetailEmptyLabel {
-    color: #6d6d73;
+    color: #82828a;
     font-size: 13px;
 }
 
@@ -1229,13 +1258,13 @@ QLabel#roadmapCardChildStepLabel {
 /* Mini-Baum: erledigte Steps (ausgegraut) */
 QLabel#roadmapCardCompletedStepLabel {
     font-size: 12px;
-    color: #4a4a4f;
+    color: #55555a;
 }
 
 /* Mini-Baum: "+ N weitere"-Zeile */
 QLabel#roadmapCardMoreLabel {
     font-size: 11px;
-    color: #6d6d73;
+    color: #82828a;
     padding-top: 4px;
 }
 
@@ -1266,7 +1295,7 @@ QToolButton#roadmapFilterArchiveButton {
     color: #eaeaec;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
     border-bottom: 1px solid #29292d;
@@ -1285,18 +1314,18 @@ QToolButton#roadmapFilterArchiveButton:pressed {
 
 QToolButton#roadmapFilterActiveButton:checked,
 QToolButton#roadmapFilterArchiveButton:checked {
-    background-color: #ff6f61;
-    color: #171012;
-    border: 1px solid #ff6f61;
-    border-bottom: 1px solid #ff6f61;
+    background-color: #29292d;
+    color: #eaeaec;
+    border: 1px solid #333338;
+    border-bottom: 1px solid #333338;
     font-weight: 600;
 }
 
 QToolButton#roadmapFilterActiveButton:checked:hover,
 QToolButton#roadmapFilterArchiveButton:checked:hover {
-    background-color: #ff8677;
-    border-color: #ff8677;
-    border-bottom: 1px solid #ff8677;
+    background-color: #333338;
+    border-color: #333338;
+    border-bottom: 1px solid #333338;
 }
 
 QPushButton#roadmapDetailBackButton {
@@ -1304,7 +1333,7 @@ QPushButton#roadmapDetailBackButton {
     color: #9a9aa0;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 10px;
+    padding: 8px 12px;
     font-size: 13px;
     font-weight: 500;
 }
@@ -1327,7 +1356,7 @@ QLabel#roadmapDetailTitleLabel {
 QTreeWidget#roadmapTreeWidget {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
     outline: none;
     padding: 8px;
 }
@@ -1359,7 +1388,7 @@ QToolButton#routinesFilterArchiveButton {
     color: #eaeaec;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
     border-bottom: 1px solid #29292d;
@@ -1390,10 +1419,10 @@ QToolButton#routinesFilterActiveButton:checked,
 QToolButton#routinesFilterArchiveButton:checked,
 QToolButton#roadmapTreeViewButton:checked,
 QToolButton#roadmapDiagramViewButton:checked {
-    background-color: #ff6f61;
-    color: #171012;
-    border: 1px solid #ff6f61;
-    border-bottom: 1px solid #ff6f61;
+    background-color: #29292d;
+    color: #eaeaec;
+    border: 1px solid #333338;
+    border-bottom: 1px solid #333338;
     font-weight: 600;
 }
 
@@ -1403,9 +1432,9 @@ QToolButton#routinesFilterActiveButton:checked:hover,
 QToolButton#routinesFilterArchiveButton:checked:hover,
 QToolButton#roadmapTreeViewButton:checked:hover,
 QToolButton#roadmapDiagramViewButton:checked:hover {
-    background-color: #ff8677;
-    border-color: #ff8677;
-    border-bottom: 1px solid #ff8677;
+    background-color: #333338;
+    border-color: #333338;
+    border-bottom: 1px solid #333338;
 }
 
 QToolButton#goalsFilterOpenButton:checked:pressed,
@@ -1414,9 +1443,9 @@ QToolButton#routinesFilterActiveButton:checked:pressed,
 QToolButton#routinesFilterArchiveButton:checked:pressed,
 QToolButton#roadmapTreeViewButton:checked:pressed,
 QToolButton#roadmapDiagramViewButton:checked:pressed {
-    background-color: #e85c4e;
-    border-color: #e85c4e;
-    border-bottom: 1px solid #e85c4e;
+    background-color: #212124;
+    border-color: #333338;
+    border-bottom: 1px solid #333338;
 }
 /* ---------- Kopfbereich & Section-Titel ---------- */
 QLabel#routineDialogTitleLabel {
@@ -1458,7 +1487,7 @@ QComboBox#routineExerciseComboBox QLineEdit {
 QFrame#selectedExercisesEmptyPage {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 QLabel#selectedExercisesEmptyTitleLabel {
@@ -1469,7 +1498,7 @@ QLabel#selectedExercisesEmptyTitleLabel {
 
 QLabel#selectedExercisesEmptyHintLabel {
     font-size: 12px;
-    color: #6d6d73;
+    color: #82828a;
 }
 
 /* ---------- Zeilen: Verfügbare Übungen (dynamisch) ---------- */
@@ -1559,7 +1588,7 @@ QSpinBox {
     background-color: #19191c;
     border: 1px solid #29292d;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     color: #eaeaec;
     selection-background-color: #ff6f61;
     selection-color: #171012;
@@ -1820,7 +1849,7 @@ QPushButton#exerciseExecutionStopButton {
 QTreeWidget#roadmapTreeWidget {
     background-color: #19191c;
     border: 1px solid #29292d;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 8px;
 }
 QFrame#roadmapCard:hover {
@@ -1844,7 +1873,7 @@ QPushButton#dashboardWelcomeAddHobbyButton {
     color: #171012;
     border: 1px solid #ff6f61;
     font-weight: 600;
-    padding: 8px 20px;
+    padding: 8px 24px;
 }
 
 QPushButton#dashboardWelcomeAddHobbyButton:hover {
