@@ -742,6 +742,14 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
+    connect(ui->addRoutineButton, &QPushButton::clicked, this, [this]() {
+        RoutineDialog dialog(currentHobbyId, 0, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            loadRoutineCards();
+            loadDashboardRoutineCards();
+        }
+    });
+
     // Zurück verwirft die Eingaben, "Routine beenden" speichert sie.
     connect(ui->routineExecutionBackButton, &QPushButton::clicked,
             this, [this]() {
@@ -7165,7 +7173,7 @@ void MainWindow::updateRoadmapActionButtons()
 
 void MainWindow::onRoadmapAddRootStep()
 {
-    if (currentHobbyId == 0)
+    if (currentHobbyId > 0)
         return;
 
     bool ok = false;

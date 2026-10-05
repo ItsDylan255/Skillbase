@@ -70,55 +70,48 @@ bool HobbyRepository::rename(int hobbyId, const QString &newName)
     return true;
 }
 
+
 bool HobbyRepository::removeRecursive(int hobbyId)
 {
-    // Reihenfolge ist wichtig, weil Foreign Keys greifen können.
-    // Wir löschen zuerst die Kinder, dann die Eltern, dann das Hobby.
-    //
-    // Falls deine DB ON DELETE CASCADE nutzt, sind die Kinder-Löschungen
-    // eigentlich überflüssig — aber sicherheitshalber explizit.
+    // Reihenfolge ist wichtig, weil Foreign Keys greifen.
+    // Join-Tabellen (routine_steps) MÜSSEN vor ihren Elterntabellen
+    // (exercises, routines) gelöscht werden, sonst schlägt der
+    // Foreign-Key-Check fehl.
+
     QSqlQuery query;
 
     const QStringList statements = {
 
-    // Übungs-Logs (hängen an exercises)
+    // 1. Logs zuerst
     "DELETE FROM exercise_logs "
     "WHERE exercise_id IN "
     "(SELECT id FROM exercises WHERE hobby_id = :hobby_id)",
 
-        // Übungen
-        "DELETE FROM exercises WHERE hobby_id = :hobby_id",
-
-        // Routine-Logs (hängen an routines)
         "DELETE FROM routine_logs "
         "WHERE routine_id IN "
         "(SELECT id FROM routines WHERE hobby_id = :hobby_id)",
 
-        // Routine-Steps (hängen an routines)
+        // 2. Join-Tabelle VOR den Eltern
         "DELETE FROM routine_steps "
         "WHERE routine_id IN "
         "(SELECT id FROM routines WHERE hobby_id = :hobby_id)",
 
-        // Routinen
+        // 3. Eltern-Tabellen
         "DELETE FROM routines WHERE hobby_id = :hobby_id",
+        "DELETE FROM exercises WHERE hobby_id = :hobby_id",
 
-        // Roadmap-Steps
+        // 4. Unabhängige Tabellen
         "DELETE FROM roadmap_steps WHERE hobby_id = :hobby_id",
-
-        // Timeline-Phasen
         "DELETE FROM timeline_phases WHERE hobby_id = :hobby_id",
-
-        // Ziele
         "DELETE FROM goals WHERE hobby_id = :hobby_id",
-
-        // Notizen
         "DELETE FROM hobby_notes WHERE hobby_id = :hobby_id",
-
-        // Kategorien
         "DELETE FROM categories WHERE hobby_id = :hobby_id"
 };
 
 for (const QString &sql : statements) {
+
+    // Debug: zeigt den aktuellen Schritt in der Konsole.
+    qDebug() << "Hobby delete step:" << sql.left(60);
 
     query.prepare(sql);
     query.bindValue(":hobby_id", hobbyId);

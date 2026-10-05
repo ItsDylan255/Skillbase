@@ -274,6 +274,26 @@ bool Database::createTables()
         return false;
     }
 
+    // Roadmap-Steps: hierarchischer Baum pro Hobby.
+    // parent_id NULL bedeutet Root-Step (kein Parent).
+    if (!query.exec(
+            "CREATE TABLE IF NOT EXISTS roadmap_steps ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hobby_id INTEGER NOT NULL,"
+            "parent_id INTEGER,"
+            "name TEXT NOT NULL,"
+            "completed INTEGER NOT NULL DEFAULT 0,"
+            "sort_order INTEGER NOT NULL DEFAULT 0,"
+            "is_current INTEGER NOT NULL DEFAULT 0,"
+            "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE,"
+            "FOREIGN KEY (parent_id) REFERENCES roadmap_steps(id) ON DELETE CASCADE"
+            ")"
+            )) {
+        qDebug() << "Fehler beim Erstellen der roadmap_steps-Tabelle:"
+                 << query.lastError().text();
+        return false;
+    }
+
 
     return true;
 }

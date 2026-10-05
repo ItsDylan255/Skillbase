@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>icons/skillbase_black.svg</file>
+        <file>icons/skillbase_black.png</file>
         <file>icons/skillbase_white.svg</file>
         <file>icons/search.svg</file>
         <file>icons/star-filled.svg</file>
