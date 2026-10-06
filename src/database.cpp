@@ -64,6 +64,7 @@ bool Database::createTables()
             "unit TEXT,"
             "goal TEXT,"
             "archived INTEGER NOT NULL DEFAULT 0,"
+            "value_mode TEXT NOT NULL DEFAULT 'progress',"
             "FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE,"
             "FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL"
             ")"

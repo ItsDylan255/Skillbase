@@ -5,6 +5,33 @@
 #include <QSqlQuery>
 #include <QVariant>
 
+namespace {
+
+// Liest eine Übung aus dem aktuellen Query-Ergebnis.
+// Erwartet, dass alle Spalten (inkl. value_mode) selektiert wurden.
+Exercise exerciseFromQuery(const QSqlQuery &query)
+{
+    Exercise exercise;
+
+    exercise.id          = query.value("id").toInt();
+    exercise.hobbyId     = query.value("hobby_id").toInt();
+    exercise.name        = query.value("name").toString();
+    exercise.description = query.value("description").toString();
+    exercise.categoryId  = query.value("category_id").toInt();
+    exercise.startValue  = query.value("start_value").toDouble();
+    exercise.value       = query.value("value").toDouble();
+    exercise.unit        = query.value("unit").toString();
+    exercise.goal        = query.value("goal").toDouble();
+    exercise.archived    = query.value("archived").toInt() != 0;
+
+    exercise.valueMode =
+        valueModeFromString(query.value("value_mode").toString());
+
+    return exercise;
+}
+
+} // namespace
+
 bool ExerciseRepository::add(
     int hobbyId,
     const QString &name,
@@ -13,6 +40,7 @@ bool ExerciseRepository::add(
     double value,
     const QString &unit,
     const QString &goal,
+    ValueMode valueMode,
     int &id
     )
 {
@@ -20,9 +48,9 @@ bool ExerciseRepository::add(
 
     query.prepare(
         "INSERT INTO exercises "
-        "(hobby_id, name, description, category_id, start_value, value, unit, goal) "
+        "(hobby_id, name, description, category_id, start_value, value, unit, goal, value_mode) "
         "VALUES "
-        "(:hobby_id, :name, :description, :category_id, :start_value, :value, :unit, :goal)"
+        "(:hobby_id, :name, :description, :category_id, :start_value, :value, :unit, :goal, :mode)"
         );
 
     query.bindValue(":hobby_id", hobbyId);
@@ -36,7 +64,6 @@ bool ExerciseRepository::add(
         query.bindValue(":category_id", QVariant());
     }
 
-
     query.bindValue(":value", value);
 
     // Beim Erstellen ist der erste eingegebene Wert gleichzeitig
@@ -44,6 +71,7 @@ bool ExerciseRepository::add(
     query.bindValue(":start_value", value);
     query.bindValue(":unit", unit);
     query.bindValue(":goal", goal);
+    query.bindValue(":mode", valueModeToString(valueMode));
 
     if (!query.exec()) {
         qDebug() << "Fehler beim Speichern der Übung:"
@@ -66,7 +94,7 @@ QList<Exercise> ExerciseRepository::getForHobby(
 
     QString sql =
         "SELECT id, hobby_id, name, description, "
-        "category_id, start_value, value, unit, goal, archived "
+        "category_id, start_value, value, unit, goal, archived, value_mode "
         "FROM exercises "
         "WHERE hobby_id = :hobby_id";
 
@@ -84,20 +112,7 @@ QList<Exercise> ExerciseRepository::getForHobby(
     }
 
     while (query.next()) {
-        Exercise exercise;
-
-        exercise.id = query.value("id").toInt();
-        exercise.hobbyId = query.value("hobby_id").toInt();
-        exercise.name = query.value("name").toString();
-        exercise.description = query.value("description").toString();
-        exercise.categoryId = query.value("category_id").toInt();
-        exercise.startValue = query.value("start_value").toDouble();
-        exercise.value = query.value("value").toDouble();
-        exercise.unit = query.value("unit").toString();
-        exercise.goal = query.value("goal").toDouble();
-        exercise.archived = query.value("archived").toInt() != 0;
-
-        exercises.append(exercise);
+        exercises.append(exerciseFromQuery(query));
     }
 
     return exercises;
@@ -109,7 +124,7 @@ bool ExerciseRepository::getById(int exerciseId, Exercise &exercise)
 
     query.prepare(
         "SELECT id, hobby_id, name, description, "
-        "category_id, start_value, value, unit, goal, archived "
+        "category_id, start_value, value, unit, goal, archived, value_mode "
         "FROM exercises "
         "WHERE id = :id"
         );
@@ -126,17 +141,7 @@ bool ExerciseRepository::getById(int exerciseId, Exercise &exercise)
         return false;
     }
 
-    exercise.id = query.value("id").toInt();
-    exercise.hobbyId = query.value("hobby_id").toInt();
-    exercise.name = query.value("name").toString();
-    exercise.description = query.value("description").toString();
-    exercise.categoryId = query.value("category_id").toInt();
-    exercise.startValue = query.value("start_value").toDouble();
-    exercise.value = query.value("value").toDouble();
-    exercise.unit = query.value("unit").toString();
-    exercise.goal = query.value("goal").toDouble();
-    exercise.archived = query.value("archived").toInt() != 0;
-
+    exercise = exerciseFromQuery(query);
     return true;
 }
 
@@ -169,7 +174,8 @@ bool ExerciseRepository::update(
     int categoryId,
     double value,
     const QString &unit,
-    const QString &goal
+    const QString &goal,
+    ValueMode valueMode
     )
 {
     QSqlQuery query;
@@ -181,7 +187,8 @@ bool ExerciseRepository::update(
         "category_id = :category_id, "
         "value = :value, "
         "unit = :unit, "
-        "goal = :goal "
+        "goal = :goal, "
+        "value_mode = :mode "
         "WHERE id = :id"
         );
 
@@ -198,6 +205,7 @@ bool ExerciseRepository::update(
     query.bindValue(":value", value);
     query.bindValue(":unit", unit);
     query.bindValue(":goal", goal);
+    query.bindValue(":mode", valueModeToString(valueMode));
     query.bindValue(":id", exerciseId);
 
     if (!query.exec()) {
@@ -207,9 +215,8 @@ bool ExerciseRepository::update(
     }
 
     return true;
-
-
 }
+
 bool ExerciseRepository::remove(int exerciseId)
 {
     QSqlQuery query;

@@ -16,6 +16,7 @@ public:
         double value,
         const QString &unit,
         const QString &goal,
+        ValueMode valueMode,
         int &id
         );
 
@@ -23,6 +24,7 @@ public:
     static QList<Exercise> getForHobby(int hobbyId, bool includeArchived = false);
 
     static bool setArchived(int exerciseId, bool archived);
+
     static bool update(
         int exerciseId,
         const QString &name,
@@ -30,7 +32,8 @@ public:
         int categoryId,
         double value,
         const QString &unit,
-        const QString &goal
+        const QString &goal,
+        ValueMode valueMode
         );
 
     static bool updateStartValue(

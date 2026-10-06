@@ -149,6 +149,44 @@
              </property>
             </spacer>
            </item>
+           <item alignment="Qt::AlignmentFlag::AlignHCenter">
+            <widget class="LogoWidget" name="dashboardLogoWidget" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>280</width>
+               <height>218</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>280</width>
+               <height>218</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="dashboardWelcomeLogoSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>12</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item>
             <widget class="QLabel" name="dashboardWelcomeTitleLabel">
              <property name="text">
@@ -3891,6 +3929,12 @@ Sobald du ein Ziel als geschafft markierst, landet es hier im Archiv.</string>
    <class>RoadmapMiniTreeWidget</class>
    <extends>QWidget</extends>
    <header location="global">roadmapminitreewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LogoWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">logowidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

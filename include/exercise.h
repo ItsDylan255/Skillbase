@@ -2,7 +2,22 @@
 #define EXERCISE_H
 
 #include <QString>
+#include "valuemode.h"
 #include <algorithm>
+
+// Wie der Wert einer Übung interpretiert wird.
+//
+// Progress:   Der Wert verändert sich (Bankdrücken, Bestzeit).
+//             Fortschritt = (letzter Wert - Startwert) / (Ziel - Startwert)
+//
+// Cumulative: Der Wert sammelt sich an (Liegestütze, wiederholte Vokabeln).
+//             Fortschritt = Summe aller Werte / Ziel
+//
+// Time:       Lernzeit sammelt sich automatisch (Spanisch lernen).
+//             Fortschritt = Summe aller Session-Dauern / Ziel
+//
+// TimerOnly:  Nur Timer, kein Ziel (SSH lernen).
+//             Kein Fortschritt. Nur Verlauf und Statistik.
 
 struct Exercise
 {
@@ -16,12 +31,13 @@ struct Exercise
     QString unit;
     double goal = 0.0;
     bool archived = false;
-    // Berechnet den Fortschritt vom Startwert bis zum Zielwert.
-    // Der Wert wird für die Anzeige auf 0–100 % begrenzt.
+    ValueMode valueMode = ValueMode::Progress;
+
+    // Fortschritt für Progress-Übungen (letzter Wert vs. Startwert und Ziel).
+    // Für Cumulative/Time wird der Fortschritt außerhalb berechnet
+    // (aus der Summe aller Logs).
     double progressPercent() const
     {
-        // Ein Zielwert, der dem Startwert entspricht,
-        // kann keinen sinnvollen Fortschritt ergeben.
         if (goal == startValue)
             return 0.0;
 
@@ -30,10 +46,8 @@ struct Exercise
             (goal - startValue) *
             100.0;
 
-        // Der tatsächliche Wert darf über das Ziel hinausgehen.
-        // Für die Fortschrittsanzeige begrenzen wir ihn trotzdem auf 100 %.
         return std::clamp(progress, 0.0, 100.0);
     }
 };
 
-#endif
+#endif // EXERCISE_H

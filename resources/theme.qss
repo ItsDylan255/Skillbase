@@ -223,7 +223,8 @@ QLabel#hobbyGoalSectionLabel,
 QLabel#hobbyRoutinesSectionLabel,
 QLabel#hobbyNoteSectionLabel,
 QLabel#hobbyRoadmapSectionLabel,
-QLabel#hobbyStatsSectionLabel {
+QLabel#hobbyStatsSectionLabel,
+QLabel#valueTypeSectionLabel {
     font-size: 11px;
     font-weight: 600;
     color: #82828a;
@@ -1072,6 +1073,59 @@ QCheckBox::indicator:checked {
     border-color: #ff6f61;
 }
 
+/* ---------- Radio-Button ---------- */
+/* Vorher gab es keine QRadioButton-Regel: der Indikator wurde vom
+   Qt-Standardstil gezeichnet und der gewählte Punkt ging auf dem dunklen
+   Hintergrund unter. Optik analog zur Checkbox (16px, Accent bei
+   Hover/Ausgewählt), nur rund. */
+QRadioButton {
+    color: #eaeaec;
+    spacing: 8px;
+    background: transparent;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #333338;
+    border-radius: 8px;
+    background-color: #19191c;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #ff6f61;
+}
+
+/* Ausgewählt: Accent-Rand + Accent-Punkt. QSS kann keinen Innenkreis
+   zeichnen, deshalb ein Radial-Verlauf mit harten Stops (kein sichtbarer
+   Verlauf, nur Punkt + Hintergrund). */
+QRadioButton::indicator:checked {
+    border-color: #ff6f61;
+    background-color: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 #ff6f61, stop:0.45 #ff6f61, stop:0.5 #19191c, stop:1 #19191c);
+}
+
+QRadioButton::indicator:disabled {
+    border-color: #29292d;
+    background-color: #17171a;
+}
+
+QRadioButton::indicator:checked:disabled {
+    border-color: #29292d;
+    background-color: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 #55555a, stop:0.45 #55555a, stop:0.5 #17171a, stop:1 #17171a);
+}
+
+/* Hinweistexte unter den Wert-Typ-Optionen (ExerciseDialog). Der Einzug
+   (24px = Indikator 16px + spacing 8px) sitzt als "indent" in der .ui. */
+QLabel#valueModeProgressHint,
+QLabel#valueModeCumulativeHint,
+QLabel#valueModeTimeHint,
+QLabel#valueModeTimerOnlyHint {
+    font-size: 12px;
+    color: #82828a;
+}
+
 
 QListWidget#hobbyList::item {
     background: transparent;
@@ -1916,4 +1970,35 @@ QProgressBar#hobbyPhaseProgressBar {
 QProgressBar#hobbyPhaseProgressBar::chunk {
     background-color: #ff6f61;
     border-radius: 4px;
+}
+/* Übungs-Detailansicht: Karten werden gedämpft, wenn die Übung
+   den Wert-Typ "Nur Timer" hat. Wir nutzen eine dynamische Property
+   "muted" statt disable, weil disable die Kinder mitnimmt. */
+QGroupBox[detailMuted="true"] {
+    background-color: #141416;
+    border-color: #212124;
+}
+
+QGroupBox[detailMuted="true"]::title,
+QGroupBox[detailMuted="true"] QLabel {
+    color: #55555a;
+}
+
+QGroupBox[detailMuted="true"] QProgressBar {
+    background-color: #19191c;
+    border-color: #212124;
+}
+
+QGroupBox[detailMuted="true"] QProgressBar::chunk {
+    background-color: #3a3a3e;
+}
+
+QGroupBox[detailMuted="true"] QPushButton {
+    color: #55555a;
+    border-color: #212124;
+    background-color: #17171a;
+}
+QPushButton#exerciseDetailEditStartValueButton:disabled {
+    color: #55555a;
+    text-decoration: none;
 }

@@ -10,6 +10,7 @@
 #include <QSoundEffect>
 #include <QString>
 
+#include "exercise.h"
 
 // Vorwärtsdeklarationen: Dieser Header verwendet Qt-Widgets und Modelltypen
 // nur per Zeiger oder Referenz. Die vollständigen Header werden erst in
@@ -70,6 +71,11 @@ private:
     void onAddHobby();
     // Übungen: Wechsel zwischen Kartenübersicht und Detail-/
     // Fortschrittsansicht innerhalb derselben Seite (kein neues Fenster).
+    // Übergang vom Willkommens-Screen zum ersten Hobby.
+    // Blendet den Startscreen aus, wechselt dann auf die Hobby-
+    // Ansicht und blendet sie ein. Bei "Animationen reduzieren"
+    // passiert der Wechsel sofort.
+    void animateToHobby(int hobbyId);
     void showExerciseOverview();
     void showExerciseDetail(int exerciseId);
     void loadExerciseDetail(int exerciseId);
@@ -238,6 +244,7 @@ private:
         double currentValue = 0.0;
         double goal = 0.0;
         int durationSeconds = 0;
+        ValueMode valueMode = ValueMode::Progress;
 
         // Millisekunden, damit der Fortschrittsbalken flüssig läuft.
         int remainingMs = 0;
@@ -276,6 +283,7 @@ private:
         QString unit;
         double currentValue = 0.0;
         double goal = 0.0;
+        ValueMode valueMode = ValueMode::Progress;
 
         // Der vom Nutzer eingegebene neue Wert.
         QString enteredText;

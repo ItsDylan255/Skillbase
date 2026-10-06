@@ -14,6 +14,7 @@
 #include "goalrepository.h"
 #include "hobbynoterepository.h"
 #include "hobbyrepository.h"
+#include "logowidget.h"
 #include "roadmapminitreewidget.h"
 #include "roadmaprepository.h"
 #include "roadmaptreedelegate.h"
@@ -24,7 +25,10 @@
 #include "timelinebarwidget.h"
 #include "timelinephasedialog.h"
 #include "timelinephaserepository.h"
+#include "welcomeintro.h"
+#include "valuemode.h"
 
+#include <QStyle>
 #include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
@@ -72,6 +76,7 @@
 #include <QTreeWidgetItem>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <QRadioButton>
 
 #include <algorithm>
 #include <cmath>
@@ -457,6 +462,91 @@ QString formatValueWithUnit(double value, const QString &unit)
     return text;
 }
 
+// Steuert die Sichtbarkeit der Wert-Felder im ExerciseDialog
+// abhängig vom gewählten Wert-Typ.
+//
+// Progress:    Wert, Einheit, Ziel sichtbar
+// Cumulative:  Wert, Einheit, Ziel sichtbar
+// Time:        Einheit, Ziel sichtbar (Wert ausgeblendet)
+// TimerOnly:   nichts von den dreien sichtbar
+void applyValueModeVisibility(Ui::ExerciseDialog *dialogUi, ValueMode mode)
+{
+    const bool showValue =
+        (mode == ValueMode::Progress || mode == ValueMode::Cumulative);
+
+    const bool showUnitAndGoal =
+        (mode != ValueMode::TimerOnly);
+
+    dialogUi->valueLabel->setVisible(showValue);
+    dialogUi->valueLineEdit->setVisible(showValue);
+
+    dialogUi->unitLabel->setVisible(showUnitAndGoal);
+    dialogUi->unitLineEdit->setVisible(showUnitAndGoal);
+
+    dialogUi->goalLabel->setVisible(showUnitAndGoal);
+    dialogUi->goalLineEdit->setVisible(showUnitAndGoal);
+}
+
+// Liest den aktuell gewählten Wert-Typ aus den Radio-Buttons.
+ValueMode currentValueMode(Ui::ExerciseDialog *dialogUi)
+{
+    if (dialogUi->valueModeCumulativeButton->isChecked())
+        return ValueMode::Cumulative;
+
+    if (dialogUi->valueModeTimeButton->isChecked())
+        return ValueMode::Time;
+
+    if (dialogUi->valueModeTimerOnlyButton->isChecked())
+        return ValueMode::TimerOnly;
+
+    return ValueMode::Progress;
+}
+
+// Setzt die Radio-Buttons auf den übergebenen Wert-Typ.
+void setValueMode(Ui::ExerciseDialog *dialogUi, ValueMode mode)
+{
+    switch (mode) {
+    case ValueMode::Progress:
+        dialogUi->valueModeProgressButton->setChecked(true);
+        break;
+    case ValueMode::Cumulative:
+        dialogUi->valueModeCumulativeButton->setChecked(true);
+        break;
+    case ValueMode::Time:
+        dialogUi->valueModeTimeButton->setChecked(true);
+        break;
+    case ValueMode::TimerOnly:
+        dialogUi->valueModeTimerOnlyButton->setChecked(true);
+        break;
+    }
+}
+
+// Verbindet die Radio-Buttons mit der Sichtbarkeits-Logik. Einmal pro
+// Dialog aufrufen; die Verbindung gilt dann für alle vier Buttons.
+void connectValueModeRadioButtons(Ui::ExerciseDialog *dialogUi)
+{
+    auto updateVisibility = [dialogUi]() {
+        applyValueModeVisibility(dialogUi, currentValueMode(dialogUi));
+    };
+
+    QObject::connect(dialogUi->valueModeProgressButton,
+                     &QRadioButton::toggled,
+                     dialogUi->valueModeProgressButton,
+                     updateVisibility);
+    QObject::connect(dialogUi->valueModeCumulativeButton,
+                     &QRadioButton::toggled,
+                     dialogUi->valueModeCumulativeButton,
+                     updateVisibility);
+    QObject::connect(dialogUi->valueModeTimeButton,
+                     &QRadioButton::toggled,
+                     dialogUi->valueModeTimeButton,
+                     updateVisibility);
+    QObject::connect(dialogUi->valueModeTimerOnlyButton,
+                     &QRadioButton::toggled,
+                     dialogUi->valueModeTimerOnlyButton,
+                     updateVisibility);
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -464,6 +554,19 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // BEGIN WelcomeIntro
+    // Willkommens-Screen: Logo und Texte blenden beim ersten Anzeigen
+    // gestaffelt ein (einmal pro App-Start). Klick oder Taste überspringt
+    // die Animation, bei "Animationen reduzieren" passiert nichts.
+    new WelcomeIntro(
+        ui->dashboardPage,
+        ui->dashboardLogoWidget,
+        { ui->dashboardWelcomeTitleLabel,
+          ui->dashboardWelcomeSubtitleLabel,
+          ui->dashboardWelcomeAddHobbyButton }
+        );
+    // END WelcomeIntro
 
     // ── Übungsname in der Ausführung klickbar machen ─────────────────────
     //
@@ -1526,6 +1629,12 @@ MainWindow::MainWindow(QWidget *parent)
                     dialogUi.categoryComboBox->setCurrentIndex(createIndex);
                 });
 
+        // Wert-Typ: Default ist Progress; Verbindungen für die
+        // Live-Sichtbarkeit der Felder herstellen.
+        setValueMode(&dialogUi, ValueMode::Progress);
+        connectValueModeRadioButtons(&dialogUi);
+        applyValueModeVisibility(&dialogUi, ValueMode::Progress);
+
         if (dialog.exec() != QDialog::Accepted)
             return;
 
@@ -1543,16 +1652,33 @@ MainWindow::MainWindow(QWidget *parent)
             return;
         }
 
+        const ValueMode valueMode = currentValueMode(&dialogUi);
+
         QString description = dialogUi.descriptionLineEdit->text().trimmed();
         int     categoryId  = dialogUi.categoryComboBox->currentData().toInt();
-        QString unit        = dialogUi.unitLineEdit->text().trimmed();
-        double  value       = dialogUi.valueLineEdit->text().replace(',', '.').toDouble();
-        QString goal        = dialogUi.goalLineEdit->text().trimmed();
+
+        // Bei "Nur Timer" und "Lernzeit automatisch" werden Wert, Einheit
+        // und Ziel nicht gebraucht. Wir setzen sie auf leer/0.
+        QString unit;
+        double  value = 0.0;
+        QString goal;
+
+        if (valueMode != ValueMode::TimerOnly) {
+            unit = dialogUi.unitLineEdit->text().trimmed();
+            goal = dialogUi.goalLineEdit->text().trimmed();
+        }
+
+        if (valueMode == ValueMode::Progress ||
+            valueMode == ValueMode::Cumulative) {
+            value = dialogUi.valueLineEdit->text().replace(',', '.').toDouble();
+        }
 
         int exerciseId;
         if (ExerciseRepository::add(
                 currentHobbyId, name, description,
-                categoryId, value, unit, goal, exerciseId)) {
+                categoryId, value, unit, goal,
+                valueMode,
+                exerciseId)) {
             loadExerciseCards();
         } else {
             qDebug() << "Übung konnte nicht gespeichert werden.";
@@ -2418,6 +2544,11 @@ void MainWindow::loadExerciseCards()
     // Alle bisherigen Cards entfernen
     CardUi::clearLayout(ui->exerciseCardsLayout);
 
+    // Drei feste Spalten, damit jede Karte genau 1/3 der Breite
+    // einnimmt — auch bei nur 1-2 Karten pro Zeile.
+    for (int c = 0; c < 3; ++c)
+        ui->exerciseCardsLayout->setColumnStretch(c, 1);
+
     if (currentHobbyId == 0)
         return;
 
@@ -2496,6 +2627,8 @@ void MainWindow::loadExerciseCards()
         cardLayout->addWidget(nameLabel);
 
         // ── Letzten Log laden ───────────────────────────────────────────────
+        // Wird unten bei "Letzte Ausführung" gebraucht — unabhängig
+        // vom Wert-Typ.
         ExerciseLog latestLog;
 
         const bool hasLatestLog =
@@ -2504,61 +2637,109 @@ void MainWindow::loadExerciseCards()
                 latestLog
                 );
 
-        // ── Wert ────────────────────────────────────────────────────────────
-        // Der angezeigte Wert entspricht immer dem zuletzt gespeicherten Wert.
-        // Wenn noch keine Ausführung existiert, wird der aktuelle Übungswert verwendet.
-        QString wertText;
+        // ── Je nach Wert-Typ anders darstellen ─────────────────────────────
+        //
+        // Progress und Cumulative: letzter Log (Wert) und Ziel.
+        // Time: Summe aller Session-Dauern (in Stunden, wenn > 60 min).
+        // TimerOnly: nur "Nur Timer" — keine Zahlen.
 
-        if (hasLatestLog) {
+        if (exercise.valueMode == ValueMode::TimerOnly) {
 
-            wertText =
-                QString("%1%2")
-                    .arg(latestLog.value, 0, 'g', 15)
-                    .arg(
-                        latestLog.unit.isEmpty()
-                            ? ""
-                            : " " + latestLog.unit
-                        );
+            cardLayout->addLayout(
+                CardUi::makeMetaRow(
+                    card,
+                    QStringLiteral("Messung"),
+                    QStringLiteral("Nur Timer")
+                    )
+                );
 
-        } else if (exercise.value > 0) {
+        } else if (exercise.valueMode == ValueMode::Time) {
 
-            wertText =
-                QString("%1%2")
-                    .arg(exercise.value, 0, 'g', 15)
-                    .arg(
-                        exercise.unit.isEmpty()
-                            ? ""
-                            : " " + exercise.unit
-                        );
+            // Gesamtzeit aus allen Logs summieren.
+            const QList<ExerciseLog> allLogs =
+                ExerciseLogRepository::getForExercise(exercise.id);
+
+            int totalSeconds = 0;
+            for (const ExerciseLog &log : allLogs)
+                totalSeconds += log.durationSeconds;
+
+            QString totalText;
+            if (totalSeconds >= 3600) {
+                const double hours = totalSeconds / 3600.0;
+                totalText = QString("%1 h").arg(hours, 0, 'f', 1);
+            } else {
+                totalText = QString("%1 min").arg(totalSeconds / 60);
+            }
+
+            cardLayout->addLayout(
+                CardUi::makeMetaRow(card, QStringLiteral("Gesamtzeit"), totalText)
+                );
+
+            const QString goalText =
+                exercise.goal != 0.0
+                    ? QString::number(exercise.goal, 'g', 15)
+                      + (exercise.unit.isEmpty() ? QString() : " " + exercise.unit)
+                    : QStringLiteral("–");
+
+            cardLayout->addLayout(
+                CardUi::makeMetaRow(card, QStringLiteral("Ziel"), goalText)
+                );
 
         } else {
 
-            wertText = "–";
+            // Progress und Cumulative: wie bisher.
+            QString wertText;
+
+            if (hasLatestLog) {
+
+                wertText =
+                    QString("%1%2")
+                        .arg(latestLog.value, 0, 'g', 15)
+                        .arg(
+                            latestLog.unit.isEmpty()
+                                ? ""
+                                : " " + latestLog.unit
+                            );
+
+            } else if (exercise.value > 0) {
+
+                wertText =
+                    QString("%1%2")
+                        .arg(exercise.value, 0, 'g', 15)
+                        .arg(
+                            exercise.unit.isEmpty()
+                                ? ""
+                                : " " + exercise.unit
+                            );
+
+            } else {
+
+                wertText = "–";
+            }
+
+            cardLayout->addLayout(
+                CardUi::makeMetaRow(card, QStringLiteral("Wert"), wertText)
+                );
+
+            QString goalText;
+
+            if (exercise.goal != 0.0) {
+
+                goalText =
+                    QString::number(exercise.goal, 'g', 15);
+
+                if (!exercise.unit.isEmpty())
+                    goalText += " " + exercise.unit;
+
+            } else {
+
+                goalText = "–";
+            }
+
+            cardLayout->addLayout(
+                CardUi::makeMetaRow(card, QStringLiteral("Ziel"), goalText)
+                );
         }
-
-        cardLayout->addLayout(
-            CardUi::makeMetaRow(card, QStringLiteral("Wert"), wertText)
-            );
-
-        // ── Ziel ────────────────────────────────────────────────────────────
-        QString goalText;
-
-        if (exercise.goal != 0.0) {
-
-            goalText =
-                QString::number(exercise.goal, 'g', 15);
-
-            if (!exercise.unit.isEmpty())
-                goalText += " " + exercise.unit;
-
-        } else {
-
-            goalText = "–";
-        }
-
-        cardLayout->addLayout(
-            CardUi::makeMetaRow(card, QStringLiteral("Ziel"), goalText)
-            );
 
         // ── Letzte Ausführung ───────────────────────────────────────────────
         // ── Kategorie-Tag ───────────────────────────────────────────────────
@@ -2764,6 +2945,12 @@ void MainWindow::editExercise(int exerciseId)
     dialogUi.setupUi(&dialog);
     dialog.setWindowTitle("Übung bearbeiten");
 
+    // Wert-Typ aus der Übung setzen und die Sichtbarkeit der Felder
+    // entsprechend anpassen. Live-Update bei Wechsel.
+    setValueMode(&dialogUi, exercise.valueMode);
+    connectValueModeRadioButtons(&dialogUi);
+    applyValueModeVisibility(&dialogUi, exercise.valueMode);
+
     // Buttons auf Deutsch (Qt zeigt sonst "Save" / "Cancel").
     if (auto *saveButton =
         dialogUi.buttonBox->button(QDialogButtonBox::Save)) {
@@ -2952,16 +3139,23 @@ void MainWindow::editExercise(int exerciseId)
     int categoryId =
         dialogUi.categoryComboBox->currentData().toInt();
 
-    double value =
-        dialogUi.valueLineEdit->text()
-            .replace(',', '.')
-            .toDouble();
+    const ValueMode valueMode = currentValueMode(&dialogUi);
 
-    QString unit =
-        dialogUi.unitLineEdit->text().trimmed();
+    // Bei "Nur Timer" und "Lernzeit automatisch" gibt es keinen Wert
+    // und keine Einheit — wir speichern neutrale Werte.
+    QString unit;
+    double  value = 0.0;
+    QString goal;
 
-    QString goal =
-        dialogUi.goalLineEdit->text().trimmed();
+    if (valueMode != ValueMode::TimerOnly) {
+        unit = dialogUi.unitLineEdit->text().trimmed();
+        goal = dialogUi.goalLineEdit->text().trimmed();
+    }
+
+    if (valueMode == ValueMode::Progress ||
+        valueMode == ValueMode::Cumulative) {
+        value = dialogUi.valueLineEdit->text().replace(',', '.').toDouble();
+    }
 
     if (ExerciseRepository::update(
             exerciseId,
@@ -2970,7 +3164,8 @@ void MainWindow::editExercise(int exerciseId)
             categoryId,
             value,
             unit,
-            goal)) {
+            goal,
+            valueMode)) {
 
         loadExerciseCards();
         // Verlauf aktualisieren, damit auch alte Logs den neuen Übungsnamen anzeigen.
@@ -3015,8 +3210,6 @@ void MainWindow::loadExerciseDetail(int exerciseId)
     Exercise exercise;
 
     if (!ExerciseRepository::getById(exerciseId, exercise)) {
-        // Die Übung existiert nicht mehr (z. B. gerade gelöscht) -
-        // zurück zur normalen Übersicht.
         showExerciseOverview();
         loadExerciseCards();
         loadRoutineCards();
@@ -3048,10 +3241,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
     ui->exerciseDetailCategoryTagLabel->setText(categoryName);
     ui->exerciseDetailCategoryTagLabel->setVisible(!categoryName.isEmpty());
 
-    // ── Werte laden ──────────────────────────────────────────────────────
-    //
-    // Alle Ausführungen dieser Übung, zeitlich aufsteigend sortiert -
-    // sowohl für die Statistik als auch für das Entwicklungsdiagramm.
+    // ── Logs laden ───────────────────────────────────────────────────────
     QList<ExerciseLog> logs =
         ExerciseLogRepository::getForExercise(exerciseId);
 
@@ -3065,11 +3255,38 @@ void MainWindow::loadExerciseDetail(int exerciseId)
 
     const bool hasLogs = !logs.isEmpty();
 
-    // Der aktuelle Wert entspricht - wie auch auf der Übungskarte - dem
-    // zuletzt geloggten Wert, oder dem ursprünglichen Übungswert, solange
-    // noch keine Ausführung existiert.
-    const double currentValue =
-        hasLogs ? logs.last().value : exercise.value;
+    // ── Ausgrauen bei TimerOnly ──────────────────────────────────────────
+    //
+    // Bei "Nur Timer" gibt es keinen Fortschritt und keine Entwicklung.
+    // Wir dämpfen die betroffenen Karten, anstatt sie zu entfernen,
+    // damit der Nutzer die Struktur weiterhin sieht.
+    const bool isTimerOnly = (exercise.valueMode == ValueMode::TimerOnly);
+
+    ui->exerciseDetailProgressCard->setProperty("detailMuted", isTimerOnly);
+    ui->exerciseDetailDevelopmentCard->setProperty("detailMuted", isTimerOnly);
+
+    // Property-Änderung neu auswerten lassen, damit QSS greift.
+    ui->exerciseDetailProgressCard->style()->unpolish(ui->exerciseDetailProgressCard);
+    ui->exerciseDetailProgressCard->style()->polish(ui->exerciseDetailProgressCard);
+    ui->exerciseDetailDevelopmentCard->style()->unpolish(ui->exerciseDetailDevelopmentCard);
+    ui->exerciseDetailDevelopmentCard->style()->polish(ui->exerciseDetailDevelopmentCard);
+
+    // Startwert-Bearbeiten bei TimerOnly deaktivieren.
+    ui->exerciseDetailStartValueLabel->setCursor(
+        isTimerOnly ? Qt::ArrowCursor : Qt::PointingHandCursor
+        );
+    ui->exerciseDetailStartValueLabel->setEnabled(!isTimerOnly);
+
+    // ── Fortschrittskarte: Werte ─────────────────────────────────────────
+    //
+    // Je nach Wert-Typ zeigen wir unterschiedliche Werte:
+    //
+    // Progress:   Startwert (aus Übung) / aktueller Wert (letzter Log) / Ziel
+    // Cumulative: "–" für Startwert / Summe aller Werte / Ziel
+    // Time:       "–" für Startwert / Summe aller Session-Dauern (in Sekunden) / Ziel
+    // TimerOnly:  alles "–"
+    //
+    // Formatiert wird per formatValue() mit der Übungseinheit.
 
     auto formatValue = [&](double value) {
 
@@ -3081,34 +3298,91 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         return text;
     };
 
-    ui->exerciseDetailStartValueLabel->setText(
-        formatValue(exercise.startValue)
-        );
+    // Standardwerte (werden weiter unten überschrieben).
+    QString startValueText = formatValue(exercise.startValue);
+    QString currentValueText;
+    QString goalValueText;
 
-    ui->exerciseDetailCurrentValueLabel->setText(
-        formatValue(currentValue)
-        );
-
-    ui->exerciseDetailGoalValueLabel->setText(
-        formatValue(exercise.goal)
-        );
-
-    // ── Fortschrittsbalken ───────────────────────────────────────────────
-    //
-    // Fortschritt zwischen Startwert und Ziel, auf Basis des aktuellen
-    // Werts. Ein Zielwert, der dem Startwert entspricht, ergibt keinen
-    // sinnvollen Fortschritt.
     double percent = 0.0;
 
-    if (exercise.goal != exercise.startValue) {
+    if (isTimerOnly) {
 
-        percent =
-            (currentValue - exercise.startValue) /
-            (exercise.goal - exercise.startValue) *
-            100.0;
+        // Keine Messwerte.
+        startValueText   = "–";
+        currentValueText = "–";
+        goalValueText    = "–";
 
-        percent = std::clamp(percent, 0.0, 100.0);
+    } else if (exercise.valueMode == ValueMode::Time) {
+
+        // Summe aller Session-Dauern in Sekunden.
+        int totalSeconds = 0;
+        for (const ExerciseLog &log : logs)
+            totalSeconds += log.durationSeconds;
+
+        // Für die Anzeige in derselben Einheit wie das Ziel rechnen wir
+        // die Sekunden in die Einheit der Übung um. Üblich ist "h" oder "min".
+        double totalInUnit = 0.0;
+
+        if (exercise.unit.compare("h", Qt::CaseInsensitive) == 0) {
+            totalInUnit = totalSeconds / 3600.0;
+        } else if (exercise.unit.compare("min", Qt::CaseInsensitive) == 0) {
+            totalInUnit = totalSeconds / 60.0;
+        } else if (exercise.unit.compare("s", Qt::CaseInsensitive) == 0) {
+            totalInUnit = totalSeconds;
+        } else {
+            // Fallback: Minuten, wenn die Einheit unbekannt ist.
+            totalInUnit = totalSeconds / 60.0;
+        }
+
+        startValueText   = "–";
+        currentValueText = formatValue(totalInUnit);
+        goalValueText    = formatValue(exercise.goal);
+
+        if (exercise.goal != 0.0) {
+            percent = (totalInUnit / exercise.goal) * 100.0;
+            percent = std::clamp(percent, 0.0, 100.0);
+        }
+
+    } else if (exercise.valueMode == ValueMode::Cumulative) {
+
+        // Summe aller geloggten Werte.
+        double sum = 0.0;
+        for (const ExerciseLog &log : logs)
+            sum += log.value;
+
+        startValueText   = "–";
+        currentValueText = formatValue(sum);
+        goalValueText    = formatValue(exercise.goal);
+
+        if (exercise.goal != 0.0) {
+            percent = (sum / exercise.goal) * 100.0;
+            percent = std::clamp(percent, 0.0, 100.0);
+        }
+
+    } else {
+
+        // Progress (Standard): letzter Wert vs. Startwert und Ziel.
+        const double currentValue =
+            hasLogs ? logs.last().value : exercise.value;
+
+        startValueText   = formatValue(exercise.startValue);
+        currentValueText = formatValue(currentValue);
+        goalValueText    = formatValue(exercise.goal);
+
+        if (exercise.goal != exercise.startValue) {
+
+            percent =
+                (currentValue - exercise.startValue) /
+                (exercise.goal - exercise.startValue) *
+                100.0;
+
+            percent = std::clamp(percent, 0.0, 100.0);
+        }
     }
+
+    ui->exerciseDetailStartValueLabel->setText(startValueText);
+    ui->exerciseDetailCurrentValueLabel->setText(currentValueText);
+    ui->exerciseDetailGoalValueLabel->setText(goalValueText);
 
     ui->exerciseDetailProgressBar->setValue(
         static_cast<int>(std::round(percent))
@@ -3119,23 +3393,12 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         );
 
     // ── Statistik ────────────────────────────────────────────────────────
-    //
-    // Reihenfolge in der Karte:
-    //   1. Gesamtzeit
-    //   2. Ø Übungszeit
-    //   3. Erste Ausführung
-    //   4. Letzte Ausführung
-    //   5. Ausführungen
-    //   6. Beste Leistung
-    //   7. Ø Leistung
-    //   8. Fortschritt seit Start
 
-    // ── Gesamtzeit ───────────────────────────────────────────────────────
     int totalDurationSeconds = 0;
-
     for (const ExerciseLog &log : logs)
         totalDurationSeconds += log.durationSeconds;
 
+    // Gesamtzeit.
     if (totalDurationSeconds > 0) {
 
         const double totalHours = totalDurationSeconds / 3600.0;
@@ -3149,7 +3412,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         ui->exerciseDetailTotalTimeLabel->setText("–");
     }
 
-    // ── Ø Übungszeit ─────────────────────────────────────────────────────
+    // Ø Übungszeit.
     if (hasLogs && totalDurationSeconds > 0) {
 
         const double avgSeconds =
@@ -3166,7 +3429,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         ui->exerciseDetailAvgDurationLabel->setText("–");
     }
 
-    // ── Erste Ausführung ─────────────────────────────────────────────────
+    // Erste Ausführung.
     if (hasLogs) {
 
         const QDateTime firstPerformedAt =
@@ -3184,7 +3447,7 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         ui->exerciseDetailFirstPerformedLabel->setText("–");
     }
 
-    // ── Letzte Ausführung ────────────────────────────────────────────────
+    // Letzte Ausführung.
     if (hasLogs) {
 
         const QDateTime lastPerformedAt =
@@ -3213,24 +3476,26 @@ void MainWindow::loadExerciseDetail(int exerciseId)
         ui->exerciseDetailLastPerformedLabel->setText("–");
     }
 
-    // ── Ausführungen ─────────────────────────────────────────────────────
+    // Ausführungen.
     ui->exerciseDetailExecutionCountLabel->setText(
         QString::number(logs.size())
         );
 
     // ── Beste Leistung ───────────────────────────────────────────────────
-    if (hasLogs) {
+    //
+    // Bei Time und TimerOnly ergibt "beste Leistung" keinen Sinn.
+    if (hasLogs &&
+        exercise.valueMode != ValueMode::Time &&
+        exercise.valueMode != ValueMode::TimerOnly) {
 
         double bestValue = logs.first().value;
 
         for (const ExerciseLog &log : logs) {
-
             if (log.value > bestValue)
                 bestValue = log.value;
         }
 
-        QString bestText =
-            QString::number(bestValue, 'g', 15);
+        QString bestText = QString::number(bestValue, 'g', 15);
 
         if (!exercise.unit.isEmpty())
             bestText += " " + exercise.unit;
@@ -3243,7 +3508,9 @@ void MainWindow::loadExerciseDetail(int exerciseId)
     }
 
     // ── Ø Leistung ───────────────────────────────────────────────────────
-    if (hasLogs) {
+    if (hasLogs &&
+        exercise.valueMode != ValueMode::Time &&
+        exercise.valueMode != ValueMode::TimerOnly) {
 
         double sum = 0.0;
 
@@ -3252,8 +3519,6 @@ void MainWindow::loadExerciseDetail(int exerciseId)
 
         const double avg = sum / logs.size();
 
-        // Ein Nachkommastelle, wenn der Wert nicht ganzzahlig ist.
-        // Sonst ohne Nachkommastelle.
         QString avgText =
             (qFuzzyCompare(avg, qRound(avg)))
                 ? QString::number(qRound(avg))
@@ -3271,12 +3536,27 @@ void MainWindow::loadExerciseDetail(int exerciseId)
 
     // ── Fortschritt seit Start ───────────────────────────────────────────
     //
-    // Absolute Veränderung vom Startwert zum aktuellen Wert.
-    // Mit Vorzeichen (+/-), damit die Richtung erkennbar ist.
-    if (hasLogs) {
+    // Sinnvoll nur bei Progress und Cumulative.
+    if (hasLogs &&
+        exercise.valueMode != ValueMode::Time &&
+        exercise.valueMode != ValueMode::TimerOnly) {
 
-        const double diff =
-            currentValue - exercise.startValue;
+        const double currentValue =
+            (exercise.valueMode == ValueMode::Progress)
+                ? logs.last().value
+                : 0.0;   // wird bei Cumulative unten neu berechnet
+
+        double diff = 0.0;
+
+        if (exercise.valueMode == ValueMode::Progress) {
+            diff = currentValue - exercise.startValue;
+        } else {
+            // Cumulative: Summe minus Startwert.
+            double sum = 0.0;
+            for (const ExerciseLog &log : logs)
+                sum += log.value;
+            diff = sum - exercise.startValue;
+        }
 
         QString diffText = QString::number(diff, 'g', 15);
 
@@ -3293,16 +3573,24 @@ void MainWindow::loadExerciseDetail(int exerciseId)
 
         ui->exerciseDetailProgressSinceStartLabel->setText("–");
     }
-    // ── Entwicklungsdiagramm ─────────────────────────────────────────────
-    if (auto *chart =
-        qobject_cast<ExerciseProgressChartWidget *>(
-            ui->exerciseProgressChartWidget)) {
 
-        chart->setLogs(
-            logs,
-            exercise.startValue,
-            exercise.goal
-            );
+    // ── Entwicklungsdiagramm ─────────────────────────────────────────────
+    //
+    // Bei TimerOnly ausblenden. Bei den anderen Typen zeigen.
+    ui->exerciseProgressChartWidget->setVisible(!isTimerOnly);
+
+    if (!isTimerOnly) {
+
+        if (auto *chart =
+            qobject_cast<ExerciseProgressChartWidget *>(
+                ui->exerciseProgressChartWidget)) {
+
+            chart->setLogs(
+                logs,
+                exercise.startValue,
+                exercise.goal
+                );
+        }
     }
 }
 
@@ -3510,9 +3798,16 @@ void MainWindow::loadHistory()
         }
 
         // ── Texte vorbereiten ───────────────────────────────────────────────
+        //
+        // Bei Time und TimerOnly gibt es keinen sinnvollen "Wert" —
+        // die gelaufene Zeit IST der Wert. Wir zeigen dort nur die Dauer.
+        const bool showValue =
+            (exercise.valueMode == ValueMode::Progress ||
+             exercise.valueMode == ValueMode::Cumulative);
+
         QString valueText = "–";
 
-        if (log.value != 0.0) {
+        if (showValue && log.value != 0.0) {
 
             valueText =
                 QString("%1%2")
@@ -3523,7 +3818,6 @@ void MainWindow::loadHistory()
                             : " " + log.unit
                         );
         }
-
         // Nur ganze Minuten, Sekunden werden bewusst nicht angezeigt.
         QString durationText = "–";
 
@@ -3578,18 +3872,20 @@ void MainWindow::loadHistory()
 
         cardLayout->addLayout(topRow);
 
-        // Wert
-        auto *valueRow = new QHBoxLayout();
+        // Wert — nur bei Progress und Cumulative anzeigen.
+        if (showValue) {
 
-        auto *valueHeader = new QLabel("Wert", card);
-        valueHeader->setProperty("role", "muted");
+            auto *valueRow = new QHBoxLayout();
 
-        valueRow->addWidget(valueHeader);
-        valueRow->addStretch();
-        valueRow->addWidget(new QLabel(valueText, card));
+            auto *valueHeader = new QLabel("Wert", card);
+            valueHeader->setProperty("role", "muted");
 
-        cardLayout->addLayout(valueRow);
+            valueRow->addWidget(valueHeader);
+            valueRow->addStretch();
+            valueRow->addWidget(new QLabel(valueText, card));
 
+            cardLayout->addLayout(valueRow);
+        }
         // Dauer
         auto *durationRow = new QHBoxLayout();
 
@@ -3691,8 +3987,12 @@ void MainWindow::loadGoalCards()
     CardUi::clearLayout(ui->goalOpenCardsLayout);
     CardUi::clearLayout(ui->goalDoneCardsLayout);
 
-    ui->goalOpenCardsLayout->setRowStretch(0, 0);
-    ui->goalDoneCardsLayout->setRowStretch(0, 0);
+    // Drei feste Spalten, damit jede Karte genau 1/3 der Breite
+    // einnimmt — auch bei nur 1-2 Karten pro Zeile.
+    for (int c = 0; c < 3; ++c) {
+        ui->goalOpenCardsLayout->setColumnStretch(c, 1);
+        ui->goalDoneCardsLayout->setColumnStretch(c, 1);
+    }
 
     if (currentHobbyId == 0) {
 
@@ -4395,12 +4695,19 @@ void MainWindow::openGoalDialog(int goalId)
 }
 
 void MainWindow::loadRoutineCards()
-{
-    // Entfernt alle bisher erzeugten Cards aus einem Layout.
-    // Das Layout selbst bleibt bestehen und kann danach wieder
-    // mit neuen Cards gefüllt werden.
-    CardUi::clearLayout(ui->routineActiveCardsLayout);
-    CardUi::clearLayout(ui->routineArchiveCardsLayout);
+    {
+        // Entfernt alle bisher erzeugten Cards aus einem Layout.
+        // Das Layout selbst bleibt bestehen und kann danach wieder
+        // mit neuen Cards gefüllt werden.
+        CardUi::clearLayout(ui->routineActiveCardsLayout);
+        CardUi::clearLayout(ui->routineArchiveCardsLayout);
+
+        // Drei feste Spalten, damit jede Karte genau 1/3 der Breite
+        // einnimmt — auch bei nur 1-2 Karten pro Zeile.
+        for (int c = 0; c < 3; ++c) {
+            ui->routineActiveCardsLayout->setColumnStretch(c, 1);
+            ui->routineArchiveCardsLayout->setColumnStretch(c, 1);
+        }
 
     ui->routineActiveCardsLayout->setRowStretch(0, 0);
     ui->routineArchiveCardsLayout->setRowStretch(0, 0);
@@ -5154,6 +5461,7 @@ void MainWindow::loadRoutineExecution()
         item.goal             = exercise.goal;
         item.durationSeconds  = step.durationSeconds;
         item.remainingMs      = step.durationSeconds * 1000;
+        item.valueMode        = exercise.valueMode;
 
         routineExecutionItems.append(item);
     }
@@ -5324,14 +5632,38 @@ bool MainWindow::saveRoutineExecutionResults()
         const int elapsedSeconds = qRound(item.elapsedMs / 1000.0);
         totalElapsedSeconds += elapsedSeconds;
 
-        // Komma und Punkt werden beide akzeptiert.
+        // Time und TimerOnly: nur die gelaufene Zeit zählt.
+        if (item.valueMode == ValueMode::Time ||
+            item.valueMode == ValueMode::TimerOnly) {
+
+            if (elapsedSeconds <= 0)
+                continue;
+
+            int logId = 0;
+
+            if (!ExerciseLogRepository::add(
+                    item.exerciseId,
+                    static_cast<double>(elapsedSeconds),
+                    QStringLiteral("s"),
+                    elapsedSeconds,
+                    logId)) {
+
+                qDebug() << "Übungs-Log der Routine konnte nicht gespeichert werden:"
+                         << item.exerciseId;
+                continue;
+            }
+
+            savedAnything = true;
+            continue;
+        }
+
+        // Progress und Cumulative: Wert-Eingabe Pflicht.
         QString text = item.enteredText.trimmed();
         text.replace(',', '.');
 
         bool ok = false;
         const double newValue = text.toDouble(&ok);
 
-        // Übungen ohne eingetragenen Wert werden nicht gespeichert.
         if (!ok)
             continue;
 
@@ -5339,9 +5671,6 @@ bool MainWindow::saveRoutineExecutionResults()
 
         int logId = 0;
 
-        // Ein Übungs-Log pro Übung: neuer Wert, Einheit und die
-        // tatsächlich gelaufene Zeit. Karten, Verlauf und Fortschritt
-        // lesen den letzten Log, deshalb erscheint der Wert überall.
         if (!ExerciseLogRepository::add(
                 item.exerciseId,
                 newValue,
@@ -5358,8 +5687,7 @@ bool MainWindow::saveRoutineExecutionResults()
     }
 
     // Das Routine-Log wird nur geschrieben, wenn wirklich etwas passiert
-    // ist (Wert eingetragen oder Zeit gelaufen). Ein versehentliches
-    // Öffnen und Beenden erzeugt keinen Eintrag.
+    // ist (Wert eingetragen, Zeit gelaufen).
     if (anyValueEntered || totalElapsedSeconds > 0) {
 
         int routineLogId = 0;
@@ -5398,8 +5726,21 @@ void MainWindow::selectRoutineExecutionExercise(int index)
     ui->routineExecutionExerciseCurrentValueLabel->setText(
         formatValueWithUnit(item.currentValue, item.unit));
 
-    ui->routineExecutionExerciseValueEdit->setEnabled(true);
+    const bool showValueFields =
+        (item.valueMode == ValueMode::Progress ||
+         item.valueMode == ValueMode::Cumulative);
+
+    ui->routineExecutionExerciseValueEdit->setVisible(showValueFields);
+    ui->routineExecutionExerciseNewValueHeaderLabel->setVisible(showValueFields);
+    ui->routineExecutionExerciseValueEdit->setEnabled(showValueFields);
     ui->routineExecutionExerciseValueEdit->setText(item.enteredText);
+
+    const bool showValueLabels = (item.valueMode != ValueMode::TimerOnly);
+
+    ui->routineExecutionExerciseCurrentValueHeaderLabel->setVisible(showValueLabels);
+    ui->routineExecutionExerciseCurrentValueLabel->setVisible(showValueLabels);
+    ui->routineExecutionExerciseTargetHeaderLabel->setVisible(showValueLabels);
+    ui->routineExecutionExerciseTargetLabel->setVisible(showValueLabels);
 
     // Passenden Button hervorheben und in die Leiste scrollen.
     for (int i = 0;
@@ -5966,6 +6307,7 @@ void MainWindow::showExerciseExecution(int exerciseId)
     exerciseExecutionData.currentValue  =
         hasLatestLog ? latestLog.value : exercise.value;
     exerciseExecutionData.goal          = exercise.goal;
+    exerciseExecutionData.valueMode     = exercise.valueMode;
     exerciseExecutionData.enteredText.clear();
 
     currentExecutionExerciseId = exerciseId;
@@ -5990,7 +6332,6 @@ void MainWindow::showExerciseExecution(int exerciseId)
         exerciseExecutionData.name
         );
 
-
     ui->exerciseExecutionExerciseDescriptionLabel->setText(
         exerciseExecutionData.description
         );
@@ -6013,9 +6354,26 @@ void MainWindow::showExerciseExecution(int exerciseId)
             )
         );
 
+    // Bei Time und TimerOnly gibt es keinen sinnvollen "Wert", den der
+    // Nutzer eintragen könnte — die gelaufene Zeit IST der Wert.
+    // Wir blenden das Eingabefeld (und die zugehörigen Labels) aus.
+    const bool showValueFields =
+        (exercise.valueMode == ValueMode::Progress ||
+         exercise.valueMode == ValueMode::Cumulative);
+
+    ui->exerciseExecutionExerciseNewValueHeaderLabel->setVisible(showValueFields);
+    ui->exerciseExecutionExerciseValueEdit->setVisible(showValueFields);
+
+    // Zusätzlich: "Wert"/"Ziel"-Labels ausblenden, wenn's keine Werte gibt.
+    const bool showValueLabels = (exercise.valueMode != ValueMode::TimerOnly);
+
+    ui->exerciseExecutionExerciseCurrentValueHeaderLabel->setVisible(showValueLabels);
+    ui->exerciseExecutionExerciseCurrentValueLabel->setVisible(showValueLabels);
+    ui->exerciseExecutionExerciseTargetHeaderLabel->setVisible(showValueLabels);
+    ui->exerciseExecutionExerciseTargetLabel->setVisible(showValueLabels);
 
     ui->exerciseExecutionExerciseValueEdit->clear();
-    ui->exerciseExecutionExerciseValueEdit->setEnabled(true);
+    ui->exerciseExecutionExerciseValueEdit->setEnabled(showValueFields);
 
     // ── Timer zurücksetzen ──────────────────────────────────────────────
     //
@@ -6083,7 +6441,44 @@ bool MainWindow::saveExerciseExecutionResults()
     if (currentExecutionExerciseId == 0)
         return false;
 
-    // Komma und Punkt werden beide akzeptiert.
+    const ValueMode mode = exerciseExecutionData.valueMode;
+
+    // ── Time und TimerOnly: nur die gelaufene Zeit zählt ─────────────────
+    //
+    // Der Nutzer gibt keinen Wert ein. Wenn der Timer nie gelaufen ist,
+    // gibt's nichts zu speichern.
+    if (mode == ValueMode::Time || mode == ValueMode::TimerOnly) {
+
+        if (exerciseExecutionElapsedMs <= 0)
+            return false;
+
+        const int elapsedSeconds = exerciseExecutionElapsedMs / 1000;
+
+        // Der "Wert" im Log ist bei Time die gelaufene Zeit (in Sekunden).
+        // Der Fortschritt rechnet später die Summe.
+        //
+        // Für Time: value = elapsedSeconds, unit = "s" (wird in der
+        // Fortschritts-Berechnung zu Minuten/Stunden umgerechnet).
+        //
+        // Für TimerOnly: value = elapsedSeconds, unit = "s" — wird nur
+        // im Verlauf als Dauer angezeigt.
+        int logId = 0;
+
+        if (!ExerciseLogRepository::add(
+                currentExecutionExerciseId,
+                static_cast<double>(elapsedSeconds),
+                QStringLiteral("s"),
+                elapsedSeconds,
+                logId)) {
+
+            qDebug() << "Übungs-Log konnte nicht gespeichert werden.";
+            return false;
+        }
+
+        return true;
+    }
+
+    // ── Progress und Cumulative: Wert-Eingabe Pflicht ────────────────────
     QString text = exerciseExecutionData.enteredText.trimmed();
     text.replace(',', '.');
 
@@ -7173,7 +7568,7 @@ void MainWindow::updateRoadmapActionButtons()
 
 void MainWindow::onRoadmapAddRootStep()
 {
-    if (currentHobbyId > 0)
+    if (currentHobbyId == 0)
         return;
 
     bool ok = false;
@@ -7599,10 +7994,11 @@ void MainWindow::onAddHobby()
     const int addHobbyIndex = ui->hobbyList->count() - 1;
     ui->hobbyList->insertItem(addHobbyIndex, newItem);
 
-    // Neu angelegtes Hobby direkt öffnen. Das setzt auch die Fett-
-    // Formatierung, weil selectHobbyById() das Ziel-Item fett macht.
-    selectHobbyById(hobbyId);
+    // Neu angelegtes Hobby öffnen. Statt hart umzuschalten, machen
+    // wir einen weichen Übergang (Fade-Out → Switch → Fade-In).
+    animateToHobby(hobbyId);
 }
+
 
 void MainWindow::selectHobbyById(int hobbyId)
 {
@@ -8035,6 +8431,69 @@ void MainWindow::cancelRoadmapDetailTitleEdit()
     if (roadmapDetailTitleEdit)
         roadmapDetailTitleEdit->setVisible(false);
 }
+
+// ── Übergang: Willkommens-Screen → erstes Hobby ─────────────────────────────
+//
+// Wird nach dem erfolgreichen Anlegen eines Hobbys aufgerufen. Statt
+// hart umzuschalten (was den Nutzer überrumpelt), blenden wir den
+// Willkommens-Screen sanft aus, schalten auf die Hobby-Ansicht und
+// blenden die neue Ansicht sanft ein.
+//
+// Variante B (Fade-Out → Switch → Fade-In):
+//   - Nutzt das bestehende QStackedWidget, keine Overlay-Hierarchie.
+//   - Sieht in 200 ms wie ein Crossfade aus.
+//   - Bei "Animationen reduzieren": sofort wechseln.
+//
+// Wichtig:
+//   - Der "+ Hobby hinzufügen"-Button bleibt während der Animation
+//     klickbar, weil nur die Opacity animiert wird (kein blockierender
+//     Modal-Dialog o. Ä.). Mehrfachklicks während der 200 ms würden
+//     mehrere Animationen starten; das ist unschön, aber ungefährlich —
+//     die letzte gewinnt.
+//   - Ein laufendes WelcomeIntro wird beim Start der Animation
+//     übersprungen, weil wir gleich die Seite wechseln.
+
+void MainWindow::animateToHobby(int hobbyId)
+{
+    if (hobbyId <= 0)
+        return;
+
+    // Bei reduzierter Bewegung sofort wechseln.
+    if (Motion::reduced()) {
+        selectHobbyById(hobbyId);
+        return;
+    }
+
+    // Referenz auf die Seite, die wir ausblenden.
+    QWidget *welcome = ui->dashboardPage;
+
+    // Wenn der Willkommens-Screen gar nicht sichtbar ist (z. B. weil
+    // wir schon in einem Hobby sind), direkt wechseln.
+    if (!welcome || !welcome->isVisible()) {
+        selectHobbyById(hobbyId);
+        return;
+    }
+
+    // Fade-Out: 150 ms reichen. Länger wirkt der Übergang zäh.
+    Motion::fadeOut(
+        welcome,
+        Motion::Fast,
+        [this, hobbyId]() {
+            // Erst wenn der Willkommens-Screen fertig ausgeblendet ist,
+            // wechseln wir die Seite.
+            selectHobbyById(hobbyId);
+
+            // Die Hobby-Seite ist jetzt sichtbar, aber sie soll nicht
+            // abrupt auftauchen. Wir blenden sie sanft ein.
+            //
+            // Hinweis: `hobbyPage` ist das QStackedWidget-Kind, das
+            // die ganze Hobby-Ansicht enthält (Header, Tabs, Inhalte).
+            // Bei reduzierter Bewegung macht fadeIn nichts.
+            Motion::fadeIn(ui->hobbyPage, Motion::Fast);
+        }
+        );
+}
+
 
 MainWindow::~MainWindow()
 {

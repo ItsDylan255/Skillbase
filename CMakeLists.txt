@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/resources)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql Multimedia)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql Multimedia Svg)
 
 qt_standard_project_setup()
 
@@ -100,6 +100,10 @@ qt_add_executable(Skillbase
     include/roadmaptreedelegate.h
     src/roadmaptreedelegate.cpp
     include/cardhelpers.h
+    include/animhelpers.h
+    include/logowidget.h
+    include/welcomeintro.h
+    include/valuemode.h
 
 
 )
@@ -112,6 +116,7 @@ target_link_libraries(Skillbase
         Qt::Widgets
         Qt::Sql
         Qt::Multimedia
+        Qt::Svg
 )
 
 install(TARGETS Skillbase

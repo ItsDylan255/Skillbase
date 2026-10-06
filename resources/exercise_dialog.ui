@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>340</height>
+    <width>420</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -59,11 +59,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="descriptionLineEdit">
-       <property name="placeholderText">
-        <string>Kurze Beschreibung (optional)</string>
-       </property>
-      </widget>
+      <widget class="QLineEdit" name="descriptionLineEdit"/>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="categoryLabel">
@@ -81,45 +77,168 @@
        </item>
       </widget>
      </item>
-     <item row="3" column="0">
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="valueTypeSectionLabel">
+     <property name="text">
+      <string>WERT-TYP</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="valueModeLayout">
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" name="valueModeProgressLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="valueModeProgressButton">
+         <property name="text">
+          <string>Veränderlich</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="valueModeProgressHint">
+         <property name="text">
+          <string>Gewicht, Bestzeit</string>
+         </property>
+         <property name="indent">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="valueModeCumulativeLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="valueModeCumulativeButton">
+         <property name="text">
+          <string>Summiert</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="valueModeCumulativeHint">
+         <property name="text">
+          <string>Wiederholungen pro Session</string>
+         </property>
+         <property name="indent">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="valueModeTimeLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="valueModeTimeButton">
+         <property name="text">
+          <string>Lernzeit</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="valueModeTimeHint">
+         <property name="text">
+          <string>Wird automatisch erfasst</string>
+         </property>
+         <property name="indent">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="valueModeTimerOnlyLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="valueModeTimerOnlyButton">
+         <property name="text">
+          <string>Nur Timer</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="valueModeTimerOnlyHint">
+         <property name="text">
+          <string>Ohne Wert und Ziel</string>
+         </property>
+         <property name="indent">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="valueFormLayout">
+     <property name="horizontalSpacing">
+      <number>12</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>12</number>
+     </property>
+     <item row="0" column="0">
       <widget class="QLabel" name="valueLabel">
        <property name="text">
         <string>Wert</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="0" column="1">
       <widget class="QLineEdit" name="valueLineEdit">
        <property name="placeholderText">
-        <string>z. B. 60.5 (optional)</string>
+        <string>z. B. 60.5</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="unitLabel">
        <property name="text">
         <string>Einheit</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="1" column="1">
       <widget class="QLineEdit" name="unitLineEdit">
        <property name="placeholderText">
-        <string>z. B. kg, min, km (optional)</string>
+        <string>z. B. kg, min, km</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="goalLabel">
        <property name="text">
         <string>Ziel</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
+     <item row="2" column="1">
       <widget class="QLineEdit" name="goalLineEdit">
        <property name="placeholderText">
-        <string>z. B. 100 kg erreichen (optional)</string>
+        <string>z. B. 100</string>
        </property>
       </widget>
      </item>
@@ -138,7 +257,6 @@
      </property>
     </spacer>
    </item>
-   <!-- Untere Button-Leiste: Archivieren, Löschen links | Abbrechen + Speichern rechts -->
    <item>
     <layout class="QHBoxLayout" name="bottomButtonLayout">
      <item>
@@ -180,6 +298,10 @@
   <tabstop>nameLineEdit</tabstop>
   <tabstop>descriptionLineEdit</tabstop>
   <tabstop>categoryComboBox</tabstop>
+  <tabstop>valueModeProgressButton</tabstop>
+  <tabstop>valueModeCumulativeButton</tabstop>
+  <tabstop>valueModeTimeButton</tabstop>
+  <tabstop>valueModeTimerOnlyButton</tabstop>
   <tabstop>valueLineEdit</tabstop>
   <tabstop>unitLineEdit</tabstop>
   <tabstop>goalLineEdit</tabstop>
@@ -191,32 +313,12 @@
    <signal>accepted()</signal>
    <receiver>ExerciseDialog</receiver>
    <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>319</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>169</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>ExerciseDialog</receiver>
    <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>319</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>169</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

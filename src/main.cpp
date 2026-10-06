@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    a.setWindowIcon(QIcon(":/icons/skillbase_white.svg"));
+    a.setWindowIcon(QIcon(":/icons/skillbase_icon_256.png"));
 
     // Globaler Fokus-Filter: Klick auf nicht-fokussierbare Flächen
     // nimmt dem Eingabefeld den Fokus.
