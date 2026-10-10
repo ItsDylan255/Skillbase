@@ -69,6 +69,10 @@ protected:
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QApplication::setApplicationName("Skillbase");
+    QApplication::setApplicationVersion("1.1.0");
+    QApplication::setOrganizationName("Skillbase");
+    QApplication::setOrganizationDomain("skillbase.local");
 
     a.setWindowIcon(QIcon(":/icons/skillbase_icon_256.png"));
 
