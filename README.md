@@ -1,5 +1,9 @@
 # Skillbase
 
+<p align="center">
+  <img src="docs/screenshots/banner.png" alt="Skillbase" width="100%">
+</p>
+
 **Skillbase** is a local desktop application for organizing and developing personal hobbies and skills over the long term — built with C++ and Qt 6.
 
 > Skillbase should always show me what I've achieved, where I currently stand, what I should work on next, and where I want to go long-term — without overloading me with unnecessary features.
